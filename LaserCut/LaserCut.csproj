@@ -9,6 +9,7 @@
     <ItemGroup>
       <PackageReference Include="MathNet.Spatial" Version="0.6.0" />
       <PackageReference Include="STLDotNet6.Formats.StereoLithography" Version="1.0.0" />
+      <PackageReference Include="Supercluster.KDTree" Version="1.0.4" />
     </ItemGroup>
 
 </Project>
