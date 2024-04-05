@@ -13,6 +13,7 @@ namespace LaserCut.Geometry;
 public class Contour
 {
     private readonly List<Point2D> _points;
+    private Aabb2? _bounds;
 
     public Contour()
     {
@@ -23,10 +24,18 @@ public class Contour
     {
         _points = new List<Point2D>(points);
     }
+    
+    public Contour(IEnumerable<Point3D> points)
+    {
+        _points = points.Select(p => new Point2D(p.X, p.Y)).ToList();
+    }
 
     public IReadOnlyList<Point2D> Points => _points;
     public Point2D Start => _points.First();
     public Point2D End => _points.Last();
+    public Aabb2 Bounds => _bounds ??= Aabb2.FromPoints(_points);
+    
+    public bool IsClosed => _points.Count > 3 && _points.First() == _points.Last();
     
     public Contour Clone()
     {
@@ -36,13 +45,16 @@ public class Contour
     public void Extend(Contour other)
     {
         _points.AddRange(other._points);
+        _bounds = null;
     }
 
+    [Pure]
     public Contour Transformed(Matrix transformation)
     {
         return new Contour(_points.Select(p => p.Transformed(transformation)));
     }
 
+    [Pure]
     public Contour Scaled(double scale)
     {
         return new Contour(_points.Select(x => Point2D.OfVector(x.ToVector() * scale)));
@@ -51,26 +63,28 @@ public class Contour
     public void AddAbs(Point2D point)
     {
         _points.Add(point);
+        _bounds = null;
     }
 
     public void AddAbs(double x, double y)
     {
-        _points.Add(new Point2D(x, y));
+        AddAbs(new Point2D(x, y));
     }
     
     public void AddAbsX(double x)
     {
-        _points.Add(new Point2D(x, _points.Last().Y));
+        AddAbs(new Point2D(x, _points.Last().Y));
     }
     
     public void AddAbsY(double y)
     {
-        _points.Add(new Point2D(_points.Last().X, y));
+        AddAbs(new Point2D(_points.Last().X, y));
     }
 
     public void AddPoints(IEnumerable<Point2D> points)
     {
         _points.AddRange(points);
+        _bounds = null;
     }
 
     public void AddRel(double x, double y)
@@ -139,7 +153,7 @@ public class Contour
     {
         if (_points.Count > 0)
             if (_points.First() != _points.Last())
-                _points.Add(_points.First());
+                AddAbs(_points.First());
     }
 
     /// <summary>
@@ -156,7 +170,7 @@ public class Contour
             throw new InvalidOperationException("Cannot close a contour with no points");
         
         if (Math.Abs(_points.First().X - _points.Last().X) > 1e-6)
-            _points.Add(new Point2D(_points.First().X, _points.Last().Y));
+            AddAbs(_points.First().X, _points.Last().Y);
     }
 
     /// <summary>
@@ -173,7 +187,7 @@ public class Contour
             throw new InvalidOperationException("Cannot close a contour with no points");
         
         if (Math.Abs(_points.First().Y - _points.Last().Y) > 1e-6)
-            _points.Add(new Point2D(_points.Last().X, _points.First().Y));
+            AddAbs(_points.Last().X, _points.First().Y);
     }
 
     /// <summary>

@@ -168,10 +168,10 @@ public class Mesh3D
     /// <summary>
     /// Extract chains of unique edges from the mesh.  A unique edge is one that only belongs to a single face when
     /// ignoring the direction of the edge.  These edges will be present at every boundary of a connected patch of
-    /// triangles. This method will return an array of PolyLine3D objects that represent the boundary chains.
+    /// triangles. This method will return an array of Point3D arrays that represent the boundary chains.
     /// </summary>
     /// <returns></returns>
-    public PolyLine3D[] ExtractEdgeChains()
+    public Point3D[][] ExtractEdgeChains()
     {
         var edges = new List<Edge>();
         foreach (var face in _faces)
@@ -194,7 +194,7 @@ public class Mesh3D
         
         // Now we're going to represent the boundary edges as a map of vertex index to the next vertex index
         var map = boundaryEdges.ToDictionary(e => e.A, e => e.B);
-        var chains = new List<PolyLine3D>();
+        var chains = new List<Point3D[]>();
         while (map.Count > 0)
         {
             var start = map.First().Key;
@@ -208,7 +208,7 @@ public class Mesh3D
                 current = next;
             }
             
-            chains.Add(new PolyLine3D(chain));
+            chains.Add(chain.ToArray());
         }
 
         return chains.ToArray();

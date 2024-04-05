@@ -19,10 +19,33 @@ public struct Aabb2
         MaxX = maxX;
         MaxY = maxY;
     }
+    
+    public double Area => Width * Height;
+    
+    public bool IsEmpty => Width <= 0 && Height <= 0;
 
     public double Width => MaxX - MinX;
+    
     public double Height => MaxY - MinY;
+    
     public Point2D Center => new Point2D((MinX + MaxX) / 2, (MinY + MaxY) / 2);
+    
+    public static Aabb2 FromPoints(IEnumerable<Point2D> points)
+    {
+        var minX = double.MaxValue;
+        var minY = double.MaxValue;
+        var maxX = double.MinValue;
+        var maxY = double.MinValue;
+        foreach (var point in points)
+        {
+            minX = Math.Min(minX, point.X);
+            minY = Math.Min(minY, point.Y);
+            maxX = Math.Max(maxX, point.X);
+            maxY = Math.Max(maxY, point.Y);
+        }
+
+        return new Aabb2(minX, minY, maxX, maxY);
+    }
 
     public bool Contains(Point2D point)
     {
