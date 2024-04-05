@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.Contracts;
+using LaserCut.Algorithms;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Spatial.Euclidean;
 
@@ -12,30 +13,32 @@ namespace LaserCut.Geometry;
 /// </summary>
 public class Contour
 {
-    private readonly List<Point2D> _points;
-    private Aabb2? _bounds;
+    private readonly PointWinding _points;
 
     public Contour()
     {
-        _points = new List<Point2D>();
+        _points = new PointWinding();
     }
 
     public Contour(IEnumerable<Point2D> points)
     {
-        _points = new List<Point2D>(points);
+        _points = new PointWinding(points.ToList());
     }
     
     public Contour(IEnumerable<Point3D> points)
     {
-        _points = points.Select(p => new Point2D(p.X, p.Y)).ToList();
+        _points = new PointWinding(points.Select(p => new Point2D(p.X, p.Y)).ToList());
     }
 
     public IReadOnlyList<Point2D> Points => _points;
-    public Point2D Start => _points.First();
-    public Point2D End => _points.Last();
-    public Aabb2 Bounds => _bounds ??= Aabb2.FromPoints(_points);
+    public Point2D Start => _points.First;
+    public Point2D End => _points.Last;
+
+    public bool IsClosed => _points.IsClosed;
+    public double Area => _points.Area;
+    public Aabb2 Bounds => _points.Bounds;
     
-    public bool IsClosed => _points.Count > 3 && _points.First() == _points.Last();
+    public BvhNode Bvh => _points.Bvh;
     
     public Contour Clone()
     {
@@ -45,7 +48,6 @@ public class Contour
     public void Extend(Contour other)
     {
         _points.AddRange(other._points);
-        _bounds = null;
     }
 
     [Pure]
@@ -63,7 +65,6 @@ public class Contour
     public void AddAbs(Point2D point)
     {
         _points.Add(point);
-        _bounds = null;
     }
 
     public void AddAbs(double x, double y)
@@ -84,7 +85,6 @@ public class Contour
     public void AddPoints(IEnumerable<Point2D> points)
     {
         _points.AddRange(points);
-        _bounds = null;
     }
 
     public void AddRel(double x, double y)

@@ -20,9 +20,11 @@ public struct Aabb2
         MaxY = maxY;
     }
     
-    public double Area => Width * Height;
+    public static Aabb2 Empty => new Aabb2(double.NaN, double.NaN, double.NaN, double.NaN);
     
-    public bool IsEmpty => Width <= 0 && Height <= 0;
+    public double Area => Width * Height;
+
+    public bool IsEmpty => double.IsNaN(MinX) || double.IsNaN(MinY) || double.IsNaN(MaxX) || double.IsNaN(MaxY);
 
     public double Width => MaxX - MinX;
     
@@ -64,6 +66,11 @@ public struct Aabb2
 
     public Aabb2 Union(Aabb2 other)
     {
+        if (IsEmpty)
+            return other;
+        if (other.IsEmpty)
+            return this;
+        
         return new Aabb2(
             Math.Min(MinX, other.MinX),
             Math.Min(MinY, other.MinY),
