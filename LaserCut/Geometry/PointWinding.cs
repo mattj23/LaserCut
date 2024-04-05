@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics;
 using System.Net.Sockets;
 using LaserCut.Algorithms;
 using MathNet.Spatial.Euclidean;
@@ -39,6 +40,8 @@ public class PointWinding : IReadOnlyList<Point2D>
     public Aabb2 Bounds => _bounds = _bounds.IsEmpty ? Aabb2.FromPoints(_points): _bounds;
     
     public BvhNode Bvh => _bvh ??= BuildBvh();
+    
+    public List<Segment> Segments => _segments ??= BuildSegments();
 
     public void Add(double x, double y)
     {
@@ -47,11 +50,12 @@ public class PointWinding : IReadOnlyList<Point2D>
     
     public void Add(Point2D point)
     {
-        if (_points.Count > 0 && Last.DistanceTo(point) > 1e-6)
+        if (_points.Count > 1 && Last.DistanceTo(point) < 1e-6)
         {
-            _points.Add(point);
-            ResetCachedValues();
+            return;
         }
+        _points.Add(point);
+        ResetCachedValues();
     }
     
     public void AddRange(IEnumerable<Point2D> points)
@@ -75,6 +79,27 @@ public class PointWinding : IReadOnlyList<Point2D>
     public int Count => _points.Count;
 
     public Point2D this[int index] => _points[index];
+
+    public ContourIntersection[] Intersections(PointWinding other)
+    {
+        var results = new List<ContourIntersection>();
+        
+        foreach (var seg in Segments)
+        {
+            var candidates = other.Bvh.MightIntersect(seg.Bounds);
+            foreach (var candidate in candidates)
+            {
+                if (seg.Intersect(candidate) is { } point)
+                {
+                    results.Add(new ContourIntersection(point, seg.Index, candidate.Index));
+                    // Console.WriteLine($"Seg {seg.Index} intersects with {candidate.Index} at {point}");
+                }
+                
+            }
+        }
+        
+        return results.ToArray();
+    }
     
     private void ResetCachedValues()
     {
@@ -83,17 +108,21 @@ public class PointWinding : IReadOnlyList<Point2D>
         _bvh = null;
         _segments = null;
     }
+
+    private List<Segment> BuildSegments()
+    {
+        var segments = new List<Segment>();
+        for (var i = 0; i < _points.Count - 1; i++)
+        {
+            segments.Add(new Segment(_points[i], _points[i+1], i));
+        }
+
+        return segments;
+    }
     
     private BvhNode BuildBvh()
     {
-        _segments = new List<Segment>();
-        for (var i = 0; i < _points.Count - 1; i++)
-        {
-            _segments.Add(new Segment(_points[i], _points[i+1], i));
-        }
-
-        var root = new BvhNode(_segments);
-        root.Split();
+        var root = new BvhNode(Segments);
 
         return root;
     }

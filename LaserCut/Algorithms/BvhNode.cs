@@ -1,4 +1,5 @@
-﻿using LaserCut.Geometry;
+﻿using System.Text;
+using LaserCut.Geometry;
 
 namespace LaserCut.Algorithms;
 
@@ -6,7 +7,9 @@ public class BvhNode
 {
     private readonly List<Segment> _segments;
     
-    public BvhNode(IEnumerable<Segment> segments)
+    public BvhNode(IEnumerable<Segment> segments) : this(segments, true) { }
+
+    private BvhNode(IEnumerable<Segment> segments, bool horizontal)
     {
         _segments = segments.ToList();
         
@@ -15,25 +18,7 @@ public class BvhNode
         {
             Bounds = Bounds.Union(segment.Bounds);
         }
-    }
-
-    public void Split(bool horizontal = true)
-    {
-        if (_segments.Count <= 3)
-        {
-            return;
-        }
-        
-        // Order the segments either by x or y, depending on the horizontal flag
-        _segments.Sort((a, b) => horizontal ? a.Start.X.CompareTo(b.Start.X) : a.Start.Y.CompareTo(b.Start.Y));
-        
-        // Split the segments into two groups
-        var mid = _segments.Count / 2;
-        Left = new BvhNode(_segments.Take(mid));
-        Right = new BvhNode(_segments.Skip(mid));
-        _segments.Clear();
-        Left.Split(!horizontal);
-        Right.Split(!horizontal);
+        Split(horizontal);
     }
     
     public BvhNode? Left { get; set; }
@@ -58,6 +43,46 @@ public class BvhNode
         }
         
         return thisList;
+    }
+    
+    public List<Segment> MightIntersect(Aabb2 bounds)
+    {
+        if (!Bounds.Intersects(bounds))
+        {
+            return new List<Segment>();
+        }
+        
+        var result = new List<Segment>();
+        result.AddRange(_segments.Where(s => s.Bounds.Intersects(bounds)));
+        
+        if (Left is not null)
+        {
+            result.AddRange(Left.MightIntersect(bounds));
+        }
+        
+        if (Right is not null)
+        {
+            result.AddRange(Right.MightIntersect(bounds));
+        }
+        
+        return result;
+    }
+    
+    private void Split(bool horizontal)
+    {
+        if (_segments.Count <= 3)
+        {
+            return;
+        }
+        
+        // Order the segments either by x or y, depending on the horizontal flag
+        _segments.Sort((a, b) => horizontal ? a.Start.X.CompareTo(b.Start.X) : a.Start.Y.CompareTo(b.Start.Y));
+        
+        // Split the segments into two groups
+        var mid = _segments.Count / 2;
+        Left = new BvhNode(_segments.Take(mid), !horizontal);
+        Right = new BvhNode(_segments.Skip(mid), !horizontal);
+        _segments.Clear();
     }
     
 }

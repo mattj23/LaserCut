@@ -2,6 +2,7 @@
 using LaserCut.Algorithms;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Spatial.Euclidean;
+using MathNet.Spatial.Units;
 
 namespace LaserCut.Geometry;
 
@@ -202,5 +203,31 @@ public class Contour
     public Contour Offset(double distance)
     {
         throw new NotImplementedException("Contour offset not implemented yet");
+    }
+    
+    public ContourIntersection[] Intersections(Contour other)
+    {
+        return _points.Intersections(other._points);
+    }
+
+    public static Contour Arc(Point2D start, Point2D center, double degrees, int n)
+    {
+        var contour = new Contour();
+        var v = start - center;
+        for (var i = 0; i < n; i++)
+        {
+            var angle = i * degrees / (n - 1);
+            var t = Matrix2D.Rotation(Angle.FromDegrees(angle));
+            var p = center + v.TransformBy(t);
+            contour.AddAbs(p);
+        }
+        
+        return contour;
+    }
+    
+    public static Contour Circle(Point2D center, double radius, int n, bool outside)
+    {
+        var angle = outside ? 360.0 : -360.0;
+        return Arc(center + new Vector2D(radius, 0), center, angle, n);
     }
 }
