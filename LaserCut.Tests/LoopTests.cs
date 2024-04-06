@@ -183,6 +183,15 @@ public class LoopTests
         Assert.Equal(expected, values);
     }
 
+    [Fact]
+    public void IterateEdges()
+    {
+        var loop = StringLoop.Abcde();
+        var values = loop.GetEdges().ToArray();
+        var expected = new[] { ("a", "b"), ("b", "c"), ("c", "d"), ("d", "e"), ("e", "a") };
+        Assert.Equal(expected, values);
+    }
+
     private class StringLoop : Loop<string>
     {
         public StringLoop()

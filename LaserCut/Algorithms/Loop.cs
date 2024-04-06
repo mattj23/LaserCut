@@ -79,9 +79,26 @@ public abstract class Loop<T>
         return new LoopCursor(this, nodeId);
     }
     
+    /// <summary>
+    /// Returns an enumerable of all items in the loop.  If a startId is provided, the enumeration will start at that
+    /// item, otherwise it will start at the head of the loop.
+    /// </summary>
+    /// <param name="startId"></param>
+    /// <returns></returns>
     public IEnumerable<T> GetItems(int? startId = null)
     {
         return new NodeEnumerable(this, startId ?? _headId);
+    }
+    
+    /// <summary>
+    /// Returns an enumerable of all edges (pairs of consecutive items) in the loop.  If a startId is provided, the
+    /// enumeration will start at that item, otherwise it will start at the head of the loop.
+    /// </summary>
+    /// <param name="startId"></param>
+    /// <returns></returns>
+    public IEnumerable<(T, T)> GetEdges(int? startId = null)
+    {
+        return new EdgeEnumerable(this, startId ?? _headId);
     }
     
     public int? FindId(Func<T, bool> predicate)
@@ -199,7 +216,6 @@ public abstract class Loop<T>
         return _nodes[_headId].PreviousId;
     }
     
-    
     private class LoopNode
     {
         public int Id { get; }
@@ -260,10 +276,7 @@ public abstract class Loop<T>
 
         object IEnumerator.Current => Current;
 
-        public void Dispose()
-        {
-            
-        }
+        public void Dispose() { }
     }
 
     private class NodeEnumerable : IEnumerable<T>
@@ -276,6 +289,80 @@ public abstract class Loop<T>
         }
         
         public IEnumerator<T> GetEnumerator()
+        {
+            return _enumerator;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
+    
+    private class EdgeEnumerator : IEnumerator<(T, T)>
+    {
+        private readonly Loop<T> _loop;
+        private readonly int _startId;
+        private int _currentId;
+        
+        public EdgeEnumerator(Loop<T> loop, int startId)
+        {
+            _loop = loop;
+            _startId = startId;
+            _currentId = -1;
+            Current = ValueAt(_startId);
+        }
+
+        public bool MoveNext()
+        {
+            if (_currentId == -1)
+            {
+                _currentId = _startId;
+            }
+            else
+            {
+                var nextId = _loop._nodes[_currentId].NextId;
+                if (nextId == _startId)
+                {
+                    return false;
+                }
+                _currentId = nextId;
+            }
+            
+            Current = ValueAt(_currentId);
+            return true;
+        }
+
+        public void Reset()
+        {
+            _currentId = -1;
+            Current = ValueAt(_startId);
+        }
+
+        public (T, T) Current { get; private set; }
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() { }
+
+        private (T, T) ValueAt(int id)
+        {
+            var a = _loop._nodes[id].Item;
+            var b = _loop._nodes[_loop._nodes[id].NextId].Item;
+            return (a, b);
+        }
+    }
+    
+    private class EdgeEnumerable : IEnumerable<(T, T)>
+    {
+        private readonly EdgeEnumerator _enumerator;
+        
+        public EdgeEnumerable(Loop<T> loop, int startId)
+        {
+            _enumerator = new EdgeEnumerator(loop, startId);
+        }
+        
+        public IEnumerator<(T, T)> GetEnumerator()
         {
             return _enumerator;
         }
