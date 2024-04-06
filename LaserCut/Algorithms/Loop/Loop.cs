@@ -72,7 +72,7 @@ public class Loop<T>
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    public ILoopCursor<T> GetCursor(int? id = null)
+    public virtual ILoopCursor<T> GetCursor(int? id = null)
     {
         var nodeId = id ?? GetTailId();
         return new LoopCursor(this, nodeId);
@@ -249,7 +249,7 @@ public class Loop<T>
         throw new KeyNotFoundException("Invalid id to insert before");
     }
 
-    private int GetTailId()
+    protected int GetTailId()
     {
         if (Count == 0) return -1;
         return Nodes[_headId].PreviousId;
@@ -370,24 +370,24 @@ public class Loop<T>
     
     protected class LoopCursor : ILoopCursor<T>
     {
-        private readonly Loop<T> _loop;
+        protected readonly Loop<T> Loop;
         private int _nodeId;
 
         public LoopCursor(Loop<T> loop, int nodeId)
         {
-            _loop = loop;
+            Loop = loop;
             _nodeId = nodeId;
         }
 
-        public T Current => _loop.Nodes[_nodeId].Item;
+        public T Current => Loop.Nodes[_nodeId].Item;
         
         public int CurrentId => _nodeId;
         
-        private LoopNode Node => _loop.Nodes[_nodeId];
+        private LoopNode Node => Loop.Nodes[_nodeId];
         
-        private LoopNode NextNode => _loop.Nodes[Node.NextId];
+        private LoopNode NextNode => Loop.Nodes[Node.NextId];
         
-        private LoopNode PreviousNode => _loop.Nodes[Node.PreviousId];
+        private LoopNode PreviousNode => Loop.Nodes[Node.PreviousId];
         
         public T PeekNext()
         {
@@ -401,7 +401,7 @@ public class Loop<T>
         
         public int InsertBefore(T item, bool moveCursor = true)
         {
-            var id = _loop.InsertBefore(item, _nodeId);
+            var id = Loop.InsertBefore(item, _nodeId);
             if (moveCursor)
             {
                 _nodeId = id;
@@ -412,7 +412,7 @@ public class Loop<T>
         
         public int InsertAfter(T item, bool moveCursor = true)
         {
-            var id = _loop.InsertAfter(item, _nodeId);
+            var id = Loop.InsertAfter(item, _nodeId);
             if (moveCursor)
             {
                 _nodeId = id;
@@ -426,12 +426,12 @@ public class Loop<T>
             var nextId = Node.NextId;
             while (nextId != _nodeId)
             {
-                if (predicate(_loop.Nodes[nextId].Item))
+                if (predicate(Loop.Nodes[nextId].Item))
                 {
                     _nodeId = nextId;
                     return true;
                 }
-                nextId = _loop.Nodes[nextId].NextId;
+                nextId = Loop.Nodes[nextId].NextId;
             }
 
             return false;
@@ -442,12 +442,12 @@ public class Loop<T>
             var previousId = Node.PreviousId;
             while (previousId != _nodeId)
             {
-                if (predicate(_loop.Nodes[previousId].Item))
+                if (predicate(Loop.Nodes[previousId].Item))
                 {
                     _nodeId = previousId;
                     return true;
                 }
-                previousId = _loop.Nodes[previousId].PreviousId;
+                previousId = Loop.Nodes[previousId].PreviousId;
             }
 
             return false;
@@ -455,16 +455,16 @@ public class Loop<T>
         
         public void Remove(bool moveForward = true)
         {
-            if (_loop.Count == 0) return;
+            if (Loop.Count == 0) return;
             
             var nextId = moveForward ? Node.NextId : Node.PreviousId;
-            _loop.TryRemove(_nodeId);
+            Loop.TryRemove(_nodeId);
             _nodeId = nextId;
         }
         
         public void MoveForward()
         {
-            if (_loop.Count > 0)
+            if (Loop.Count > 0)
             {
                 _nodeId = Node.NextId;
             }
@@ -472,7 +472,7 @@ public class Loop<T>
         
         public void MoveBackward()
         {
-            if (_loop.Count > 0)
+            if (Loop.Count > 0)
             {
                 _nodeId = Node.PreviousId;
             }
@@ -480,7 +480,7 @@ public class Loop<T>
         
         public void MoveTo(int id)
         {
-            if (_loop.Nodes.ContainsKey(id))
+            if (Loop.Nodes.ContainsKey(id))
             {
                 _nodeId = id;
             }
@@ -492,17 +492,17 @@ public class Loop<T>
         
         public void MoveToHead()
         {
-            if (_loop.Count > 0)
+            if (Loop.Count > 0)
             {
-                _nodeId = _loop._headId;
+                _nodeId = Loop._headId;
             }
         }
         
         public void MoveToTail()
         {
-            if (_loop.Count > 0)
+            if (Loop.Count > 0)
             {
-                _nodeId = _loop.GetTailId();
+                _nodeId = Loop.GetTailId();
             }
         }
         
