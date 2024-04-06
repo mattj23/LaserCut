@@ -1,7 +1,6 @@
 using System.Collections;
-using MathNet.Spatial.Euclidean;
 
-namespace LaserCut.Algorithms;
+namespace LaserCut.Algorithms.Loop;
 
 /// <summary>
 /// A `Loop` is a double linked circular list holding onto items of type `T`.  It is not a lightweight data
@@ -13,7 +12,7 @@ namespace LaserCut.Algorithms;
 /// simplified ownership model in which orphaned nodes cannot be held indefinitely by client code, and second it allows
 /// for nodes to be found by id in constant time.
 /// </summary>
-public abstract class Loop<T>
+public class Loop<T>
 {
     /// <summary>
     /// This is the next unique id that will be assigned to a node.  It is incremented each time a new node is created.
@@ -29,7 +28,7 @@ public abstract class Loop<T>
     /// <summary>
     /// Nodes are stored in a dictionary with the integer id as the key. 
     /// </summary>
-    private readonly Dictionary<int, LoopNode> _nodes = new();
+    protected readonly Dictionary<int, LoopNode> Nodes = new();
     
     /// <summary>
     /// Create a new loop with no items.
@@ -53,11 +52,11 @@ public abstract class Loop<T>
     /// <summary>
     /// The total number of items in the loop.
     /// </summary>
-    public int Count => _nodes.Count;
+    public int Count => Nodes.Count;
     
-    public T Head => _nodes[_headId].Item;
+    public T Head => Nodes[_headId].Item;
     
-    public T Tail => _nodes[GetTailId()].Item;
+    public T Tail => Nodes[GetTailId()].Item;
      
     
     /// <summary>
@@ -85,7 +84,7 @@ public abstract class Loop<T>
     /// </summary>
     /// <param name="startId"></param>
     /// <returns></returns>
-    public IEnumerable<T> GetItems(int? startId = null)
+    public IEnumerable<LoopItem<T>> IterItems(int? startId = null)
     {
         return new NodeEnumerable(this, startId ?? _headId);
     }
@@ -96,25 +95,65 @@ public abstract class Loop<T>
     /// </summary>
     /// <param name="startId"></param>
     /// <returns></returns>
-    public IEnumerable<(T, T)> GetEdges(int? startId = null)
+    public IEnumerable<(LoopItem<T>, LoopItem<T>)> IterEdges(int? startId = null)
     {
         return new EdgeEnumerable(this, startId ?? _headId);
     }
     
-    public int? FindId(Func<T, bool> predicate)
+    /// <summary>
+    /// Creates a new loop with the same items in the same order.  This is not a deep copy, so if the items themselves
+    /// are reference types, they will be shared between the two loops.
+    /// </summary>
+    /// <returns></returns>
+    public virtual Loop<T> Copy()
+    {
+        var loop = new Loop<T>();
+        foreach (var item in IterItems())
+        {
+            loop.GetCursor().InsertAfter(item.Item);
+        }
+        return loop;
+    }
+    
+    /// <summary>
+    /// Reverses the order of the items in the loop in place.  The head of the loop will become the tail, and the tail
+    /// will become the head
+    /// </summary>
+    public void Reverse()
+    {
+        _headId = GetTailId();
+        foreach (var node in Nodes)
+        {
+            var p = node.Value.PreviousId;
+            var n = node.Value.NextId;
+            node.Value.PreviousId = n;
+            node.Value.NextId = p;
+        }
+    }
+    
+    /// <summary>
+    /// Finds the first item in the loop that satisfies the given predicate.  If a startId is provided, the search will
+    /// begin at that id, otherwise the search will begin at the head. If no item is found, the method will return null.
+    ///
+    /// The search will be in the forward direction.
+    /// </summary>
+    /// <param name="predicate">A predicate which should return true on the object where the search should stop</param>
+    /// <param name="startId">An optional id of the item to begin the search at</param>
+    /// <returns>The integer id of the first item which matches the predicate, or null if no item was found</returns>
+    public int? FirstId(Func<T, bool> predicate, int? startId = null)
     {
         if (Count == 0) return null;
         
-        var startId = _headId;
-        var currentId = startId;
+        var firstId = startId ?? _headId;
+        var currentId = firstId;
         do
         {
-            if (predicate(_nodes[currentId].Item))
+            if (predicate(Nodes[currentId].Item))
             {
                 return currentId;
             }
-            currentId = _nodes[currentId].NextId;
-        } while (currentId != startId);
+            currentId = Nodes[currentId].NextId;
+        } while (currentId != firstId);
 
         return null;
     }
@@ -126,12 +165,12 @@ public abstract class Loop<T>
     /// <returns></returns>
     private bool TryRemove(int id)
     {
-        if (!_nodes.TryGetValue(id, out var node)) return false;
-        var beforeNode = _nodes[node.PreviousId];
-        var afterNode = _nodes[node.NextId];
+        if (!Nodes.TryGetValue(id, out var node)) return false;
+        var beforeNode = Nodes[node.PreviousId];
+        var afterNode = Nodes[node.NextId];
         beforeNode.NextId = node.NextId;
         afterNode.PreviousId = node.PreviousId;
-        _nodes.Remove(id);
+        Nodes.Remove(id);
         OnItemChanged(node.Item);
             
         if (Count == 0)
@@ -173,21 +212,21 @@ public abstract class Loop<T>
             _headId = id;
         }
         
-        _nodes[id] = node;
+        Nodes[id] = node;
         OnItemChanged(node.Item);
         return id;
     }
     
     private int InsertAfter(T item, int idOfPrevious)
     {
-        if (_nodes.Count == 0)
+        if (Nodes.Count == 0)
         {
             return InsertBetween(item, null, null);
         }
         
-        if (_nodes.TryGetValue(idOfPrevious, out var beforeNode))
+        if (Nodes.TryGetValue(idOfPrevious, out var beforeNode))
         {
-            return InsertBetween(item, beforeNode, _nodes[beforeNode.NextId]);
+            return InsertBetween(item, beforeNode, Nodes[beforeNode.NextId]);
         }
         
         throw new KeyNotFoundException("Invalid id to insert after");
@@ -196,15 +235,15 @@ public abstract class Loop<T>
 
     private int InsertBefore(T item, int idOfNext)
     {
-        if (_nodes.Count == 0)
+        if (Nodes.Count == 0)
         {
             return InsertBetween(item, null, null);
         }
 
         // Get the node which will come after the one we're inserting
-        if (_nodes.TryGetValue(idOfNext, out var afterNode))
+        if (Nodes.TryGetValue(idOfNext, out var afterNode))
         {
-            return InsertBetween(item, _nodes[afterNode.PreviousId], afterNode);
+            return InsertBetween(item, Nodes[afterNode.PreviousId], afterNode);
         }
 
         throw new KeyNotFoundException("Invalid id to insert before");
@@ -213,10 +252,15 @@ public abstract class Loop<T>
     private int GetTailId()
     {
         if (Count == 0) return -1;
-        return _nodes[_headId].PreviousId;
+        return Nodes[_headId].PreviousId;
     }
     
-    private class LoopNode
+    /// <summary>
+    /// A `LoopNode` is the internal container for items in the loop.  It holds onto the item itself, as well as the
+    /// ids of the next and previous nodes in the loop.  It is not intended to be used directly by client code, and
+    /// so should not be exposed outside of the class.
+    /// </summary>
+    protected class LoopNode
     {
         public int Id { get; }
         public int NextId { get; set; }
@@ -230,9 +274,14 @@ public abstract class Loop<T>
             PreviousId = previousId;
             NextId = nextId;
         }
+
+        public override string ToString()
+        {
+            return $"<Node {PreviousId} <- [{Id}] -> {NextId}: {Item}>";
+        }
     }
 
-    private class NodeEnumerator : IEnumerator<T>
+    protected class NodeEnumerator : IEnumerator<LoopItem<T>>
     {
         private readonly Loop<T> _loop;
         private readonly int _startId;
@@ -243,7 +292,6 @@ public abstract class Loop<T>
             _loop = loop;
             _startId = startId;
             _currentId = -1;
-            Current = _loop._nodes[_startId].Item;
         }
 
         public bool MoveNext()
@@ -254,7 +302,7 @@ public abstract class Loop<T>
             }
             else
             {
-                var nextId = _loop._nodes[_currentId].NextId;
+                var nextId = _loop.Nodes[_currentId].NextId;
                 if (nextId == _startId)
                 {
                     return false;
@@ -262,118 +310,65 @@ public abstract class Loop<T>
                 _currentId = nextId;
             }
             
-            Current = _loop._nodes[_currentId].Item;
             return true;
         }
 
-        public void Reset()
+        public void Reset() { _currentId = -1; }
+        
+        private LoopItem<T> ValueAt(int id)
         {
-            _currentId = -1;
-            Current = _loop._nodes[_startId].Item;
+            return new LoopItem<T>(id, _loop.Nodes[id].Item);
         }
 
-        public T Current { get; private set; }
+        public LoopItem<T> Current => ValueAt(_currentId);
+        public LoopItem<T> PeekNext => ValueAt(_loop.Nodes[_currentId].NextId);
 
         object IEnumerator.Current => Current;
 
         public void Dispose() { }
     }
 
-    private class NodeEnumerable : IEnumerable<T>
+    protected class NodeEnumerable(Loop<T> loop, int startId) : IEnumerable<LoopItem<T>>
+    {
+        private readonly NodeEnumerator _enumerator = new(loop, startId);
+
+        public IEnumerator<LoopItem<T>> GetEnumerator() => _enumerator;
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+    
+    protected class EdgeEnumerator : IEnumerator<(LoopItem<T>, LoopItem<T>)>
     {
         private readonly NodeEnumerator _enumerator;
         
-        public NodeEnumerable(Loop<T> loop, int startId)
+        public EdgeEnumerator(Loop<T> loop, int startId)
         {
             _enumerator = new NodeEnumerator(loop, startId);
         }
-        
-        public IEnumerator<T> GetEnumerator()
-        {
-            return _enumerator;
-        }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-    }
-    
-    private class EdgeEnumerator : IEnumerator<(T, T)>
-    {
-        private readonly Loop<T> _loop;
-        private readonly int _startId;
-        private int _currentId;
-        
-        public EdgeEnumerator(Loop<T> loop, int startId)
-        {
-            _loop = loop;
-            _startId = startId;
-            _currentId = -1;
-            Current = ValueAt(_startId);
-        }
-
-        public bool MoveNext()
-        {
-            if (_currentId == -1)
-            {
-                _currentId = _startId;
-            }
-            else
-            {
-                var nextId = _loop._nodes[_currentId].NextId;
-                if (nextId == _startId)
-                {
-                    return false;
-                }
-                _currentId = nextId;
-            }
-            
-            Current = ValueAt(_currentId);
-            return true;
-        }
+        public bool MoveNext() => _enumerator.MoveNext();
 
         public void Reset()
         {
-            _currentId = -1;
-            Current = ValueAt(_startId);
+            _enumerator.Reset();
         }
 
-        public (T, T) Current { get; private set; }
+        public (LoopItem<T>, LoopItem<T>) Current => (_enumerator.Current, _enumerator.PeekNext);
 
         object IEnumerator.Current => Current;
 
         public void Dispose() { }
-
-        private (T, T) ValueAt(int id)
-        {
-            var a = _loop._nodes[id].Item;
-            var b = _loop._nodes[_loop._nodes[id].NextId].Item;
-            return (a, b);
-        }
     }
     
-    private class EdgeEnumerable : IEnumerable<(T, T)>
+    protected class EdgeEnumerable(Loop<T> loop, int startId) : IEnumerable<(LoopItem<T>, LoopItem<T>)>
     {
-        private readonly EdgeEnumerator _enumerator;
-        
-        public EdgeEnumerable(Loop<T> loop, int startId)
-        {
-            _enumerator = new EdgeEnumerator(loop, startId);
-        }
-        
-        public IEnumerator<(T, T)> GetEnumerator()
-        {
-            return _enumerator;
-        }
+        private readonly EdgeEnumerator _enumerator = new(loop, startId);
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        public IEnumerator<(LoopItem<T>, LoopItem<T>)> GetEnumerator() => _enumerator;
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
     
-    private class LoopCursor : ILoopCursor<T>
+    protected class LoopCursor : ILoopCursor<T>
     {
         private readonly Loop<T> _loop;
         private int _nodeId;
@@ -384,15 +379,15 @@ public abstract class Loop<T>
             _nodeId = nodeId;
         }
 
-        public T Current => _loop._nodes[_nodeId].Item;
+        public T Current => _loop.Nodes[_nodeId].Item;
         
         public int CurrentId => _nodeId;
         
-        private LoopNode Node => _loop._nodes[_nodeId];
+        private LoopNode Node => _loop.Nodes[_nodeId];
         
-        private LoopNode NextNode => _loop._nodes[Node.NextId];
+        private LoopNode NextNode => _loop.Nodes[Node.NextId];
         
-        private LoopNode PreviousNode => _loop._nodes[Node.PreviousId];
+        private LoopNode PreviousNode => _loop.Nodes[Node.PreviousId];
         
         public T PeekNext()
         {
@@ -431,12 +426,12 @@ public abstract class Loop<T>
             var nextId = Node.NextId;
             while (nextId != _nodeId)
             {
-                if (predicate(_loop._nodes[nextId].Item))
+                if (predicate(_loop.Nodes[nextId].Item))
                 {
                     _nodeId = nextId;
                     return true;
                 }
-                nextId = _loop._nodes[nextId].NextId;
+                nextId = _loop.Nodes[nextId].NextId;
             }
 
             return false;
@@ -447,12 +442,12 @@ public abstract class Loop<T>
             var previousId = Node.PreviousId;
             while (previousId != _nodeId)
             {
-                if (predicate(_loop._nodes[previousId].Item))
+                if (predicate(_loop.Nodes[previousId].Item))
                 {
                     _nodeId = previousId;
                     return true;
                 }
-                previousId = _loop._nodes[previousId].PreviousId;
+                previousId = _loop.Nodes[previousId].PreviousId;
             }
 
             return false;
@@ -485,7 +480,7 @@ public abstract class Loop<T>
         
         public void MoveTo(int id)
         {
-            if (_loop._nodes.ContainsKey(id))
+            if (_loop.Nodes.ContainsKey(id))
             {
                 _nodeId = id;
             }

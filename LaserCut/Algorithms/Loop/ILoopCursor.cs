@@ -1,4 +1,4 @@
-namespace LaserCut.Algorithms;
+namespace LaserCut.Algorithms.Loop;
 
 public interface ILoopCursor<T>
 {

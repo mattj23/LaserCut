@@ -1,4 +1,4 @@
-using LaserCut.Algorithms;
+using LaserCut.Algorithms.Loop;
 
 namespace LaserCut.Tests;
 
@@ -17,7 +17,7 @@ public class LoopTests
         var expected = new[] { "a", "b", "c" };
         var loop = new StringLoop(expected);
 
-        var values = loop.GetItems().ToArray();
+        var values = loop.ToItemArray();
 
         Assert.Equal(expected, values);
     }
@@ -31,7 +31,7 @@ public class LoopTests
         cursor.InsertAfter("a");
         cursor.InsertAfter("b");
         cursor.InsertAfter("c");
-        var values = loop.GetItems().ToArray();
+        var values = loop.ToItemArray();
 
         var expected = new[] { "a", "b", "c" };
         Assert.Equal(expected, values);
@@ -48,7 +48,7 @@ public class LoopTests
         cursor.InsertAfter("c");
         cursor.InsertAfter("d");
         
-        Assert.Equal(x, loop.FindId(s => s == "b"));
+        Assert.Equal(x, loop.FirstId(s => s == "b"));
     }
     
     [Fact]
@@ -62,7 +62,7 @@ public class LoopTests
         cursor.InsertAfter("c");
         cursor.InsertAfter("d");
         
-        Assert.Null(loop.FindId(s => s == "e"));
+        Assert.Null(loop.FirstId(s => s == "e"));
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class LoopTests
         cursor.InsertAfter("a");
         cursor.InsertAfter("b");
         cursor.InsertBefore("c");
-        var values = loop.GetItems().ToArray();
+        var values = loop.ToItemArray();
 
         var expected = new[] { "a", "c", "b" };
         Assert.Equal(expected, values);
@@ -92,7 +92,7 @@ public class LoopTests
 
         var c2 = loop.GetCursor(center);
         c2.InsertBefore("d");
-        var values = loop.GetItems().ToArray();
+        var values = loop.ToItemArray();
 
         var expected = new[] { "a", "d", "b", "c" };
         Assert.Equal(expected, values);
@@ -103,7 +103,7 @@ public class LoopTests
     {
         var loop = StringLoop.Abcde();
         var expected = new[] { "a", "b", "c", "d", "e" };
-        var values = loop.GetItems().ToArray();
+        var values = loop.ToItemArray();
         Assert.Equal(expected, values);
     }
 
@@ -141,7 +141,7 @@ public class LoopTests
         var cursor = loop.GetCursor();
         cursor.SeekNext(x => x == "c");
         cursor.Remove();
-        var values = loop.GetItems().ToArray();
+        var values = loop.ToItemArray();
         var expected = new[] { "a", "b", "d", "e" };
         Assert.Equal(expected, values);
         Assert.Equal("d", cursor.Current);
@@ -154,7 +154,7 @@ public class LoopTests
         var cursor = loop.GetCursor();
         cursor.SeekNext(x => x == "c");
         cursor.Remove(false);
-        var values = loop.GetItems().ToArray();
+        var values = loop.ToItemArray();
         var expected = new[] { "a", "b", "d", "e" };
         Assert.Equal(expected, values);
         Assert.Equal("b", cursor.Current);
@@ -167,7 +167,7 @@ public class LoopTests
         var cursor = loop.GetCursor();
         cursor.MoveToHead();
         cursor.Remove();
-        var values = loop.GetItems().ToArray();
+        var values = loop.ToItemArray();
         var expected = new[] { "b", "c", "d", "e" };
         Assert.Equal(expected, values);
         Assert.Equal("b", cursor.Current);
@@ -177,8 +177,8 @@ public class LoopTests
     public void IterateFromMiddle()
     {
         var loop = StringLoop.Abcde();
-        var xid = loop.FindId(s => s == "c");
-        var values = loop.GetItems(xid).ToArray();
+        var xid = loop.FirstId(s => s == "c");
+        var values = loop.ToItemArray(xid);
         var expected = new[] { "c", "d", "e", "a", "b" };
         Assert.Equal(expected, values);
     }
@@ -187,8 +187,18 @@ public class LoopTests
     public void IterateEdges()
     {
         var loop = StringLoop.Abcde();
-        var values = loop.GetEdges().ToArray();
+        var values = loop.ToEdgeArray();
         var expected = new[] { ("a", "b"), ("b", "c"), ("c", "d"), ("d", "e"), ("e", "a") };
+        Assert.Equal(expected, values);
+    }
+    
+    [Fact]
+    public void ReverseDirection()
+    {
+        var loop = StringLoop.Abcde();
+        loop.Reverse();
+        var values = loop.ToItemArray();
+        var expected = new[] { "e", "d", "c", "b", "a" };
         Assert.Equal(expected, values);
     }
 
