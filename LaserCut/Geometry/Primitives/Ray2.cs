@@ -7,9 +7,9 @@ namespace LaserCut.Geometry.Primitives;
 /// A 3D ray is a line that extends infinitely in one direction from a start point, but has no end point.  Thus it
 /// exists for all positive values of t.
 /// </summary>
-public class Ray3D : Line2, IBvhIntersect
+public class Ray2 : Line2, IBvhIntersect
 {
-    public Ray3D(Point2D start, Vector2D direction) : base(start, direction)
+    public Ray2(Point2D start, Vector2D direction) : base(start, direction)
     {
     }
     

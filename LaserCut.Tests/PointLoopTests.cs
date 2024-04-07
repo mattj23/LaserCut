@@ -104,6 +104,45 @@ public class PointLoopTests
         var values = loop.ToItemArray();
         Assert.Equal(expected, values);
     }
+
+    [Fact]
+    public void RelationOutside()
+    {
+        var loop0 = CreateRectangle(0, 0, 5, 5);
+        var loop1 = CreateRectangle(1, 1, 3, 3);
+        
+        Assert.Equal(LoopRelation.Outside, loop0.RelationTo(loop1));
+    }
+    
+    [Fact]
+    public void RelationInside()
+    {
+        var loop0 = CreateRectangle(0, 0, 5, 5);
+        var loop1 = CreateRectangle(1, 1, 3, 3);
+        
+        Assert.Equal(LoopRelation.Inside, loop1.RelationTo(loop0));
+    }
+    
+    [Fact]
+    public void RelationIntersecting()
+    {
+        var loop0 = CreateRectangle(0, 0, 5, 5);
+        var loop1 = CreateRectangle(1, 1, 6, 6);
+        
+        Assert.Equal(LoopRelation.Intersecting, loop0.RelationTo(loop1));
+        Assert.Equal(LoopRelation.Intersecting, loop1.RelationTo(loop0));
+    }
+
+    private PointLoop CreateRectangle(double x0, double y0, double height, double width)
+    {
+        var loop = new PointLoop();
+        var cursor = loop.GetCursor();
+        cursor.InsertAbs(x0, y0);
+        cursor.InsertRelX(width);
+        cursor.InsertRelY(height);
+        cursor.InsertRelX(-width);
+        return loop;
+    }
     
     private PointLoop CreateRectangle()
     {

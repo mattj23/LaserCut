@@ -120,10 +120,26 @@ public class PointLoop : Loop<Point2D>
         ResetCachedValues();
     }
 
-    public List<(SegIntersection, SegIntersection)> Intersections(PointLoop other)
+    public List<SegPairIntersection> Intersections(PointLoop other)
     {
-        throw new NotImplementedException();
+        return Bvh.Intersections(other.Bvh);
+    }
+    
+    public List<SegIntersection> Intersections(IBvhIntersect other)
+    {
+        return Bvh.Intersections(other);
+    }
 
+    public LoopRelation RelationTo(PointLoop other)
+    {
+        if (Intersections(other).Any()) return LoopRelation.Intersecting;
+        
+        // Is the other loop inside this loop?
+        var ray = new Ray2(Head, Vector2D.XAxis);
+        var intersections = other.Intersections(ray);
+        if (intersections.Count % 2 == 1) return LoopRelation.Inside;
+
+        return LoopRelation.Outside;
     }
     
     private List<Segment> BuildSegments()
