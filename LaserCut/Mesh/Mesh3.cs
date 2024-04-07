@@ -238,16 +238,14 @@ public class Mesh3
         foreach (var outside in outsideChains)
         {
             // Find all inside chains which are contained within the outside chain
+            var insides = insideChains
+                .Where(inside => inside.RelationTo(outside) == LoopRelation.Inside)
+                .ToList();
             
-            
+            results.Add(new Body(outside, insides));
         }
 
-
-        throw new NotImplementedException();
-
-
-
-
+        return results.ToArray();
     }
 
     public void Transform(CoordinateSystem cs)
