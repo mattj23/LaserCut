@@ -1,8 +1,9 @@
-﻿using MathNet.Spatial.Euclidean;
+﻿using LaserCut.Algorithms;
+using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry.Primitives;
 
-public class Segment : Line2
+public class Segment : Line2, IBvhIntersect
 {
     public Segment(Point2D start, Point2D end, int index) : base(start, (end - start).Normalize())
     {
@@ -26,20 +27,32 @@ public class Segment : Line2
     
     public int Index { get; }
     
+    public bool RoughIntersects(Aabb2 box)
+    {
+        return Bounds.Intersects(box);
+    }
+    
+    public SegIntersection? Intersects(Segment segment)
+    {
+        var (t0, t1) = IntersectionParams(segment);
+
+        return t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length ? new SegIntersection(segment, t1) : null;
+    }
+    
     public Point2D? Intersect(Segment other)
     {
-        var t = IntersectionParams(other);
-        if (double.IsNaN(t.X) || double.IsNaN(t.Y))
+        var (t0, t1) = IntersectionParams(other);
+        if (double.IsNaN(t0) || double.IsNaN(t1))
         {
             return null;
         }
         
-        if (t.X < 0 || t.X > Length || t.Y < 0 || t.Y > other.Length)
+        if (t0 < 0 || t0 > Length || t1 < 0 || t1 > other.Length)
         {
             return null;
         }
         
-        return PointAt(t.X);
+        return PointAt(t0);
     }
     
     private Aabb2 GetAabb()

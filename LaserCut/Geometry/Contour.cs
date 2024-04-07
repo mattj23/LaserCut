@@ -206,10 +206,10 @@ public class Contour
         throw new NotImplementedException("Contour offset not implemented yet");
     }
     
-    public ContourIntersection[] Intersections(Contour other)
-    {
-        return _points.Intersections(other._points);
-    }
+    // public ContourIntersection[] Intersections(Contour other)
+    // {
+    //     return _points.Intersections(other._points);
+    // }
 
     public static Contour Arc(Point2D start, Point2D center, double degrees, int n)
     {

@@ -1,4 +1,5 @@
-﻿using MathNet.Spatial.Euclidean;
+﻿using LaserCut.Algorithms;
+using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry.Primitives;
 
@@ -6,10 +7,15 @@ namespace LaserCut.Geometry.Primitives;
 /// A 3D ray is a line that extends infinitely in one direction from a start point, but has no end point.  Thus it
 /// exists for all positive values of t.
 /// </summary>
-public class Ray3D : Line2
+public class Ray3D : Line2, IBvhIntersect
 {
     public Ray3D(Point2D start, Vector2D direction) : base(start, direction)
     {
+    }
+    
+    public bool RoughIntersects(Aabb2 box)
+    {
+        return Intersects(box);
     }
 
     public bool Intersects(Aabb2 box)
@@ -19,9 +25,10 @@ public class Ray3D : Line2
         return b >= a;
     }
     
-    public bool Intersects(Segment segment)
+    public SegIntersection? Intersects(Segment segment)
     {
-        var t = IntersectionParams(segment);
-        return t.X >= 0 && t.Y >= 0 && t.Y <= segment.Length;
+        var (t0, t1) = IntersectionParams(segment);
+
+        return t0 >= 0 && t1 >= 0 && t1 <= segment.Length ? new SegIntersection(segment, t1) : null;
     }
 }

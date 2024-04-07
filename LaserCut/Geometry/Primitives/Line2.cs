@@ -92,12 +92,12 @@ public class Line2
         return Math.Abs(Determinant(other)) < GeometryConstants.NumericZero;
     }
     
-    public Vector2D IntersectionParams(Line2 other)
+    public (double, double) IntersectionParams(Line2 other)
     {
         var det = Determinant(other);
         if (Math.Abs(det) < GeometryConstants.NumericZero)
         {
-            return new Vector2D(double.NaN, double.NaN);
+            return (double.NaN, double.NaN);
         }
         
         var dx = other.Start.X - Start.X;
@@ -106,7 +106,7 @@ public class Line2
         var t0 = (other.Direction.Y * dx - other.Direction.X * dy) / det;
         var t1 = (Direction.Y * dx - Direction.X * dy) / det;
 
-        return new Vector2D(t0, t1);
+        return (t0, t1);
     }
 
     protected (double, double) SlabAabbBase(Aabb2 box)

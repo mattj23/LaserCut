@@ -46,27 +46,34 @@ public class BvhNode
         return thisList;
     }
     
-    public List<Segment> MightIntersect(Aabb2 bounds)
+    public List<SegIntersection> Intersections(IBvhIntersect entity)
     {
-        if (!Bounds.Intersects(bounds))
-        {
-            return new List<Segment>();
-        }
+        var results = new List<SegIntersection>();
         
-        var result = new List<Segment>();
-        result.AddRange(_segments.Where(s => s.Bounds.Intersects(bounds)));
+        if (entity.RoughIntersects(Bounds))
+        {
+            return results;
+        }
+
+        foreach (var seg in _segments)
+        {
+            if (entity.Intersects(seg) is { } intersection)
+            {
+                results.Add(intersection);
+            }
+        }
         
         if (Left is not null)
         {
-            result.AddRange(Left.MightIntersect(bounds));
+            results.AddRange(Left.Intersections(entity));
         }
         
         if (Right is not null)
         {
-            result.AddRange(Right.MightIntersect(bounds));
+            results.AddRange(Right.Intersections(entity));
         }
         
-        return result;
+        return results;
     }
     
     private void Split(bool horizontal)

@@ -81,26 +81,26 @@ public class PointWinding : IReadOnlyList<Point2D>
 
     public Point2D this[int index] => _points[index];
 
-    public ContourIntersection[] Intersections(PointWinding other)
-    {
-        var results = new List<ContourIntersection>();
-        
-        foreach (var seg in Segments)
-        {
-            var candidates = other.Bvh.MightIntersect(seg.Bounds);
-            foreach (var candidate in candidates)
-            {
-                if (seg.Intersect(candidate) is { } point)
-                {
-                    results.Add(new ContourIntersection(point, seg.Index, candidate.Index));
-                    // Console.WriteLine($"Seg {seg.Index} intersects with {candidate.Index} at {point}");
-                }
-                
-            }
-        }
-        
-        return results.ToArray();
-    }
+    // public ContourIntersection[] Intersections(PointWinding other)
+    // {
+    //     var results = new List<ContourIntersection>();
+    //     
+    //     foreach (var seg in Segments)
+    //     {
+    //         var candidates = other.Bvh.MightIntersect(seg.Bounds);
+    //         foreach (var candidate in candidates)
+    //         {
+    //             if (seg.Intersect(candidate) is { } point)
+    //             {
+    //                 results.Add(new ContourIntersection(point, seg.Index, candidate.Index));
+    //                 // Console.WriteLine($"Seg {seg.Index} intersects with {candidate.Index} at {point}");
+    //             }
+    //             
+    //         }
+    //     }
+    //     
+    //     return results.ToArray();
+    // }
     
     private void ResetCachedValues()
     {
