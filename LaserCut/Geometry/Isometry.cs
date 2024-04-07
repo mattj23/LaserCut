@@ -36,4 +36,11 @@ public static class Isometry
         return new Point2D(result[0], result[1]);
     }
     
+    public static Vector2D Transformed(this Vector2D vector, Matrix m)
+    {
+        var v = Vector<double>.Build.DenseOfArray([vector.X, vector.Y, 0]);
+        var result = m * v;
+        return new Vector2D(result[0], result[1]);
+    }
+    
 }
