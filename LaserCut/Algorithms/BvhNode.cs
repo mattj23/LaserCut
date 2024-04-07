@@ -119,86 +119,8 @@ public class BvhNode
             results.AddRange(Right.Intersections(other.Right!));
         }
         
-        
-        // All pairwise combinations of segments between this node and the other
-        
-        if (Left is not null)
-        {
-            if (other.Left is not null)
-            {
-                results.AddRange(Left.Intersections(other.Left));
-            }
-            if (other.Right is not null)
-            {
-                results.AddRange(Left.Intersections(other.Right));
-            }
-        }
-        
-        if (Right is not null)
-        {
-            if (other.Left is not null)
-            {
-                results.AddRange(Right.Intersections(other.Left));
-            }
-            if (other.Right is not null)
-            {
-                results.AddRange(Right.Intersections(other.Right));
-            }
-        }
-        
-        // else if (IsLeaf)
-        // {
-        //     foreach (var seg in _segments)
-        //     {
-        //         results.AddRange(seg.IntersectsAsPair(other.Left!));
-        //     }
-        //     
-        // }
-        // else if (other.IsLeaf)
-        // {
-        //     results.AddRange(Intersections(other.Left!));
-        //     results.AddRange(Intersections(other.Right!));
-        // }
-        // else
-        // {
-        //     results.AddRange(Left!.Intersections(other.Left!));
-        //     results.AddRange(Left.Intersections(other.Right!));
-        //     results.AddRange(Right!.Intersections(other.Left!));
-        //     results.AddRange(Right.Intersections(other.Right!));
-        // }
-
         return results;
     }
-    
-    // public List<SegPairIntersection> IntersectionsAsPairs(Segment segment)
-    // {
-    //     var results = new List<SegPairIntersection>();
-    //     
-    //     if (!segment.RoughIntersects(Bounds))
-    //     {
-    //         return results;
-    //     }
-    //
-    //     foreach (var seg in _segments)
-    //     {
-    //         if (seg.IntersectsAsPair(segment) is { } intersection)
-    //         {
-    //             results.Add(intersection);
-    //         }
-    //     }
-    //     
-    //     if (Left is not null)
-    //     {
-    //         results.AddRange(Left.IntersectionsAsPairs(segment));
-    //     }
-    //     
-    //     if (Right is not null)
-    //     {
-    //         results.AddRange(Right.IntersectionsAsPairs(segment));
-    //     }
-    //
-    //     return results;
-    // }
     
     public List<SegIntersection> Intersections(IBvhIntersect entity)
     {

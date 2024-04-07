@@ -118,23 +118,6 @@ public class BvhTests
                 .Select(x => (x.Segment0.Index, x.Segment1.Index, x.T0, x.T1))
                 .ToArray();
             
-            if (exp.Length != tst.Length)
-            {
-                Console.WriteLine("Expected:");
-                foreach (var e in exp)
-                {
-                    Console.WriteLine(e);
-                }
-                
-                Console.WriteLine("Actual:");
-                foreach (var t in tst)
-                {
-                    Console.WriteLine(t);
-                }
-
-                results = bvh0.Intersections(bvh1);
-            }
-            
             Assert.Equal(exp, tst);
         }
     }
