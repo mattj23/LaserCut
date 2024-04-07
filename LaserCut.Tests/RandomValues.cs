@@ -13,6 +13,11 @@ public class RandomValues
         return min + _random.NextDouble() * (max - min);
     }
     
+    public bool Bool()
+    {
+        return _random.NextDouble() < 0.5;
+    }
+    
     public double Double(double max)
     {
         return Double(-max, max);
@@ -68,7 +73,7 @@ public class RandomValues
         return segments;
     }
 
-    public (Segment, double, double) IntersectingSegment(Segment seg)
+    public (Segment, double, double) IntersectingSegment(Segment seg, int index = 0)
     {
         var t0 = Double(0.0, seg.Length);
 
@@ -77,12 +82,12 @@ public class RandomValues
         var l1 = Double(0.1, 5.0);
         var t1 = Double(0, l1);
         var pi = seg.PointAt(t0);
-        var seg1 = new Segment(pi - d2 * t1, pi + d2 * l1, 1);
+        var seg1 = new Segment(pi - d2 * t1, pi + d2 * l1, index);
         
         return (seg1, t0, t1);
     }
 
-    public Segment NonIntersectingSegment(Segment seg)
+    public Segment NonIntersectingSegment(Segment seg, int index = 0)
     {
         var x0 = Double(-1, 2);
         var x1 = Double(-1, 2);
@@ -99,7 +104,7 @@ public class RandomValues
         var pi = seg.PointAt(t0);
         var angle = Double(0.1, 179.9) * Flip();
         var d2 = seg.Direction.Transformed(Isometry.Rotate(angle));
-        var seg1 = new Segment(pi - d2 * t1, pi + d2 * l1, 1);
+        var seg1 = new Segment(pi - d2 * t1, pi + d2 * l1, index);
 
         return seg1;
     }

@@ -54,7 +54,12 @@ public class Segment : Line2, IBvhIntersect
         
         return PointAt(t0);
     }
-    
+
+    public override string ToString()
+    {
+        return $"[Segment {Start.X:0.000}, {Start.Y:0.000} -> {End.X:0.000}, {End.Y:0.000} | {Index}]";
+    }
+
     private Aabb2 GetAabb()
     {
         // We slightly pad the bounding box to account for the issues with the fast slab intersection test when a 

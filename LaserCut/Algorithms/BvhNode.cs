@@ -21,7 +21,17 @@ public class BvhNode
         }
         Split(horizontal);
     }
-    
+
+    public override string ToString()
+    {
+        if (IsLeaf)
+        {
+            return $"[Leaf Node {string.Join(", ", _segments.Select(s => s.Index.ToString()))}]";
+        }
+
+        return "[Node]";
+    }
+
     public BvhNode? Left { get; set; }
 
     public BvhNode? Right { get; set; }
@@ -50,7 +60,7 @@ public class BvhNode
     {
         var results = new List<SegIntersection>();
         
-        if (entity.RoughIntersects(Bounds))
+        if (!entity.RoughIntersects(Bounds))
         {
             return results;
         }
