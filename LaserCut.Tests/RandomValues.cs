@@ -13,6 +13,11 @@ public class RandomValues
         return min + _random.NextDouble() * (max - min);
     }
     
+    public int Int(int min, int max)
+    {
+        return min + _random.Next(max - min);
+    }
+    
     public bool Bool()
     {
         return _random.NextDouble() < 0.5;

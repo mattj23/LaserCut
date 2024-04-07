@@ -219,20 +219,26 @@ public class Mesh3
     {
         var workingMesh = FromFacesWhere((_, n) => n.DotProduct(view.ZAxis) > 0);
         workingMesh.Transform(view);
+        
+        // TODO: Separate into patch bodies first
+        
+        // Flatten everything to the XY plane
+        workingMesh.MutateVertices(p => new Point3D(p.X, p.Y, 0));
         workingMesh.MergeVertices();
         
-        // TODO: Separate into patch bodies
-        
-        var chains = workingMesh.ExtractEdgeChains().Select(c => new PointLoop(c.ToPoint2Ds())).ToArray();
+        var chains = workingMesh
+            .ExtractEdgeChains()
+            .Select(c => new PointLoop(c.ToPoint2Ds(true).SkipLast(1)))
+            .ToArray();
         
         // Separate inside and outside chains
         var insideChains = chains.Where(c => c.Area < 0).ToList();
         var outsideChains = chains.Where(c => c.Area > 0).ToList();
 
-        if (outsideChains.Count > 1)
-        {
-            throw new NotImplementedException("Doesn't yet handle multiple outside chains");
-        }
+        // if (outsideChains.Count > 1)
+        // {
+        //     throw new NotImplementedException("Doesn't yet handle multiple outside chains");
+        // }
         
         var results = new List<Body>();
         foreach (var outside in outsideChains)

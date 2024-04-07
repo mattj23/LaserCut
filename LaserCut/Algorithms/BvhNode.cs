@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
 
@@ -20,6 +21,24 @@ public class BvhNode
             Bounds = Bounds.Union(segment.Bounds);
         }
         Split(horizontal);
+        
+        // Check that the leaf nodes are not empty
+        if (IsLeaf && _segments.Count == 0)
+        {
+            throw new ArgumentException("Leaf node cannot be empty");
+        }
+        
+        // Check that the non-leaf nodes are empty
+        if (!IsLeaf && _segments.Count > 0)
+        {
+            throw new ArgumentException("Non-leaf node cannot have segments");
+        }
+        
+        // Check that non-leaf nodes have both children
+        if (!IsLeaf && (Left is null || Right is null))
+        {
+            throw new ArgumentException("Non-leaf node must have both children");
+        }
     }
 
     public override string ToString()
@@ -65,28 +84,32 @@ public class BvhNode
             return results;
         }
         
+        // Four possible cases:
+        // 1. Both nodes are leaves
+        // 2. This node is a leaf
+        // 3. Other node is a leaf
+        // 4. Both nodes are not leaves
+        
+        // Only leaf nodes can have intersections, so if both nodes are leaves, check all pairwise combinations, but
+        // if only one of the nodes is a leaf we continue to recurse down on the non-leaf side.  If both nodes are
+        // non-leaf, we recurse down both sides.
+
         if (IsLeaf && other.IsLeaf)
         {
             foreach (var seg0 in _segments)
-            {
                 foreach (var seg1 in other._segments)
-                {
                     if (seg0.IntersectsAsPair(seg1) is { } intersection)
-                    {
                         results.Add(intersection);
-                    }
-                }
-            }
         }
         else if (IsLeaf)
         {
-            results.AddRange(Left!.Intersections(other));
-            results.AddRange(Right!.Intersections(other));
+            results.AddRange(Intersections(other.Left!));
+            results.AddRange(Intersections(other.Right!));
         }
         else if (other.IsLeaf)
         {
-            results.AddRange(Intersections(other.Left!));
-            results.AddRange(Intersections(other.Right!));
+            results.AddRange(Left!.Intersections(other));
+            results.AddRange(Right!.Intersections(other));
         }
         else
         {
@@ -95,9 +118,87 @@ public class BvhNode
             results.AddRange(Right!.Intersections(other.Left!));
             results.AddRange(Right.Intersections(other.Right!));
         }
+        
+        
+        // All pairwise combinations of segments between this node and the other
+        
+        if (Left is not null)
+        {
+            if (other.Left is not null)
+            {
+                results.AddRange(Left.Intersections(other.Left));
+            }
+            if (other.Right is not null)
+            {
+                results.AddRange(Left.Intersections(other.Right));
+            }
+        }
+        
+        if (Right is not null)
+        {
+            if (other.Left is not null)
+            {
+                results.AddRange(Right.Intersections(other.Left));
+            }
+            if (other.Right is not null)
+            {
+                results.AddRange(Right.Intersections(other.Right));
+            }
+        }
+        
+        // else if (IsLeaf)
+        // {
+        //     foreach (var seg in _segments)
+        //     {
+        //         results.AddRange(seg.IntersectsAsPair(other.Left!));
+        //     }
+        //     
+        // }
+        // else if (other.IsLeaf)
+        // {
+        //     results.AddRange(Intersections(other.Left!));
+        //     results.AddRange(Intersections(other.Right!));
+        // }
+        // else
+        // {
+        //     results.AddRange(Left!.Intersections(other.Left!));
+        //     results.AddRange(Left.Intersections(other.Right!));
+        //     results.AddRange(Right!.Intersections(other.Left!));
+        //     results.AddRange(Right.Intersections(other.Right!));
+        // }
 
         return results;
     }
+    
+    // public List<SegPairIntersection> IntersectionsAsPairs(Segment segment)
+    // {
+    //     var results = new List<SegPairIntersection>();
+    //     
+    //     if (!segment.RoughIntersects(Bounds))
+    //     {
+    //         return results;
+    //     }
+    //
+    //     foreach (var seg in _segments)
+    //     {
+    //         if (seg.IntersectsAsPair(segment) is { } intersection)
+    //         {
+    //             results.Add(intersection);
+    //         }
+    //     }
+    //     
+    //     if (Left is not null)
+    //     {
+    //         results.AddRange(Left.IntersectionsAsPairs(segment));
+    //     }
+    //     
+    //     if (Right is not null)
+    //     {
+    //         results.AddRange(Right.IntersectionsAsPairs(segment));
+    //     }
+    //
+    //     return results;
+    // }
     
     public List<SegIntersection> Intersections(IBvhIntersect entity)
     {

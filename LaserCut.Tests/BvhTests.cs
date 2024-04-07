@@ -85,8 +85,8 @@ public class BvhTests
         
         for (int i = 0; i < 10000; i++)
         {
-            var segments0 = r.Segments(b0, 20);
-            var segments1 = r.Segments(b1, 20);
+            var segments0 = r.Segments(b0, r.Int(5, 30));
+            var segments1 = r.Segments(b1, r.Int(5, 30));
             
             // Brute force the expected results
             var expected = new List<SegPairIntersection>();
@@ -117,6 +117,23 @@ public class BvhTests
                 .ThenBy(x => x.Segment1.Index)
                 .Select(x => (x.Segment0.Index, x.Segment1.Index, x.T0, x.T1))
                 .ToArray();
+            
+            if (exp.Length != tst.Length)
+            {
+                Console.WriteLine("Expected:");
+                foreach (var e in exp)
+                {
+                    Console.WriteLine(e);
+                }
+                
+                Console.WriteLine("Actual:");
+                foreach (var t in tst)
+                {
+                    Console.WriteLine(t);
+                }
+
+                results = bvh0.Intersections(bvh1);
+            }
             
             Assert.Equal(exp, tst);
         }
