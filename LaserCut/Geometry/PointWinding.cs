@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net.Sockets;
 using LaserCut.Algorithms;
+using LaserCut.Geometry.Primitives;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;

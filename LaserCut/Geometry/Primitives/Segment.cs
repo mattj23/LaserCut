@@ -1,9 +1,8 @@
-﻿using LaserCut.Geometry;
-using MathNet.Spatial.Euclidean;
+﻿using MathNet.Spatial.Euclidean;
 
-namespace LaserCut.Algorithms;
+namespace LaserCut.Geometry.Primitives;
 
-public class Segment : Line2D
+public class Segment : Line2
 {
     public Segment(Point2D start, Point2D end, int index) : base(start, (end - start).Normalize())
     {
@@ -12,8 +11,8 @@ public class Segment : Line2D
             throw new ArgumentException("Segment must have non-zero length");
         }
         End = end;
-        
-        Bounds = Aabb2.FromPoints(new[] {Start, End});
+
+        Bounds = GetAabb();
         Index = index;
     }
 
@@ -27,11 +26,6 @@ public class Segment : Line2D
     
     public int Index { get; }
     
-    public bool Parallel(Segment other)
-    {
-        return Math.Abs(Direction.CrossProduct(other.Direction)) < 1e-6;
-    }
-
     public Point2D? Intersect(Segment other)
     {
         var t = IntersectionParams(other);
@@ -46,5 +40,17 @@ public class Segment : Line2D
         }
         
         return PointAt(t.X);
+    }
+    
+    private Aabb2 GetAabb()
+    {
+        // We slightly pad the bounding box to account for the issues with the fast slab intersection test when a 
+        // test line is collinear with certain edges of the box.
+        var xMin = Math.Min(Start.X, End.X);
+        var xMax = Math.Max(Start.X, End.X);
+        var yMin = Math.Min(Start.Y, End.Y);
+        var yMax = Math.Max(Start.Y, End.Y);
+        return new Aabb2(xMin - GeometryConstants.DistEquals, yMin - GeometryConstants.DistEquals, 
+            xMax + GeometryConstants.DistEquals, yMax + GeometryConstants.DistEquals);
     }
 }

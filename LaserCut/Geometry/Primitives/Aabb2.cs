@@ -1,6 +1,6 @@
 ﻿using MathNet.Spatial.Euclidean;
 
-namespace LaserCut.Geometry;
+namespace LaserCut.Geometry.Primitives;
 
 /// <summary>
 /// An axis-aligned bounding box in 2D space.

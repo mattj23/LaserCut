@@ -1,5 +1,6 @@
 using LaserCut.Algorithms;
 using LaserCut.Algorithms.Loop;
+using LaserCut.Geometry.Primitives;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;

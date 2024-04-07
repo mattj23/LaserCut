@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.Contracts;
 using LaserCut.Algorithms;
+using LaserCut.Geometry.Primitives;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Spatial.Euclidean;
 using MathNet.Spatial.Units;

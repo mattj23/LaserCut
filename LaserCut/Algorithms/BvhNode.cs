@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using LaserCut.Geometry;
+using LaserCut.Geometry.Primitives;
 
 namespace LaserCut.Algorithms;
 
