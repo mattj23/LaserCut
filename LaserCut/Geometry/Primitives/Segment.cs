@@ -38,6 +38,13 @@ public class Segment : Line2, IBvhIntersect
 
         return t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length ? new SegIntersection(segment, t1) : null;
     }
+
+    public SegPairIntersection? IntersectsAsPair(Segment segment)
+    {
+        var (t0, t1) = IntersectionParams(segment);
+        bool valid = t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length;
+        return valid ? new SegPairIntersection(this, t0, segment, t1) : null;
+    }
     
     public Point2D? Intersect(Segment other)
     {

@@ -55,6 +55,49 @@ public class BvhNode
         
         return thisList;
     }
+
+    public List<SegPairIntersection> Intersections(BvhNode other)
+    {
+        var results = new List<SegPairIntersection>();
+        
+        if (!other.Bounds.Intersects(Bounds))
+        {
+            return results;
+        }
+        
+        if (IsLeaf && other.IsLeaf)
+        {
+            foreach (var seg0 in _segments)
+            {
+                foreach (var seg1 in other._segments)
+                {
+                    if (seg0.IntersectsAsPair(seg1) is { } intersection)
+                    {
+                        results.Add(intersection);
+                    }
+                }
+            }
+        }
+        else if (IsLeaf)
+        {
+            results.AddRange(Left!.Intersections(other));
+            results.AddRange(Right!.Intersections(other));
+        }
+        else if (other.IsLeaf)
+        {
+            results.AddRange(Intersections(other.Left!));
+            results.AddRange(Intersections(other.Right!));
+        }
+        else
+        {
+            results.AddRange(Left!.Intersections(other.Left!));
+            results.AddRange(Left.Intersections(other.Right!));
+            results.AddRange(Right!.Intersections(other.Left!));
+            results.AddRange(Right.Intersections(other.Right!));
+        }
+
+        return results;
+    }
     
     public List<SegIntersection> Intersections(IBvhIntersect entity)
     {

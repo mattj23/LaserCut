@@ -42,7 +42,7 @@ public class BvhTests
         var b1 = new Aabb2(-5, 0, 10, 10);
         var r = new RandomValues();
         
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 10000; i++)
         {
             var test = r.Segment(b0);
             var segments1 = r.Segments(b1, 20);
@@ -74,6 +74,52 @@ public class BvhTests
             Assert.Equal(exp, tst);
         }
         
+    }
+
+    [Fact]
+    public void StressTestOtherBvh()
+    {
+        var b0 = new Aabb2(-10, 0, 5, 10);
+        var b1 = new Aabb2(-5, 0, 10, 10);
+        var r = new RandomValues();
+        
+        for (int i = 0; i < 10000; i++)
+        {
+            var segments0 = r.Segments(b0, 20);
+            var segments1 = r.Segments(b1, 20);
+            
+            // Brute force the expected results
+            var expected = new List<SegPairIntersection>();
+            foreach (var test in segments0)
+            {
+                foreach (var seg in segments1)
+                {
+                    if (test.IntersectsAsPair(seg) is { } s)
+                    {
+                        expected.Add(s);
+                    }
+                }
+            }
+            
+            // Test the BVH
+            var bvh0 = new BvhNode(segments0);
+            var bvh1 = new BvhNode(segments1);
+            var results = bvh0.Intersections(bvh1);
+
+            var exp = expected
+                .OrderBy(x => x.Segment0.Index)
+                .ThenBy(x => x.Segment1.Index)
+                .Select(x => (x.Segment0.Index, x.Segment1.Index, x.T0, x.T1))
+                .ToArray();
+            
+            var tst = results
+                .OrderBy(x => x.Segment0.Index)
+                .ThenBy(x => x.Segment1.Index)
+                .Select(x => (x.Segment0.Index, x.Segment1.Index, x.T0, x.T1))
+                .ToArray();
+            
+            Assert.Equal(exp, tst);
+        }
     }
     
 }
