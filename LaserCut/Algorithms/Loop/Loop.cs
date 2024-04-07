@@ -265,7 +265,7 @@ public class Loop<T>
         public int Id { get; }
         public int NextId { get; set; }
         public int PreviousId { get; set; }
-        public T Item { get; }
+        public T Item { get; set; }
         
         public LoopNode(int id, T item, int previousId, int nextId)
         {

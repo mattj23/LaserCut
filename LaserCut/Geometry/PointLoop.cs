@@ -1,6 +1,7 @@
 using LaserCut.Algorithms;
 using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry.Primitives;
+using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
@@ -46,10 +47,41 @@ public class PointLoop : Loop<Point2D>
 
     public override void OnItemChanged(Point2D item)
     {
-        _segments = null;
-        _bvh = null;
-        _area = double.NaN;
+        ResetCachedValues();
         base.OnItemChanged(item);
+    }
+
+    public void Transform(Matrix t)
+    {
+        foreach (var node in Nodes)
+        {
+            node.Value.Item = node.Value.Item.Transformed(t);
+        }
+        ResetCachedValues();
+    }
+
+    public void MirrorX(double x0 = 0)
+    {
+        foreach (var node in Nodes)
+        {
+            var dx = node.Value.Item.X - x0;
+            node.Value.Item = new Point2D(x0 - dx, node.Value.Item.Y);
+        }
+        
+        Reverse();
+        ResetCachedValues();
+    }
+    
+    public void MirrorY(double y0 = 0)
+    {
+        foreach (var node in Nodes)
+        {
+            var dy = node.Value.Item.Y - y0;
+            node.Value.Item = new Point2D(node.Value.Item.X, y0 - dy);
+        }
+        
+        Reverse();
+        ResetCachedValues();
     }
     
     private List<Segment> BuildSegments()
@@ -61,6 +93,13 @@ public class PointLoop : Loop<Point2D>
         }
         
         return segments;
+    }
+    
+    private void ResetCachedValues()
+    {
+        _segments = null;
+        _bvh = null;
+        _area = double.NaN;
     }
     
     private double CalculateArea()
