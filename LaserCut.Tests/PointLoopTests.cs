@@ -86,4 +86,34 @@ public class PointLoopTests
         
         Assert.Equal(-8, loop.Area);
     }
+
+    [Fact]
+    public void OffsetPositive()
+    {
+        var loop = CreateRectangle();
+        loop.Offset(0.5);
+        
+        var expected = new[]
+        {
+            new Point2D(-0.5, -0.5),
+            new Point2D(4.5, -0.5),
+            new Point2D(4.5, 2.5),
+            new Point2D(-0.5, 2.5)
+        };
+        
+        var values = loop.ToItemArray();
+        Assert.Equal(expected, values);
+    }
+    
+    private PointLoop CreateRectangle()
+    {
+        var loop = new PointLoop();
+        var cursor = loop.GetCursor();
+        cursor.InsertAbs(0, 0);
+        cursor.InsertRelX(4);
+        cursor.InsertRelY(2);
+        cursor.InsertRelX(-4);
+        
+        return loop;
+    }
 }

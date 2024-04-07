@@ -83,6 +83,42 @@ public class PointLoop : Loop<Point2D>
         Reverse();
         ResetCachedValues();
     }
+
+    /// <summary>
+    /// Offset the loop by a distance in the direction of the edge normals.  A positive distance will offset the loop
+    /// in the direction of increasing area, while a negative distance will offset the loop in the direction of
+    /// decreasing area.  
+    /// </summary>
+    /// <param name="distance">A distance value to offset the loop by</param>
+    public void Offset(double distance)
+    {
+        var updates = new Dictionary<int, Point2D>();
+        foreach (var node in Nodes)
+        {
+            var b = node.Value;
+            var a = Nodes[b.PreviousId];
+            var c = Nodes[b.NextId];
+
+            var line0 = new Line2(a.Item, b.Item - a.Item).Offset(distance);
+            var line1 = new Line2(b.Item, c.Item - b.Item).Offset(distance);
+            if (!line0.IsCollinear(line1))
+            {
+                var (t0, _) = line0.IntersectionParams(line1);
+                updates[node.Key] = line0.PointAt(t0);
+            }
+            else
+            {
+                updates[node.Key] = line1.Start;
+            }
+        }
+        
+        foreach (var (id, point) in updates)
+        {
+            Nodes[id].Item = point;
+        }
+        
+        ResetCachedValues();
+    }
     
     private List<Segment> BuildSegments()
     {

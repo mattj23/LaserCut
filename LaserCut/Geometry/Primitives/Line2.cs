@@ -38,6 +38,17 @@ public class Line2
     }
 
     /// <summary>
+    /// Creates a new line that is offset from this line by the given distance.  The offset is in the direction of the
+    /// line normal, and can be positive or negative.  The direction of the line will not change.
+    /// </summary>
+    /// <param name="distance"></param>
+    /// <returns></returns>
+    public Line2 Offset(double distance)
+    {
+        return new Line2(Start + Normal * distance, Direction);
+    }
+
+    /// <summary>
     /// Returns the parameter t at which the projection of the point p onto the line is closest to the start point. This
     /// can also be thought of as the distance along the line from the start point to the projection of p.
     /// </summary>
