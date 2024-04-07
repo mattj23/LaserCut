@@ -119,6 +119,12 @@ public class PointLoop : Loop<Point2D>
         
         ResetCachedValues();
     }
+
+    public List<(SegIntersection, SegIntersection)> Intersections(PointLoop other)
+    {
+        throw new NotImplementedException();
+
+    }
     
     private List<Segment> BuildSegments()
     {

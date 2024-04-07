@@ -1,23 +1,24 @@
 ﻿using System.Diagnostics;
 using LaserCut.Algorithms;
+using LaserCut.Geometry;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Mesh;
 
-public class Mesh3D
+public class Mesh3
 {
     private readonly List<Point3D> _vertices;
     private readonly List<Face> _faces;
     private readonly List<Vector3D> _normals;
     
-    public Mesh3D(List<Point3D> vertices, List<Face> faces, List<Vector3D> normals)
+    public Mesh3(List<Point3D> vertices, List<Face> faces, List<Vector3D> normals)
     {
         _vertices = vertices;
         _faces = faces;
         _normals = normals;
     }
     
-    public Mesh3D()
+    public Mesh3()
     {
         _normals = new List<Vector3D>();
         _vertices = new List<Point3D>();
@@ -30,9 +31,9 @@ public class Mesh3D
     
     public IReadOnlyList<Vector3D> Normals => _normals;
     
-    public Mesh3D Clone()
+    public Mesh3 Clone()
     {
-        return new Mesh3D([.._vertices], [.._faces], [.._normals]);
+        return new Mesh3([.._vertices], [.._faces], [.._normals]);
     }
     
     /// <summary>
@@ -104,13 +105,13 @@ public class Mesh3D
         return indices.ToArray();
     }
 
-    public Mesh3D FromFacesWhere(Func<Face, Vector3D, bool> predicate)
+    public Mesh3 FromFacesWhere(Func<Face, Vector3D, bool> predicate)
     {
         var indices = FaceIndices(predicate);
         return FromFaceIndices(indices);
     }
     
-    public Mesh3D FromFaceIndices(IEnumerable<uint> indices)
+    public Mesh3 FromFaceIndices(IEnumerable<uint> indices)
     {
         var vertexMap = new Dictionary<uint, uint>();
         var faces = new List<Face>();
@@ -149,7 +150,7 @@ public class Mesh3D
             vertices[pair.Value] = _vertices[(int)pair.Key];
         }
         
-        return new Mesh3D(vertices.ToList(), faces, normals);
+        return new Mesh3(vertices.ToList(), faces, normals);
     }
     
     /// <summary>
@@ -214,6 +215,54 @@ public class Mesh3D
         return chains.ToArray();
     }
 
+    public Body[] ExtractSilhouetteBodies(CoordinateSystem view)
+    {
+        var workingMesh = FromFacesWhere((_, n) => n.DotProduct(view.ZAxis) > 0);
+        workingMesh.Transform(view);
+        workingMesh.MergeVertices();
+        
+        // TODO: Separate into patch bodies
+        
+        var chains = workingMesh.ExtractEdgeChains().Select(c => new PointLoop(c.ToPoint2Ds())).ToArray();
+        
+        // Separate inside and outside chains
+        var insideChains = chains.Where(c => c.Area < 0).ToList();
+        var outsideChains = chains.Where(c => c.Area > 0).ToList();
+
+        if (outsideChains.Count > 1)
+        {
+            throw new NotImplementedException("Doesn't yet handle multiple outside chains");
+        }
+        
+        var results = new List<Body>();
+        foreach (var outside in outsideChains)
+        {
+            // Find all inside chains which are contained within the outside chain
+            
+            
+        }
+
+
+        throw new NotImplementedException();
+
+
+
+
+    }
+
+    public void Transform(CoordinateSystem cs)
+    {
+        for (var i = 0; i < _vertices.Count; i++)
+        {
+            _vertices[i] = cs.Transform(_vertices[i]);
+        }
+        
+        for (var i = 0; i < _normals.Count; i++)
+        {
+            _normals[i] = cs.Transform(_normals[i]);
+        }
+    }
+
     /// <summary>
     /// Merge vertices that are within a certain tolerance distance of each other.
     /// </summary>
@@ -256,7 +305,7 @@ public class Mesh3D
         _faces.AddRange(newFaces);
     }
 
-    public static Mesh3D ReadStl(string path, bool mergeVertices = false)
+    public static Mesh3 ReadStl(string path, bool mergeVertices = false)
     {
         // Open file with binary stream reader
         using var binary = new BinaryReader(File.OpenRead(path));
@@ -300,7 +349,7 @@ public class Mesh3D
             });
         }
         
-        var mesh = new Mesh3D(vertices, faces, normals);
+        var mesh = new Mesh3(vertices, faces, normals);
         if (mergeVertices)
         {
             mesh.MergeVertices();

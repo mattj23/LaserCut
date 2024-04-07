@@ -18,5 +18,14 @@ public static class GeometryExtensions
     {
         return new Contour(poly.Vertices.Select(p => new Point2D(p.X, p.Y)));
     }
+
+    public static Point2D ToPoint2D(this Point3D point)
+    {
+        return new Point2D(point.X, point.Y);
+    }
     
+    public static Point2D[] ToPoint2Ds(this IEnumerable<Point3D> points)
+    {
+        return points.Select(p => p.ToPoint2D()).ToArray();
+    }
 }
