@@ -59,4 +59,27 @@ public class Body
     {
         MirrorY(Bounds.Center.Y);
     }
+
+    public PointLoop AsSingleLoop()
+    {
+        var loop = Outer.Copy();
+
+        foreach (var inner in Inners)
+        {
+            // Find the closest point on the inner loop to the outer loop
+            var (c0, c1) = loop.ClosestVertices(inner);
+            var cursor = loop.GetCursor(c0);
+            var outerInsertion = cursor.Current;
+            var innerInsertion = inner.GetCursor(c1).Current;
+            foreach (var item in inner.IterItems(c1))
+            {
+                cursor.InsertAbs(item.Item);
+            }
+
+            cursor.InsertAbs(innerInsertion);
+            cursor.InsertAbs(outerInsertion);
+        }
+        
+        return loop;
+    }
 }
