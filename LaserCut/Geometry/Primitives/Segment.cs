@@ -36,7 +36,20 @@ public class Segment : Line2, IBvhIntersect
     {
         if (IsCollinear(segment))
         {
-            return null;
+            // Any point that is on both segments is a valid intersection point
+            var t1Start = segment.ProjectionParam(Start);
+            var t1End = segment.ProjectionParam(End);
+            var t1A = Math.Min(t1Start, t1End);
+            var t1B = Math.Max(t1Start, t1End);
+            
+            if (t1B < 0 || t1A > segment.Length)
+            {
+                return null;
+            }
+
+            var valid0 = Math.Max(t1A, 0);
+            var valid1 = Math.Min(t1B, segment.Length);
+            return new SegIntersection(segment, (valid0 + valid1) * 0.5);
         }
         else
         {
