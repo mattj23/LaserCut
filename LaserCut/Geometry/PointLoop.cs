@@ -167,6 +167,7 @@ public class PointLoop : Loop<Point2D>
             // Pop the first loop off the list
             var loop = workingLoops[0];
             workingLoops.RemoveAt(0);
+            loop.RemoveAdjacentDuplicates();
             
             // If there are self-intersections, split the loop at the first intersection and add the resulting loops
             // to the working list, otherwise the loop is good to go.

@@ -7,7 +7,7 @@ public class Segment : Line2, IBvhIntersect
 {
     public Segment(Point2D start, Point2D end, int index) : base(start, (end - start).Normalize())
     {
-        if (start.DistanceTo(end) < 1e-6)
+        if (start.DistanceTo(end) < GeometryConstants.DistEquals)
         {
             throw new ArgumentException("Segment must have non-zero length");
         }
@@ -51,11 +51,9 @@ public class Segment : Line2, IBvhIntersect
             var valid1 = Math.Min(t1B, segment.Length);
             return new SegIntersection(segment, (valid0 + valid1) * 0.5);
         }
-        else
-        {
-            var (t0, t1) = IntersectionParams(segment);
-            return t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length ? new SegIntersection(segment, t1) : null;
-        }
+
+        var (t0, t1) = IntersectionParams(segment);
+        return t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length ? new SegIntersection(segment, t1) : null;
     }
 
     public SegPairIntersection? IntersectsAsPair(Segment segment)
