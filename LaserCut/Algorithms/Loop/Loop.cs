@@ -58,6 +58,9 @@ public class Loop<T>
     
     public T Tail => Nodes[GetTailId()].Item;
      
+    public int HeadId => _headId;
+    
+    public int TailId => GetTailId();
     
     /// <summary>
     /// This method is called whenever an item is inserted or removed from the loop.  It is intended to be overridden

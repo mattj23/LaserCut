@@ -129,6 +129,32 @@ public class PointLoop : Loop<Point2D>
         return loop;
     }
     
+    /// <summary>
+    /// Creates a filled area offset of the loop which can be drawn as a filled polygon.
+    /// </summary>
+    /// <param name="distance"></param>
+    /// <returns></returns>
+    [Pure]
+    public PointLoop FilledOffset(double distance)
+    {
+        var working = Copy();
+        working.Reverse();
+        
+        var offset = Offsetted(distance);
+        
+        var cursor = working.GetCursor();
+        cursor.InsertAbs(working.Head);
+
+        foreach (var p in offset.IterItems(offset.TailId))
+        {
+            cursor.InsertAbs(p.Item);
+        }
+        
+        cursor.InsertAbs(offset.Tail);
+
+        return working;
+    }
+    
     public override PointLoop Copy()
     {
         var loop = new PointLoop();
