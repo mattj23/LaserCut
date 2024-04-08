@@ -120,6 +120,25 @@ public class PointLoop : Loop<Point2D>
         
         ResetCachedValues();
     }
+    
+    public void RemoveAdjacentDuplicates(double? tol = null)
+    {
+        var t = tol ?? GeometryConstants.DistEquals;
+        var visited = new HashSet<int>();
+        var cursor = GetCursor();
+        while (!visited.Contains(cursor.CurrentId))
+        {
+            if (cursor.Current.DistanceTo(cursor.PeekNext()) < t)
+            {
+                cursor.Remove();
+            }
+            else
+            {
+                visited.Add(cursor.CurrentId);
+                cursor.MoveForward();
+            }
+        }
+    }
 
     /// <summary>
     /// This method will create an offsetted version of the loop, and then fix any self-intersections which occur from
@@ -153,8 +172,14 @@ public class PointLoop : Loop<Point2D>
             {
                 var i = intersections[0];
                 var (loop0, loop1) = loop.Split(i.Item1, i.Item2, i.Item3);
-                workingLoops.Add(loop0);
-                workingLoops.Add(loop1);
+                if (loop0.Count == 0 || loop1.Count == 0)
+                {
+                    Console.WriteLine("Strange behavior");
+                }
+                loop0.RemoveAdjacentDuplicates();
+                loop1.RemoveAdjacentDuplicates();
+                if (loop0.Count > 2) workingLoops.Add(loop0);
+                if (loop1.Count > 2) workingLoops.Add(loop1);
             }
         }
 
@@ -242,44 +267,13 @@ public class PointLoop : Loop<Point2D>
 
     public (PointLoop, PointLoop) Split(int i0, int i1, Point2D p)
     {
-        var loop0 = new PointLoop();
-        var c0 = loop0.GetCursor();
-        var loop1 = new PointLoop();
-        var c1 = loop1.GetCursor();
-        
-        bool inLoop0 = true;
-        var push = new Action<Point2D> (p =>
-        {
-            if (inLoop0)
-                c0.InsertAfter(p);
-            else
-                c1.InsertAfter(p);
-        });
+        var i0n = Nodes[i0].NextId;
+        var i1n = Nodes[i1].NextId;
 
-        var read = GetCursor(HeadId);
-        push(read.Current);
-        if (read.CurrentId == i0 || read.CurrentId == i1)
-        {
-            push(p);
-            inLoop0 = false;
-            push(p);
-        }
-        read.MoveForward();
-
-        bool done = false;
-        while (read.CurrentId != HeadId)
-        {
-            push(read.Current);
-            read.MoveForward();
-            
-            if (!done && (read.CurrentId == i0 || read.CurrentId == i1))
-            {
-                push(read.Current);
-                inLoop0 = true;
-                read.MoveForward();
-                done = true;
-            }
-        }
+        var loop0 = new PointLoop(SliceItems(i0n, i1n));
+        var loop1 = new PointLoop(SliceItems(i1n, i0n));
+        loop0.GetCursor().InsertAbs(p);
+        loop1.GetCursor().InsertAbs(p);
         
         return (loop0, loop1);
     }

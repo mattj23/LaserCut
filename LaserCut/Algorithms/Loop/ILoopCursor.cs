@@ -5,9 +5,9 @@ public interface ILoopCursor<T>
     T Current { get; }
     int CurrentId { get; }
     
-    // T PeekNext();
-    //
-    // T PeekPrevious();
+    T PeekNext();
+    
+    T PeekPrevious();
     
     int InsertBefore(T item, bool moveCursor = true);
     

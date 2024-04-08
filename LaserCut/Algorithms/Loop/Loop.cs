@@ -162,6 +162,36 @@ public class Loop<T>
     }
     
     /// <summary>
+    /// Returns an array of items which are between the startId and endId.  The startId is included but the
+    /// endId is not.
+    /// </summary>
+    /// <param name="startId"></param>
+    /// <param name="endId"></param>
+    /// <returns></returns>
+    /// <exception cref="KeyNotFoundException"></exception>
+    protected virtual T[] SliceItems(int startId, int endId)
+    {
+        if (!Nodes.ContainsKey(startId) || !Nodes.ContainsKey(endId))
+        {
+            throw new KeyNotFoundException("Invalid start or end id");
+        }
+        
+        var items = new List<T>();
+        var cursor = GetCursor(startId);
+        while (cursor.CurrentId != endId)
+        {
+            items.Add(cursor.Current);
+            cursor.MoveForward();
+        }
+        return items.ToArray();
+    }
+    
+    public virtual Loop<T> Slice(int startId, int endId)
+    {
+        return new Loop<T>(SliceItems(startId, endId));
+    }
+    
+    /// <summary>
     /// 
     /// </summary>
     /// <param name="id"></param>
