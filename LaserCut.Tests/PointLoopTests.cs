@@ -142,6 +142,25 @@ public class PointLoopTests
         Assert.Equal(loop0.Area, loop1.Area);
     }
 
+    [Fact]
+    public void FixSelfIntersections()
+    {
+        var loop = new PointLoop();
+        var cursor = loop.GetCursor();
+        cursor.InsertAbs(0, 0);
+        cursor.InsertRelY(2.0 - 0.05);
+        cursor.InsertRel(0.05, 0.05);
+        cursor.InsertRelX(4 - 0.05);
+        cursor.InsertRelY(-2.0);
+
+        var o = loop.Offsetted(0.1);
+        var allIntersections = o.SelfIntersections();
+        var i = allIntersections.First();
+        var (a, b) = o.Split(i.Item1, i.Item2, i.Item3);
+        Console.WriteLine(a.Area);
+        Console.WriteLine(b.Area);
+    }
+
     private PointLoop CreateRectangle(double x0, double y0, double height, double width)
     {
         var loop = new PointLoop();

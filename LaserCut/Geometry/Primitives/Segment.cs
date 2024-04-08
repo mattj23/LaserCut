@@ -34,9 +34,15 @@ public class Segment : Line2, IBvhIntersect
     
     public SegIntersection? Intersects(Segment segment)
     {
-        var (t0, t1) = IntersectionParams(segment);
-
-        return t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length ? new SegIntersection(segment, t1) : null;
+        if (IsCollinear(segment))
+        {
+            return null;
+        }
+        else
+        {
+            var (t0, t1) = IntersectionParams(segment);
+            return t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length ? new SegIntersection(segment, t1) : null;
+        }
     }
 
     public SegPairIntersection? IntersectsAsPair(Segment segment)

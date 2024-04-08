@@ -120,6 +120,35 @@ public class PointLoop : Loop<Point2D>
         
         ResetCachedValues();
     }
+
+    /// <summary>
+    /// This method will create an offsetted version of the loop, and then fix any self-intersections which occur from
+    /// the operation. Because it's possible for particular types of offsets to result in multiple resulting loops
+    /// (for instance an inward-facing dog-bone shape) this method will return a list of PointLoops.
+    /// </summary>
+    /// <param name="distance"></param>
+    /// <returns></returns>
+    public List<PointLoop> OffsetAndFixed(double distance)
+    {
+        // Every self-intersection will result in a split of the loop into two separate loops.  The way to tell if a
+        // resulting loop is valid is to check if it contains any segments which have reversed direction.
+        
+        // First, we'll copy the loop and record the direction of each segment
+        var working = Copy();
+        var origDir = working.Segments.ToDictionary(s => s.Index, s => s.Direction);
+        
+        // Next we'll offset the loop and find the segment IDs which have flipped
+        working.Offset(distance);
+        var flipped = working.Segments
+            .Where(s => s.Direction.DotProduct(origDir[s.Index]) < 0)
+            .Select(s => s.Index)
+            .ToHashSet();
+        
+        // Now we'll find all the self-intersections
+        var selfInt = working.SelfIntersections();
+
+
+    }
     
     [Pure]
     public PointLoop Offsetted(double distance)
@@ -165,6 +194,76 @@ public class PointLoop : Loop<Point2D>
         }
 
         return loop;
+    }
+
+    public List<(int, int, Point2D)> SelfIntersections()
+    {
+        var results = new Dictionary<(int, int), Point2D>();
+        // var results = new List<(int, int, Point2D)>();
+        foreach (var seg0 in Segments)
+        {
+            var index = seg0.Index;
+            var nextIndex = Nodes[index].NextId;
+            var prevIndex = Nodes[index].PreviousId;
+
+            var items = Bvh.Intersections(seg0)
+                .Where(s => s.Segment.Index != index && s.Segment.Index != nextIndex && s.Segment.Index != prevIndex)
+                .ToArray();
+            foreach (var item in items)
+            {
+                var key = (Math.Min(index, item.Segment.Index), Math.Max(index, item.Segment.Index));
+                if (!results.ContainsKey(key))
+                {
+                    results[key] = item.Segment.PointAt(item.T);
+                }
+            }
+        }
+
+        return results.Select(r => (r.Key.Item1, r.Key.Item2, r.Value)).ToList();
+    }
+
+    public (PointLoop, PointLoop) Split(int i0, int i1, Point2D p)
+    {
+        var loop0 = new PointLoop();
+        var c0 = loop0.GetCursor();
+        var loop1 = new PointLoop();
+        var c1 = loop1.GetCursor();
+        
+        bool inLoop0 = true;
+        var push = new Action<Point2D> (p =>
+        {
+            if (inLoop0)
+                c0.InsertAfter(p);
+            else
+                c1.InsertAfter(p);
+        });
+
+        var read = GetCursor(HeadId);
+        push(read.Current);
+        if (read.CurrentId == i0 || read.CurrentId == i1)
+        {
+            push(p);
+            inLoop0 = false;
+            push(p);
+        }
+        read.MoveForward();
+
+        bool done = false;
+        while (read.CurrentId != HeadId)
+        {
+            push(read.Current);
+            read.MoveForward();
+            
+            if (!done && (read.CurrentId == i0 || read.CurrentId == i1))
+            {
+                push(read.Current);
+                inLoop0 = true;
+                read.MoveForward();
+                done = true;
+            }
+        }
+        
+        return (loop0, loop1);
     }
 
     public List<SegPairIntersection> Intersections(PointLoop other)
