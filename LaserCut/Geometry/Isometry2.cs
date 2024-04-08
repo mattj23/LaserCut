@@ -4,7 +4,7 @@ using MathNet.Spatial.Euclidean;
 
 
 namespace LaserCut.Geometry;
-public static class Isometry
+public static class Isometry2
 {
     public static Matrix Translate(double x, double y)
     {

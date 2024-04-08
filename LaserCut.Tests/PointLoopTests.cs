@@ -133,6 +133,15 @@ public class PointLoopTests
         Assert.Equal(LoopRelation.Intersecting, loop1.RelationTo(loop0));
     }
 
+    [Fact]
+    public void MirrorAreaStaysTheSame()
+    {
+        var loop0 = CreateRectangle();
+        var loop1 = loop0.Copy();
+        loop1.MirrorY();
+        Assert.Equal(loop0.Area, loop1.Area);
+    }
+
     private PointLoop CreateRectangle(double x0, double y0, double height, double width)
     {
         var loop = new PointLoop();

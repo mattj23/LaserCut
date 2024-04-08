@@ -91,14 +91,14 @@ public class Mesh3
         }
     }
 
-    public uint[] FaceIndices(Func<Face, Vector3D, bool> predicate)
+    public int[] FaceIndices(Func<Face, Vector3D, bool> predicate)
     {
-        var indices = new List<uint>();
+        var indices = new List<int>();
         for (var i = 0; i < _faces.Count; i++)
         {
             if (predicate(_faces[i], _normals[i]))
             {
-                indices.Add((uint)i);
+                indices.Add(i);
             }
         }
         
@@ -111,7 +111,7 @@ public class Mesh3
         return FromFaceIndices(indices);
     }
     
-    public Mesh3 FromFaceIndices(IEnumerable<uint> indices)
+    public Mesh3 FromFaceIndices(IEnumerable<int> indices)
     {
         var vertexMap = new Dictionary<uint, uint>();
         var faces = new List<Face>();
@@ -119,29 +119,29 @@ public class Mesh3
 
         foreach (var i in indices)
         {
-            if (!vertexMap.ContainsKey(_faces[(int)i].A))
+            if (!vertexMap.ContainsKey(_faces[i].A))
             {
-                vertexMap[_faces[(int)i].A] = (uint)vertexMap.Count;
+                vertexMap[_faces[i].A] = (uint)vertexMap.Count;
             }
             
-            if (!vertexMap.ContainsKey(_faces[(int)i].B))
+            if (!vertexMap.ContainsKey(_faces[i].B))
             {
-                vertexMap[_faces[(int)i].B] = (uint)vertexMap.Count;
+                vertexMap[_faces[i].B] = (uint)vertexMap.Count;
             }
             
-            if (!vertexMap.ContainsKey(_faces[(int)i].C))
+            if (!vertexMap.ContainsKey(_faces[i].C))
             {
-                vertexMap[_faces[(int)i].C] = (uint)vertexMap.Count;
+                vertexMap[_faces[i].C] = (uint)vertexMap.Count;
             }
             
             faces.Add(new Face
             {
-                A = vertexMap[_faces[(int)i].A],
-                B = vertexMap[_faces[(int)i].B],
-                C = vertexMap[_faces[(int)i].C]
+                A = vertexMap[_faces[i].A],
+                B = vertexMap[_faces[i].B],
+                C = vertexMap[_faces[i].C]
             });
             
-            normals.Add(_normals[(int)i]);
+            normals.Add(_normals[i]);
         }
 
         var vertices = new Point3D[vertexMap.Count];

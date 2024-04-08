@@ -56,7 +56,7 @@ public class RandomValues
     public Vector2D UnitVector()
     {
         var angle = Degree();
-        return Vector2D.XAxis.Transformed(Isometry.Rotate(angle));
+        return Vector2D.XAxis.Transformed(Isometry2.Rotate(angle));
     }
     
     public Segment Segment(Aabb2 bounds)
@@ -83,7 +83,7 @@ public class RandomValues
         var t0 = Double(0.0, seg.Length);
 
         var angle = Double(0.1, 179.9) * Flip();
-        var d2 = seg.Direction.Transformed(Isometry.Rotate(angle));
+        var d2 = seg.Direction.Transformed(Isometry2.Rotate(angle));
         var l1 = Double(0.1, 5.0);
         var t1 = Double(0, l1);
         var pi = seg.PointAt(t0);
@@ -108,7 +108,7 @@ public class RandomValues
 
         var pi = seg.PointAt(t0);
         var angle = Double(0.1, 179.9) * Flip();
-        var d2 = seg.Direction.Transformed(Isometry.Rotate(angle));
+        var d2 = seg.Direction.Transformed(Isometry2.Rotate(angle));
         var seg1 = new Segment(pi - d2 * t1, pi + d2 * l1, index);
 
         return seg1;

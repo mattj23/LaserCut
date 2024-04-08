@@ -1,3 +1,4 @@
+using System.Diagnostics.Contracts;
 using LaserCut.Algorithms;
 using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry.Primitives;
@@ -87,7 +88,7 @@ public class PointLoop : Loop<Point2D>
     /// <summary>
     /// Offset the loop by a distance in the direction of the edge normals.  A positive distance will offset the loop
     /// in the direction of increasing area, while a negative distance will offset the loop in the direction of
-    /// decreasing area.  
+    /// decreasing area.  The loop will be modified in place.
     /// </summary>
     /// <param name="distance">A distance value to offset the loop by</param>
     public void Offset(double distance)
@@ -118,6 +119,26 @@ public class PointLoop : Loop<Point2D>
         }
         
         ResetCachedValues();
+    }
+    
+    [Pure]
+    public PointLoop Offsetted(double distance)
+    {
+        var loop = Copy();
+        loop.Offset(distance);
+        return loop;
+    }
+    
+    public override PointLoop Copy()
+    {
+        var loop = new PointLoop();
+        var cursor = loop.GetCursor();
+        foreach (var value in IterItems())
+        {
+            cursor.InsertAfter(value.Item);
+        }
+
+        return loop;
     }
 
     public List<SegPairIntersection> Intersections(PointLoop other)
