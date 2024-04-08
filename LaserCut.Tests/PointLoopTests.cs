@@ -153,12 +153,9 @@ public class PointLoopTests
         cursor.InsertRelX(4 - 0.05);
         cursor.InsertRelY(-2.0);
 
-        var o = loop.Offsetted(0.1);
-        var allIntersections = o.SelfIntersections();
-        var i = allIntersections.First();
-        var (a, b) = o.Split(i.Item1, i.Item2, i.Item3);
-        Console.WriteLine(a.Area);
-        Console.WriteLine(b.Area);
+        var items = loop.OffsetAndFixed(0.1);
+        // TODO: Make this a better test
+        Assert.Single(items);
     }
 
     private PointLoop CreateRectangle(double x0, double y0, double height, double width)

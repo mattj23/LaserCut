@@ -130,24 +130,42 @@ public class PointLoop : Loop<Point2D>
     /// <returns></returns>
     public List<PointLoop> OffsetAndFixed(double distance)
     {
-        // Every self-intersection will result in a split of the loop into two separate loops.  The way to tell if a
-        // resulting loop is valid is to check if it contains any segments which have reversed direction.
+        var results = new List<PointLoop>();
         
-        // First, we'll copy the loop and record the direction of each segment
         var working = Copy();
-        var origDir = working.Segments.ToDictionary(s => s.Index, s => s.Direction);
-        
-        // Next we'll offset the loop and find the segment IDs which have flipped
         working.Offset(distance);
-        var flipped = working.Segments
-            .Where(s => s.Direction.DotProduct(origDir[s.Index]) < 0)
-            .Select(s => s.Index)
-            .ToHashSet();
-        
-        // Now we'll find all the self-intersections
-        var selfInt = working.SelfIntersections();
+        var workingLoops = new List<PointLoop> { working };
 
+        while (workingLoops.Any())
+        {
+            // Pop the first loop off the list
+            var loop = workingLoops[0];
+            workingLoops.RemoveAt(0);
+            
+            // If there are self-intersections, split the loop at the first intersection and add the resulting loops
+            // to the working list, otherwise the loop is good to go.
+            var intersections = loop.SelfIntersections();
+            if (!intersections.Any())
+            {
+                results.Add(loop);
+            }
+            else
+            {
+                var i = intersections[0];
+                var (loop0, loop1) = loop.Split(i.Item1, i.Item2, i.Item3);
+                workingLoops.Add(loop0);
+                workingLoops.Add(loop1);
+            }
+        }
 
+        if (Area > 0)
+        {
+            return results.Where(x => x.Area > 0).ToList();
+        }
+        else
+        {
+            return results.Where(x => x.Area < 0).ToList();
+        }
     }
     
     [Pure]
