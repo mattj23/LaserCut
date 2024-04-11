@@ -60,7 +60,7 @@ public class Body
         MirrorY(Bounds.Center.Y);
     }
 
-    public PointLoop AsSingleLoop()
+    public PointLoop ToSingleLoop()
     {
         var loop = Outer.Copy();
 
