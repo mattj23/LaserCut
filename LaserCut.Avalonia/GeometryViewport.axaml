@@ -1,0 +1,45 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LaserCut.Avalonia.ViewModels;assembly=LaserCut.Avalonia"
+             xmlns:paz="using:Avalonia.Controls.PanAndZoom"
+             x:Name="ThisControl"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+             x:Class="LaserCut.Avalonia.GeometryViewport">
+    
+            <paz:ZoomBorder x:Name="ViewPort"
+                            VerticalAlignment="Stretch"
+                            HorizontalAlignment="Stretch"
+                            EnablePan="True"
+                            EnableZoom="True"
+                            ClipToBounds="True"
+                            ZoomChanged="ViewPort_OnZoomChanged">
+
+                <ItemsControl ItemsSource="{Binding #ThisControl.Entities.Geometries}">
+                    <ItemsControl.DataTemplates>
+                        <DataTemplate DataType="vm:PolygonViewModel">
+                            <Polygon Points="{Binding Points}"
+                                     Fill="{Binding Fill}"
+                                     Stroke="{Binding Stroke}"
+                                     StrokeThickness="{Binding DisplayThickness}" />
+                        </DataTemplate>
+
+                    </ItemsControl.DataTemplates>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas Background="Transparent" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ContentControl Content="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </paz:ZoomBorder>
+    
+</UserControl>

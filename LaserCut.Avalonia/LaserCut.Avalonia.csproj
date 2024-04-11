@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Avalonia" Version="11.0.10" />
+      <PackageReference Include="Avalonia.Controls.PanAndZoom" Version="11.0.0.3" />
+      <PackageReference Include="ReactiveUI" Version="18.3.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LaserCut\LaserCut.csproj" />
+    </ItemGroup>
+
+</Project>
