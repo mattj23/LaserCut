@@ -215,6 +215,69 @@ public class Mesh3
         return chains.ToArray();
     }
 
+    /// <summary>
+    /// Goes through the mesh's faces and clusters them into patches, returning a list of lists of indices.  Each list
+    /// of indices corresponds to the triangles in a single patch.
+    ///
+    /// Patches are determined by adjacency.  Triangles which share a common edge are considered adjacent.
+    /// </summary>
+    /// <returns></returns>
+    public List<int[]> GetPatchIndices()
+    {
+        
+        var edgeMap = new Dictionary<ulong, List<int>>();
+        var remaining = new HashSet<int>();
+        
+        // Construct a table of edges and the faces that contain them
+        for (int i = 0; i < _faces.Count; i++)
+        {
+            foreach (var edge in _faces[i].Edges())
+            {
+                if (!edgeMap.ContainsKey(edge.Key))
+                {
+                    edgeMap[edge.Key] = new List<int>();
+                }
+                
+                edgeMap[edge.Key].Add(i);
+            }
+            
+            remaining.Add(i);
+        }
+        
+        // Empty all faces from a working list
+        var patches = new List<int[]>();
+        while (remaining.Count > 0)
+        {
+            var patch = new HashSet<int>();
+            var working = new HashSet<int>{remaining.Pop()};
+            
+            while (working.Count != 0)
+            {
+                var current = working.Pop();
+                patch.Add(current);
+                
+                foreach (var edge in _faces[current].Edges())
+                {
+                    if (!edgeMap.Remove(edge.Key, out var indices)) continue;
+                    
+                    foreach (var j in indices)
+                    {
+                        remaining.Remove(j);
+                        if (!patch.Contains(j))
+                        {
+                            working.Add(j);
+                        }
+                    }
+                }
+
+            }
+            
+            patches.Add(patch.ToArray());
+        }
+
+        return patches;
+    }
+
     public Body[] ExtractSilhouetteBodies(CoordinateSystem view)
     {
         var workingMesh = FromFacesWhere((_, n) => n.DotProduct(view.ZAxis) > 0);
