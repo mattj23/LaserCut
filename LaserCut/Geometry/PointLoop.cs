@@ -128,6 +128,12 @@ public class PointLoop : Loop<Point2D>
         ResetCachedValues();
     }
     
+    /// <summary>
+    /// Remove adjacent duplicate points from the loop.  This will make a single pass through the loop, removing any
+    /// vertices whose distance to its previous neighbor is less than the specified distance tolerance.
+    /// </summary>
+    /// <param name="tol">The distance tolerance below which vertices are considered duplicates of each other. If no
+    /// tolerance is specified, the global constant distance equals is used.</param>
     public void RemoveAdjacentDuplicates(double? tol = null)
     {
         var t = tol ?? GeometryConstants.DistEquals;
@@ -145,6 +151,36 @@ public class PointLoop : Loop<Point2D>
                 cursor.MoveForward();
             }
         }
+    }
+
+    /// <summary>
+    /// Remove vertices who are collinear with their neighbors within a specified tolerance.  This will make a single
+    /// pass through the loop, examining each vertex and its neighbors to determine if they are collinear.  If the
+    /// distance from the vertex to the point projected onto the line between its predecessor and successor is less than
+    /// the specified distance tolerance, the vertex will be removed.
+    /// </summary>
+    /// <param name="tol"></param>
+    public void RemoveAdjacentCollinear(double? tol = null)
+    {
+        var t = tol ?? GeometryConstants.DistEquals;
+        var visited = new HashSet<int>();
+        var cursor = GetCursor();
+        while (!visited.Contains(cursor.CurrentId))
+        {
+            var n = cursor.PeekNext();
+            var p = cursor.PeekPrevious();
+            var d = n - p;
+            if (d.Length > 0 && (new Line2(p, d)).DistanceTo(cursor.Current) < t)
+            {
+                cursor.Remove();
+            }
+            else
+            {
+                visited.Add(cursor.CurrentId);
+                cursor.MoveForward();
+            }
+        }
+        
     }
 
     /// <summary>

@@ -158,6 +158,56 @@ public class PointLoopTests
         Assert.Single(items);
     }
 
+    [Fact]
+    public void RemoveAdjacentDuplicate()
+    {
+        var loop = new PointLoop();
+        var cursor = loop.GetCursor();
+        cursor.InsertAbs(0, 0);
+        cursor.InsertAbs(1, 0);
+        cursor.InsertAbs(1, 0);
+        cursor.InsertAbs(1, 1);
+        cursor.InsertAbs(0, 1);
+        
+        loop.RemoveAdjacentDuplicates();
+        
+        var expected = new[]
+        {
+            new Point2D(0, 0),
+            new Point2D(1, 0),
+            new Point2D(1, 1),
+            new Point2D(0, 1)
+        };
+        
+        var values = loop.ToItemArray();
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void RemoveAdjacentCollinear()
+    {
+        var loop = new PointLoop();
+        var cursor = loop.GetCursor();
+        cursor.InsertAbs(0, 0);
+        cursor.InsertAbs(1, 0);
+        cursor.InsertAbs(1, 0.5);
+        cursor.InsertAbs(1, 1);
+        cursor.InsertAbs(0, 1);
+        
+        loop.RemoveAdjacentCollinear();
+        
+        var expected = new[]
+        {
+            new Point2D(0, 0),
+            new Point2D(1, 0),
+            new Point2D(1, 1),
+            new Point2D(0, 1)
+        };
+        
+        var values = loop.ToItemArray();
+        Assert.Equal(expected, values);
+    }
+
     private PointLoop CreateRectangle(double x0, double y0, double height, double width)
     {
         var loop = new PointLoop();
