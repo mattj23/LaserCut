@@ -35,7 +35,12 @@ public class Mesh3
     {
         return new Mesh3([.._vertices], [.._faces], [.._normals]);
     }
-    
+
+    public override string ToString()
+    {
+        return $"[Mesh {_vertices.Count} points, {_faces.Count} faces]";
+    }
+
     /// <summary>
     /// Compute the area of a face in the mesh  The face does not need to be one of the actual faces in the mesh, but
     /// the vertices used to calculate the area will be the indices in the face applied to the vertex list of this
