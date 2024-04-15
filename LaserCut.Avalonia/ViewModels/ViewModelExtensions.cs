@@ -27,4 +27,9 @@ public static class ViewModelExtensions
         };
     }
     
+    public static List<Point> ToAvaloniaPoints(this PointLoop loop)
+    {
+        return loop.ToItemArray().Select(x => x.ToAvalonia()).ToList();
+    }
+    
 }
