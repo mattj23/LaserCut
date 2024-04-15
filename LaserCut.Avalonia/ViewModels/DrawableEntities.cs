@@ -66,7 +66,11 @@ public class DrawableEntities : ReactiveObject
     
     private void GeometryRemoved(IDrawViewModel geometry)
     {
-        _geometries.Remove(geometry);
+        var i = _geometries.IndexOf(geometry);
+        if (i >= 0)
+        {
+            _geometries.RemoveAt(i);
+        }
     }
     
     private record RegisteredDrawable(IDrawable Drawable, IDisposable AddSub, IDisposable RemoveSub);

@@ -8,13 +8,21 @@ namespace LaserCut.Geometry;
 /// </summary>
 public class Body
 {
-    public Body(PointLoop outer, List<PointLoop> inners)
+    
+    public Body(Guid id, PointLoop outer, List<PointLoop> inners)
     {
         Outer = outer;
         Inners = inners;
+        Id = id;
     }
     
+    public Body(Guid id) : this(id, new PointLoop(), new List<PointLoop>()) { }
+    
+    public Body(PointLoop outer, List<PointLoop> inners) : this(Guid.NewGuid(), outer, inners) { }
+    
     public Body() : this(new PointLoop(), new List<PointLoop>()) { }
+    
+    public Guid Id { get; } 
     
     public PointLoop Outer { get; }
     public List<PointLoop> Inners { get; }
@@ -58,6 +66,11 @@ public class Body
     public void FlipY()
     {
         MirrorY(Bounds.Center.Y);
+    }
+    
+    public Body Copy(Guid id)
+    {
+        return new Body(id, Outer.Copy(), Inners.Select(i => i.Copy()).ToList());
     }
 
     public PointLoop ToSingleLoop()
