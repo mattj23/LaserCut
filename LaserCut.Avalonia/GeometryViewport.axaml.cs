@@ -35,7 +35,7 @@ public partial class GeometryViewport : UserControl
         Entities.UpdateZoom(e.ZoomX);
     }
 
-    public void ZoomToFit()
+    public async Task ZoomToFit()
     {
         var bounds = Entities.GetBounds();
         if (bounds.IsEmpty)
@@ -52,5 +52,7 @@ public partial class GeometryViewport : UserControl
         var offsetY = bounds.Center.Y - ViewPort.Bounds.Height / (2 * zoom);
 
         ViewPort.Zoom(zoom, offsetX, offsetY);
+        await Task.Delay(TimeSpan.FromMilliseconds(10));
+        Entities.UpdateZoom(zoom);
     }
 }
