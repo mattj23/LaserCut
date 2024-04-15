@@ -17,7 +17,10 @@ public class PolygonViewModel : ReactiveObject, IDrawViewModel
     public PolygonViewModel()
     {
         _points = new List<Point>();
+        Id = Guid.NewGuid();
     }
+    
+    public Guid Id { get; }
     
     public double DisplayThickness => StrokeThickness / _zoom;
 

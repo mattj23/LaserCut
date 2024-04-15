@@ -8,6 +8,8 @@ namespace LaserCut.Avalonia.ViewModels;
 /// </summary>
 public interface IDrawViewModel
 {
+    Guid Id { get; }
+    
     IBrush? Stroke { get; set; }
     IBrush? Fill { get; set; }
     double StrokeThickness { get; set; }
