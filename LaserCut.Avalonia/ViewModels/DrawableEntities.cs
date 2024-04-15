@@ -27,6 +27,22 @@ public class DrawableEntities : ReactiveObject
         _geometries.AddRange(drawable.Geometries);
         _drawables.Add(drawable.Id, new RegisteredDrawable(drawable, addSub, removeSub));
     }
+    
+    public void UnRegister(IDrawable drawable)
+    {
+        if (!_drawables.TryGetValue(drawable.Id, out var registered))
+        {
+            return;
+        }
+
+        registered.AddSub.Dispose();
+        registered.RemoveSub.Dispose();
+        foreach (var geometry in drawable.Geometries)
+        {
+            _geometries.Remove(geometry);
+        }
+        _drawables.Remove(drawable.Id);
+    }
 
     public void Clear()
     {
