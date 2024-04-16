@@ -13,6 +13,7 @@ public class DrawableEntities : ReactiveObject
     private readonly Dictionary<Guid, RegisteredDrawable> _drawables = new();
     
     private Guid _activeDrawable = Guid.Empty;
+    private Point2D? _lastDragReference;
 
     public ReadOnlyObservableCollection<IDrawViewModel> Geometries => new(_geometries);
     
@@ -99,17 +100,36 @@ public class DrawableEntities : ReactiveObject
                 _activeDrawable = nextActive;
             }
         }
+        else if (_lastDragReference is { } lastDrag)
+        {
+            if (GetInteractive(_activeDrawable) is { } interactive)
+            {
+                _lastDragReference += interactive.DragTransform(e.Point - lastDrag);
+            }
+        }
     }
 
     public void OnPointerPressed(MouseViewportEventArgs e)
     {
         // Are we clicking on any draggable objects
+        if (GetInteractive(_activeDrawable) is { } interactive)
+        {
+            if (e.LeftButton && interactive.IsDraggable)
+            {
+                // Initiate dragging mechanics
+                _lastDragReference = e.Point;
+            }
+            else
+            {
+                interactive.MouseClick(e);
+            }
+        }
         
     }
     
     public void OnPointerReleased(MouseViewportEventArgs e)
     {
-        
+        _lastDragReference = null;
     }
     
     public void OnPointerExited()
@@ -119,6 +139,7 @@ public class DrawableEntities : ReactiveObject
             interactive.MouseExit();
         }
         _activeDrawable = Guid.Empty;
+        _lastDragReference = null;
     }
 
     private Guid InteractiveUnderPoint(Point2D p)

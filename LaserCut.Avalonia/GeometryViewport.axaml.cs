@@ -72,14 +72,14 @@ public partial class GeometryViewport : UserControl
     private void ViewCanvas_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var p = e.GetCurrentPoint(ViewPort);
-        Entities.OnPointerMoved(BuildEvent(p, e.KeyModifiers));
+        Entities.OnPointerPressed(BuildEvent(p, e.KeyModifiers));
     }
 
     private void ViewCanvas_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         
         var p = e.GetCurrentPoint(ViewPort);
-        Entities.OnPointerMoved(BuildEvent(p, e.KeyModifiers));
+        Entities.OnPointerReleased(BuildEvent(p, e.KeyModifiers));
     }
 
     private void ViewCanvas_OnPointerExited(object? sender, PointerEventArgs e)
