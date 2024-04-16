@@ -16,10 +16,11 @@
                             EnablePan="True"
                             EnableZoom="True"
                             ClipToBounds="True"
-                            Background="LightGray"
+                            Background="White"
                             ZoomChanged="ViewPort_OnZoomChanged">
 
                 <ItemsControl ItemsSource="{Binding #ThisControl.Entities.Geometries}">
+                    <!-- Templates for different types of view models -->
                     <ItemsControl.DataTemplates>
                         <DataTemplate DataType="vm:PolygonViewModel">
                             <Polygon Points="{Binding Points}"
@@ -27,8 +28,17 @@
                                      Stroke="{Binding Stroke}"
                                      StrokeThickness="{Binding DisplayThickness}" />
                         </DataTemplate>
-
+                        
+                        <DataTemplate DataType="vm:LineViewModel">
+                            <Line StartPoint="{Binding Start}"
+                                  EndPoint="{Binding End}"
+                                  Stroke="{Binding Stroke}"
+                                  StrokeThickness="{Binding DisplayThickness}"
+                                  StrokeDashArray="{Binding DashArray}" />
+                        </DataTemplate>
                     </ItemsControl.DataTemplates>
+                    
+                    <!-- The presenting panel -->
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <Canvas Background="White"
@@ -41,11 +51,13 @@
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
 
+                    <!-- The actual parent template -->
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <ContentControl Content="{Binding}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
+                    
                 </ItemsControl>
             </paz:ZoomBorder>
     
