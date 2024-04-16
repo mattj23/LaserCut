@@ -2,6 +2,7 @@
 using System.Reactive.Linq;
 using DynamicData;
 using LaserCut.Geometry.Primitives;
+using MathNet.Spatial.Euclidean;
 using ReactiveUI;
 
 namespace LaserCut.Avalonia.ViewModels;
@@ -10,6 +11,8 @@ public class DrawableEntities : ReactiveObject
 {
     private readonly ObservableCollection<IDrawViewModel> _geometries = new();
     private readonly Dictionary<Guid, RegisteredDrawable> _drawables = new();
+    
+    private Guid _activeDrawable = Guid.Empty;
 
     public ReadOnlyObservableCollection<IDrawViewModel> Geometries => new(_geometries);
     
@@ -74,6 +77,89 @@ public class DrawableEntities : ReactiveObject
             geometry.UpdateZoom(zoom);
         }
     }
+
+    public void OnPointerMoved(MouseViewportEventArgs e)
+    {
+        // If no mouse buttons are pressed, we're just hovering
+        if (!e.LeftButton)
+        {
+            var nextActive = InteractiveUnderPoint(e.Point);
+            
+            // The active drawable is changing, so let's update the items
+            if (nextActive != _activeDrawable)
+            {
+                if (GetInteractive(_activeDrawable) is { } interactive)
+                {
+                    interactive.MouseExit();
+                }
+                if (GetInteractive(nextActive) is { } nextInteractive)
+                {
+                    nextInteractive.MouseEnter();
+                }
+                _activeDrawable = nextActive;
+            }
+        }
+    }
+
+    public void OnPointerPressed(MouseViewportEventArgs e)
+    {
+        // Are we clicking on any draggable objects
+        
+    }
+    
+    public void OnPointerReleased(MouseViewportEventArgs e)
+    {
+        
+    }
+    
+    public void OnPointerExited()
+    {
+        if (GetInteractive(_activeDrawable) is { } interactive)
+        {
+            interactive.MouseExit();
+        }
+        _activeDrawable = Guid.Empty;
+    }
+
+    private Guid InteractiveUnderPoint(Point2D p)
+    {
+        if (GetInteractive(_activeDrawable) is { } interactive && interactive.Contains(p))
+        {
+            return _activeDrawable;
+        }
+        
+        foreach (var i in IterateInteractive())
+        {
+            if (i.Contains(p))
+            {
+                return i.Id;
+            }
+        }
+        
+        return Guid.Empty;
+    }
+
+    private IEnumerable<IInteractiveDrawable> IterateInteractive()
+    {
+        foreach (var (_, item) in _drawables)
+        {
+            if (item.Drawable is IInteractiveDrawable interactive)
+            {
+                yield return interactive;
+            }
+        }
+    }
+
+    private IInteractiveDrawable? GetInteractive(Guid id)
+    {
+        if (_drawables.TryGetValue(id, out var drawable))
+        {
+            return drawable.Drawable as IInteractiveDrawable;
+        }
+        
+        return null;
+    }
+    
     
     private void GeometryAdded(IDrawViewModel geometry)
     {

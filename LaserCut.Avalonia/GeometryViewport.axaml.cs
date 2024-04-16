@@ -1,7 +1,9 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.PanAndZoom;
+using Avalonia.Input;
 using LaserCut.Avalonia.ViewModels;
+using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Avalonia;
 
@@ -12,7 +14,12 @@ public partial class GeometryViewport : UserControl
 
     public static readonly StyledProperty<double> ZoomToFitScaleProperty =
         AvaloniaProperty.Register<GeometryViewport, double>(nameof(ZoomToFitScale), 1.5);
-
+    
+    public GeometryViewport()
+    {
+        InitializeComponent();
+    }
+    
     public DrawableEntities Entities
     {
         get => GetValue(EntitiesProperty);
@@ -25,10 +32,6 @@ public partial class GeometryViewport : UserControl
         set => SetValue(ZoomToFitScaleProperty, value);
     }
 
-    public GeometryViewport()
-    {
-        InitializeComponent();
-    }
 
     private void ViewPort_OnZoomChanged(object sender, ZoomChangedEventArgs e)
     {
@@ -54,5 +57,42 @@ public partial class GeometryViewport : UserControl
         ViewPort.Zoom(zoom, offsetX, offsetY);
         await Task.Delay(TimeSpan.FromMilliseconds(10));
         Entities.UpdateZoom(zoom);
+    }
+
+    private void ViewCanvas_OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+    }
+
+    private void ViewCanvas_OnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        var p = e.GetCurrentPoint(ViewPort);
+        Entities.OnPointerMoved(BuildEvent(p, e.KeyModifiers));
+    }
+
+    private void ViewCanvas_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var p = e.GetCurrentPoint(ViewPort);
+        Entities.OnPointerMoved(BuildEvent(p, e.KeyModifiers));
+    }
+
+    private void ViewCanvas_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        
+        var p = e.GetCurrentPoint(ViewPort);
+        Entities.OnPointerMoved(BuildEvent(p, e.KeyModifiers));
+    }
+
+    private void ViewCanvas_OnPointerExited(object? sender, PointerEventArgs e)
+    {
+        Entities.OnPointerExited();
+    }
+
+    private MouseViewportEventArgs BuildEvent(PointerPoint p, KeyModifiers m)
+    {
+        var x = (p.Position.X - ViewPort.OffsetX) / ViewPort.ZoomX;
+        var y = (p.Position.Y - ViewPort.OffsetY) / ViewPort.ZoomY;
+
+        return new MouseViewportEventArgs(new Point2D(x, y), m, p.Properties.IsLeftButtonPressed,
+            p.Properties.IsRightButtonPressed, p.Properties.IsMiddleButtonPressed);
     }
 }

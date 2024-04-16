@@ -17,4 +17,6 @@ public interface IDrawable
     
     IObservable<IDrawViewModel> Added { get; }
     IObservable<IDrawViewModel> Removed { get; }
+    
+    
 }

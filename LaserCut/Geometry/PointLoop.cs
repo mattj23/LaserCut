@@ -337,6 +337,13 @@ public class PointLoop : Loop<Point2D>
     {
         return Bvh.Intersections(other);
     }
+    
+    public bool ContainsPoint(Point2D p)
+    {
+        var ray = new Ray2(p, Vector2D.XAxis);
+        var intersections = Intersections(ray);
+        return intersections.Count % 2 == 1;
+    }
 
     public LoopRelation RelationTo(PointLoop other)
     {

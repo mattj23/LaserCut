@@ -16,6 +16,7 @@
                             EnablePan="True"
                             EnableZoom="True"
                             ClipToBounds="True"
+                            Background="LightGray"
                             ZoomChanged="ViewPort_OnZoomChanged">
 
                 <ItemsControl ItemsSource="{Binding #ThisControl.Entities.Geometries}">
@@ -30,7 +31,13 @@
                     </ItemsControl.DataTemplates>
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <Canvas Background="Transparent" />
+                            <Canvas Background="White"
+                                    x:Name="ViewCanvas"
+                                    PointerMoved="ViewCanvas_OnPointerMoved"
+                                    PointerPressed="ViewCanvas_OnPointerPressed"
+                                    PointerReleased="ViewCanvas_OnPointerReleased"
+                                    PointerExited="ViewCanvas_OnPointerExited"
+                                    PointerCaptureLost="ViewCanvas_OnPointerCaptureLost" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
 
