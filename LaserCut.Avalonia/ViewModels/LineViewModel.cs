@@ -1,7 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.Collections;
-using Avalonia.Media;
-using LaserCut.Geometry.Primitives;
 using ReactiveUI;
 
 namespace LaserCut.Avalonia.ViewModels;
@@ -10,7 +7,6 @@ public class LineViewModel : DrawViewModelBase
 {
     private Point _start;
     private Point _end;
-    private AvaloniaList<double>? _dashArray;
     
     public LineViewModel() : base() {}
     
@@ -26,10 +22,4 @@ public class LineViewModel : DrawViewModelBase
         set => this.RaiseAndSetIfChanged(ref _end, value);
     }
     
-    public AvaloniaList<double>? DashArray
-    {
-        get => _dashArray;
-        set => this.RaiseAndSetIfChanged(ref _dashArray, value);
-    }
-
 }

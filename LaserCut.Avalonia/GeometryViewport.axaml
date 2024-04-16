@@ -26,9 +26,10 @@
                             <Polygon Points="{Binding Points}"
                                      Fill="{Binding Fill}"
                                      Stroke="{Binding Stroke}"
-                                     StrokeThickness="{Binding DisplayThickness}" />
+                                     StrokeThickness="{Binding DisplayThickness}"
+                                     StrokeDashArray="{Binding DashArray}" />
                         </DataTemplate>
-                        
+
                         <DataTemplate DataType="vm:LineViewModel">
                             <Line StartPoint="{Binding Start}"
                                   EndPoint="{Binding End}"

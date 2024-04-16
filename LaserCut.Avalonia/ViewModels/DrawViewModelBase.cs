@@ -1,4 +1,5 @@
-﻿using Avalonia.Media;
+﻿using Avalonia.Collections;
+using Avalonia.Media;
 using LaserCut.Geometry.Primitives;
 using ReactiveUI;
 
@@ -11,6 +12,7 @@ public abstract class DrawViewModelBase : ReactiveObject, IDrawViewModel
 {
     protected double ZoomValue = 1;
     protected Aabb2 BoundsValue;
+    private AvaloniaList<double>? _dashArray;
 
     private IBrush? _fill;
     private IBrush? _stroke;
@@ -22,6 +24,12 @@ public abstract class DrawViewModelBase : ReactiveObject, IDrawViewModel
     }
 
     public Guid Id { get; }
+
+    public AvaloniaList<double>? DashArray
+    {
+        get => _dashArray;
+        set => this.RaiseAndSetIfChanged(ref _dashArray, value);
+    }
 
     public IBrush? Stroke
     {
