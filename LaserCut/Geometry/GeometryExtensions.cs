@@ -1,4 +1,6 @@
-﻿using MathNet.Spatial.Euclidean;
+﻿using LaserCut.Algorithms;
+using LaserCut.Geometry.Primitives;
+using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
 
@@ -24,5 +26,16 @@ public static class GeometryExtensions
         }
         
         return points2.ToArray();
+    }
+
+    public static Aabb2 CombinedBounds(this IEnumerable<IHasBounds> items)
+    {
+        var bounds = Aabb2.Empty;
+        foreach (var item in items)
+        {
+            bounds = bounds.Union(item.Bounds);
+        }
+
+        return bounds;
     }
 }
