@@ -18,6 +18,4 @@ public interface IDrawViewModel
     
     void UpdateZoom(double zoom);
     
-    Aabb2 Bounds { get; }
-    
 }

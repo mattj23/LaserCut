@@ -11,7 +11,6 @@ namespace LaserCut.Avalonia.ViewModels;
 public abstract class DrawViewModelBase : ReactiveObject, IDrawViewModel
 {
     protected double ZoomValue = 1;
-    protected Aabb2 BoundsValue;
     private AvaloniaList<double>? _dashArray;
 
     private IBrush? _fill;
@@ -49,12 +48,6 @@ public abstract class DrawViewModelBase : ReactiveObject, IDrawViewModel
     {
         ZoomValue = zoom;
         this.RaisePropertyChanged(nameof(DisplayThickness));
-    }
-
-    public Aabb2 Bounds
-    {
-        get => BoundsValue;
-        set => this.RaiseAndSetIfChanged(ref BoundsValue, value);
     }
 
     public double StrokeThickness

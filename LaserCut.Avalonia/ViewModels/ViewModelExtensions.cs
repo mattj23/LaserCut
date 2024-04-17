@@ -23,7 +23,6 @@ public static class ViewModelExtensions
             Fill = fill,
             Stroke = stroke,
             StrokeThickness = strokeThickness,
-            Bounds = loop.Bounds
         };
     }
     
