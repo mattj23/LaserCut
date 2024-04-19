@@ -11,31 +11,25 @@ public class PointLoopMergeTests
     {
         var loop0 = Rect(-2, -2, 4, 4);
         var loop1 = Rect(-3, -1, 6, 2);
+        var expected = ExpectedPoints((-2, -2), (2, -2), (2, -1), (3, -1), (3, 1), (2, 1), (2, 2), (-2, 2), (-2, 1),
+            (-3, 1), (-3, -1), (-2, -1));
 
         var result = loop0.MergedWith(loop1);
-        
-        var expected = new[]
-        {
-            new Point2D(-2, -2),
-            new Point2D(2, -2),
-            new Point2D(2, -1),
-            new Point2D(3, -1),
-            new Point2D(3, 1),
-            new Point2D(2, 1),
-            new Point2D(2, 2),
-            new Point2D(-2, 2),
-            new Point2D(-2, 1),
-            new Point2D(-3, 1),
-            new Point2D(-3, -1),
-            new Point2D(-2, -1)
-        };
-        
-        var closest = result.FirstId(p => p.DistanceTo(expected[0]) < 1e-10);
-        var values = result.ToItemArray(closest);
+        var values = OrientedPoints(result, expected);
         
         Assert.Equal(expected, values);
     }
 
+    private Point2D[] ExpectedPoints(params ValueTuple<double, double> [] points)
+    {
+        return points.Select(p => new Point2D(p.Item1, p.Item2)).ToArray();
+    }
+
+    private Point2D[] OrientedPoints(PointLoop result, Point2D[] expected)
+    {
+        var closest = result.FirstId(p => p.DistanceTo(expected[0]) < 1e-10);
+        return result.ToItemArray(closest);
+    }
 
     private PointLoop Rect(double x0, double y0, double width, double height)
     {
