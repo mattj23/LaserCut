@@ -61,8 +61,75 @@ public class PointLoopMergeTests
         
         Assert.Equal(expected, values);
     }
+
+    [Fact]
+    public void MergePositiveSharedSide()
+    {
+        var loop0 = Rect(0, 0, 1, 3);
+        var loop1 = Rect(1, 1, 1, 1);
+
+        var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (1, 2), (1, 3), (0, 3));
+        var result = loop0.MergedWith(loop1);
+        var values = OrientedPoints(result, expected);
+        
+        Assert.Equal(expected, values);
+    }
     
+    [Fact]
+    public void MergeNegativeSharedSide()
+    {
+        var loop0 = Rect(0, 0, 1, 3).Reversed();
+        var loop1 = Rect(1, 1, 1, 1).Reversed();
+
+        var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (1, 2), (1, 3), (0, 3))
+            .Reverse()
+            .ToArray();
+        var result = loop0.MergedWith(loop1);
+        var values = OrientedPoints(result, expected);
+        
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void CutoutPositiveSharedSide()
+    {
+        var loop0 = Rect(0, 0, 2, 3);
+        var loop1 = Rect(1, 1, 1, 1).Reversed();
+        
+        var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3));
+        var result = loop0.MergedWith(loop1);
+        var values = OrientedPoints(result, expected);
+        
+        Assert.Equal(expected, values);
+    }
     
+    [Fact]
+    public void CutoutNegativeSharedSide()
+    {
+        var loop0 = Rect(0, 0, 2, 3).Reversed();
+        var loop1 = Rect(1, 1, 1, 1);
+        
+        var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3))
+            .Reverse()
+            .ToArray();
+        var result = loop0.MergedWith(loop1);
+        var values = OrientedPoints(result, expected);
+        
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void CutoutPositiveSharedCorner()
+    {
+        var loop0 = Rect(0, 0, 2, 2);
+        var loop1 = Rect(1, 0, 1, 1).Reversed();
+
+        var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (0, 2));
+        var result = loop0.MergedWith(loop1);
+        var values = OrientedPoints(result, expected);
+        
+        Assert.Equal(expected, values);
+    }
 
     private Point2D[] ExpectedPoints(params ValueTuple<double, double> [] points)
     {
