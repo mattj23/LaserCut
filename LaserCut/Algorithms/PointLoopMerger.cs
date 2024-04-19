@@ -15,10 +15,10 @@ public static class PointLoopMerge
         
         // First, we want to find an intersection pair where segment 0's direction has a positive dot product with 
         // segment 1's normal. This is an intersection where this loop is emerging from inside the other loop.
-        var start = intersections.FirstOrDefault(i => i.Seg0ExitsSeg1);
+        var start = FindStart(loop0, loop1, intersections);
         
-        if (start.Segment0 == null)
-            throw new InvalidOperationException("No starting intersection found");
+        // if (start.Segment0 == null)
+        //     throw new InvalidOperationException("No starting intersection found");
         
         // Now we can remove the start from the list of intersections
         intersections.Remove(start);
@@ -67,6 +67,21 @@ public static class PointLoopMerge
         working.RemoveAdjacentDuplicates();
 
         return working;
+    }
+
+    private static SegPairIntersection FindStart(PointLoop loop0, PointLoop loop1,
+        List<SegPairIntersection> intersections)
+    {
+        if (loop0.Area > 0 && loop1.Area > 0)
+            return intersections.First(i => i.Seg0ExitsSeg1);
+        
+        if (loop0.Area < 0 && loop1.Area < 0)
+            return intersections.First(i => i.Seg1ExitsSeg0);
+        
+        if (loop0.Area < 0 && loop1.Area > 0)
+            return intersections.First(i => i.Seg0ExitsSeg1);
+        
+        return intersections.First(i => i.Seg1ExitsSeg0);
     }
 
     private static SegPairIntersection? PopNext(List<SegPairIntersection> intersections, double lastT, bool isLoop0, int currentId)

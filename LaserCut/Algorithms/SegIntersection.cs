@@ -23,6 +23,8 @@ public readonly struct SegPairIntersection
     public SegPairIntersection Flipped => new(Segment1, T1, Segment0, T0);
     
     public bool Seg0ExitsSeg1 => Segment0.Direction.DotProduct(Segment1.Normal) > 0;
+    
+    public bool Seg1ExitsSeg0 => Segment1.Direction.DotProduct(Segment0.Normal) > 0;
 
     public Point2D Point => Segment0.PointAt(T0);
 }
