@@ -67,12 +67,12 @@ public static class PointLoopMerge
             return intersections.First(i => i.Seg0ExitsSeg1);
         
         if (loop0.Area < 0 && loop1.Area < 0)
-            return intersections.First(i => i.Seg1ExitsSeg0);
+            return intersections.First(i => i.Seg0EntersSeg1);
         
         if (loop0.Area < 0 && loop1.Area > 0)
             return intersections.First(i => i.Seg0ExitsSeg1);
         
-        return intersections.First(i => i.Seg1ExitsSeg0);
+        return intersections.First(i => i.Seg0EntersSeg1);
     }
 
     private static SegPairIntersection? PopNext(List<SegPairIntersection> intersections, double lastT, bool isLoop0, int currentId)

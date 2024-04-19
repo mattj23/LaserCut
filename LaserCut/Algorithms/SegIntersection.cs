@@ -15,16 +15,16 @@ public readonly struct SegPairIntersection : IEquatable<SegPairIntersection>
         Segment1 = segment1;
         T1 = t1;
     }
-    
+
     public Segment Segment0 { get; }
     public Segment Segment1 { get; }
     public double T0 { get; }
     public double T1 { get; }
     public SegPairIntersection Flipped => new(Segment1, T1, Segment0, T0);
-    
-    public bool Seg0ExitsSeg1 => Segment0.Direction.DotProduct(Segment1.Normal) > 0;
-    
-    public bool Seg1ExitsSeg0 => Segment1.Direction.DotProduct(Segment0.Normal) > 0;
+
+    public bool Seg0ExitsSeg1 => Segment0.Direction.DotProduct(Segment1.Normal) > 0 && T0 < Segment0.Length;
+
+    public bool Seg0EntersSeg1 => Segment0.Direction.DotProduct(Segment1.Normal) < 0 && T0 < Segment0.Length;
 
     public Point2D Point => Segment0.PointAt(T0);
 
@@ -35,7 +35,8 @@ public readonly struct SegPairIntersection : IEquatable<SegPairIntersection>
 
     public bool Equals(SegPairIntersection other)
     {
-        return Segment0.Equals(other.Segment0) && Segment1.Equals(other.Segment1) && T0.Equals(other.T0) && T1.Equals(other.T1);
+        return Segment0.Equals(other.Segment0) && Segment1.Equals(other.Segment1) && T0.Equals(other.T0) &&
+               T1.Equals(other.T1);
     }
 
     public override bool Equals(object? obj)
@@ -57,11 +58,3 @@ public readonly struct SegPairIntersection : IEquatable<SegPairIntersection>
 //     
 //     public Point2D Point => Segment0.PointAt(T0);
 // }
-
-public static class SegIntersectionExtensions
-{
-    public static SegPairIntersection[] Flipped(this IEnumerable<SegPairIntersection> items)
-    {
-        return items.Select(i => i.Flipped).ToArray();
-    }
-}
