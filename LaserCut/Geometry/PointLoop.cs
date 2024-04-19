@@ -7,22 +7,6 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
 
-public interface IPointLoopCursor : ILoopCursor<Point2D>
-{
-    int InsertAbs(Point2D p);
-    
-    int InsertAbs(double x, double y);
-    
-    int InsertRel(Vector2D v);
-    
-    int InsertRel(double x, double y);
-    
-    int InsertRelX(double x);
-    
-    int InsertRelY(double y);
-    
-}
-
 public class PointLoop : Loop<Point2D>
 {
     private List<Segment>? _segments;
@@ -68,6 +52,10 @@ public class PointLoop : Loop<Point2D>
         ResetCachedValues();
         base.OnItemChanged(item);
     }
+    
+    // ==============================================================================================================
+    // Bulk transformations
+    // ==============================================================================================================
 
     public void Transform(Matrix t)
     {
@@ -99,6 +87,7 @@ public class PointLoop : Loop<Point2D>
         ResetCachedValues();
     }
 
+    [Pure]
     public PointLoop Reversed()
     {
         var loop = Copy();
@@ -106,38 +95,9 @@ public class PointLoop : Loop<Point2D>
         return loop;
     }
 
-    /// <summary>
-    ///     Offset the loop by a distance in the direction of the edge normals.  A positive distance will offset the loop
-    ///     in the direction of increasing area, while a negative distance will offset the loop in the direction of
-    ///     decreasing area.  The loop will be modified in place.
-    /// </summary>
-    /// <param name="distance">A distance value to offset the loop by</param>
-    public void Offset(double distance)
-    {
-        var updates = new Dictionary<int, Point2D>();
-        foreach (var node in Nodes)
-        {
-            var b = node.Value;
-            var a = Nodes[b.PreviousId];
-            var c = Nodes[b.NextId];
-
-            var line0 = new Line2(a.Item, b.Item - a.Item).Offset(distance);
-            var line1 = new Line2(b.Item, c.Item - b.Item).Offset(distance);
-            if (!line0.IsCollinear(line1))
-            {
-                var (t0, _) = line0.IntersectionParams(line1);
-                updates[node.Key] = line0.PointAt(t0);
-            }
-            else
-            {
-                updates[node.Key] = line1.Start;
-            }
-        }
-
-        foreach (var (id, point) in updates) Nodes[id].Item = point;
-
-        ResetCachedValues();
-    }
+    // ==============================================================================================================
+    // Simplifications and Error Correction
+    // ==============================================================================================================
 
     /// <summary>
     ///     Remove adjacent duplicate points from the loop.  This will make a single pass through the loop, removing any
@@ -192,6 +152,58 @@ public class PointLoop : Loop<Point2D>
             }
         }
     }
+    
+    // ==============================================================================================================
+    // Shape operations
+    // ==============================================================================================================
+    
+    public (PointLoop, PointLoop) Split(int i0, int i1, Point2D p)
+    {
+        var i0n = Nodes[i0].NextId;
+        var i1n = Nodes[i1].NextId;
+
+        var loop0 = new PointLoop(SliceItems(i0n, i1n));
+        var loop1 = new PointLoop(SliceItems(i1n, i0n));
+        loop0.GetCursor().InsertAbs(p);
+        loop1.GetCursor().InsertAbs(p);
+
+        return (loop0, loop1);
+    }
+
+
+    /// <summary>
+    ///     Offset the loop by a distance in the direction of the edge normals.  A positive distance will offset the loop
+    ///     in the direction of increasing area, while a negative distance will offset the loop in the direction of
+    ///     decreasing area.  The loop will be modified in place.
+    /// </summary>
+    /// <param name="distance">A distance value to offset the loop by</param>
+    public void Offset(double distance)
+    {
+        var updates = new Dictionary<int, Point2D>();
+        foreach (var node in Nodes)
+        {
+            var b = node.Value;
+            var a = Nodes[b.PreviousId];
+            var c = Nodes[b.NextId];
+
+            var line0 = new Line2(a.Item, b.Item - a.Item).Offset(distance);
+            var line1 = new Line2(b.Item, c.Item - b.Item).Offset(distance);
+            if (!line0.IsCollinear(line1))
+            {
+                var (t0, _) = line0.IntersectionParams(line1);
+                updates[node.Key] = line0.PointAt(t0);
+            }
+            else
+            {
+                updates[node.Key] = line1.Start;
+            }
+        }
+
+        foreach (var (id, point) in updates) Nodes[id].Item = point;
+
+        ResetCachedValues();
+    }
+    
 
     /// <summary>
     ///     This method will create an offsetted version of the loop, and then fix any self-intersections which occur from
@@ -247,19 +259,6 @@ public class PointLoop : Loop<Point2D>
         return loop;
     }
 
-    public (int, int) ClosestVertices(PointLoop other)
-    {
-        var best = (-1, -1, double.MaxValue);
-        foreach (var a in IterItems())
-        foreach (var b in other.IterItems())
-        {
-            var d = a.Item.DistanceTo(b.Item);
-            if (d < best.Item3) best = (a.Id, b.Id, d);
-        }
-
-        return (best.Item1, best.Item2);
-    }
-
     /// <summary>
     ///     Creates a filled area offset of the loop which can be drawn as a filled polygon.
     /// </summary>
@@ -292,6 +291,24 @@ public class PointLoop : Loop<Point2D>
         return loop;
     }
 
+    // ==============================================================================================================
+    // Intersections, measurements, and relations
+    // ==============================================================================================================
+    
+    public (int, int) ClosestVertices(PointLoop other)
+    {
+        var best = (-1, -1, double.MaxValue);
+        foreach (var a in IterItems())
+        foreach (var b in other.IterItems())
+        {
+            var d = a.Item.DistanceTo(b.Item);
+            if (d < best.Item3) best = (a.Id, b.Id, d);
+        }
+
+        return (best.Item1, best.Item2);
+    }
+
+    
     public List<(int, int, Point2D)> SelfIntersections()
     {
         var results = new Dictionary<(int, int), Point2D>();
@@ -313,19 +330,6 @@ public class PointLoop : Loop<Point2D>
         }
 
         return results.Select(r => (r.Key.Item1, r.Key.Item2, r.Value)).ToList();
-    }
-
-    public (PointLoop, PointLoop) Split(int i0, int i1, Point2D p)
-    {
-        var i0n = Nodes[i0].NextId;
-        var i1n = Nodes[i1].NextId;
-
-        var loop0 = new PointLoop(SliceItems(i0n, i1n));
-        var loop1 = new PointLoop(SliceItems(i1n, i0n));
-        loop0.GetCursor().InsertAbs(p);
-        loop1.GetCursor().InsertAbs(p);
-
-        return (loop0, loop1);
     }
 
     public List<SegPairIntersection> Intersections(PointLoop other)
@@ -356,6 +360,10 @@ public class PointLoop : Loop<Point2D>
 
         return LoopRelation.Outside;
     }
+    
+    // ==============================================================================================================
+    // Internal state management
+    // ==============================================================================================================
 
     private List<Segment> BuildSegments()
     {
@@ -375,11 +383,6 @@ public class PointLoop : Loop<Point2D>
     private double CalculateArea()
     {
         var area = 0.0;
-        // foreach (var (a, b) in IterEdges())
-        // {
-        //     area += a.Item.X * b.Item.Y;
-        //     area -= b.Item.X * a.Item.Y;
-        // }
         foreach (var seg in Segments)
         {
             area += seg.Start.X * seg.End.Y;
@@ -388,6 +391,10 @@ public class PointLoop : Loop<Point2D>
 
         return area / 2;
     }
+
+    // ==============================================================================================================
+    // Internal classes
+    // ==============================================================================================================
 
     /// <summary>
     ///     A cursor for a PointLoop.  This adds some convenience features.
