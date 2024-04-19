@@ -1,4 +1,6 @@
-﻿using LaserCut.Geometry;
+﻿using LaserCut.Algorithms.Loop;
+using LaserCut.Geometry;
+using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Tests;
 
@@ -10,7 +12,28 @@ public class PointLoopMergeTests
         var loop0 = Rect(-2, -2, 4, 4);
         var loop1 = Rect(-3, -1, 6, 2);
 
-        // throw new NotImplementedException();
+        var result = loop0.MergedWith(loop1);
+        
+        var expected = new[]
+        {
+            new Point2D(-2, -2),
+            new Point2D(2, -2),
+            new Point2D(2, -1),
+            new Point2D(3, -1),
+            new Point2D(3, 1),
+            new Point2D(2, 1),
+            new Point2D(2, 2),
+            new Point2D(-2, 2),
+            new Point2D(-2, 1),
+            new Point2D(-3, 1),
+            new Point2D(-3, -1),
+            new Point2D(-2, -1)
+        };
+        
+        var closest = result.FirstId(p => p.DistanceTo(expected[0]) < 1e-10);
+        var values = result.ToItemArray(closest);
+        
+        Assert.Equal(expected, values);
     }
 
 

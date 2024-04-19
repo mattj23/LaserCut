@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using LaserCut.Algorithms;
 using LaserCut.Algorithms.Loop;
@@ -170,6 +171,10 @@ public class PointLoop : Loop<Point2D>
         return (loop0, loop1);
     }
 
+    public PointLoop MergedWith(PointLoop other)
+    {
+        return PointLoopMerge.Merged(this, other);
+    }
 
     /// <summary>
     ///     Offset the loop by a distance in the direction of the edge normals.  A positive distance will offset the loop
