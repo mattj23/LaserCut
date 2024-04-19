@@ -171,9 +171,23 @@ public class PointLoop : Loop<Point2D>
         return (loop0, loop1);
     }
 
+    /// <summary>
+    /// This performs a very simplistic merge of two loops. This loop is considered to be the primary item, and the
+    /// other loop will modify it.  If the other loop doesn't intersect with this loop at all, the result will be a
+    /// perfect copy of this loop.  If the other loop does intersect with this loop, but the intersection results in
+    /// more than one loop, there is no guarantee of which loop will be returned.
+    ///
+    /// This is not a boolean operation except under specific conditions: the two loops *do* intersect, and the result
+    /// is a single loop.
+    ///
+    /// To implement boolean operations, use the functions in the ShapeOperation class.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    [Pure]
     public PointLoop MergedWith(PointLoop other)
     {
-        return PointLoopMerge.MergedSingle(this, other);
+        return ShapeOperation.SimpleMergeLoops(this, other);
     }
 
     /// <summary>

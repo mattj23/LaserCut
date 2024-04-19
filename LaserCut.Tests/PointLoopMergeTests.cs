@@ -1,10 +1,11 @@
-﻿using LaserCut.Algorithms.Loop;
+﻿using LaserCut.Algorithms;
+using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Tests;
 
-public class PointLoopMergeTests
+public class ShapeOperationTests
 {
     [Fact]
     public void MergeOverlappingPositiveSimple()
@@ -131,9 +132,40 @@ public class PointLoopMergeTests
         Assert.Equal(expected, values);
     }
 
+    [Fact]
+    public void CutSplit()
+    {
+        var loop0 = Rect(-2, -2, 4, 4);
+        var loop1 = Rect(-3, -1, 6, 2).Reversed();
+        var expected = new[]
+        {
+            ExpectedPoints((-2, -2), (2, -2), (2, -1), (-2, -1)),
+            ExpectedPoints((-2, 1), (2, 1), (2, 2), (-2, 2))
+        };
+
+        var results = ShapeOperation.MergeLoops(loop0, loop1);
+        
+        var match0 = TakeMatch(expected[0], results);
+        var values0 = OrientedPoints(match0, expected[0]);
+        Assert.Equal(expected[0], values0);
+        
+        var match1 = TakeMatch(expected[1], results);
+        var values1 = OrientedPoints(match1, expected[1]);
+        Assert.Equal(expected[1], values1);
+        
+        Assert.Empty(results);
+    }
+
     private Point2D[] ExpectedPoints(params ValueTuple<double, double> [] points)
     {
         return points.Select(p => new Point2D(p.Item1, p.Item2)).ToArray();
+    }
+
+    private PointLoop TakeMatch(Point2D[] expected, List<PointLoop> results)
+    {
+        var match = results.First(r => r.ToItemArray().Any(p => expected[0].DistanceTo(p) < 1e-10));
+        results.Remove(match);
+        return match;
     }
 
     private Point2D[] OrientedPoints(PointLoop result, Point2D[] expected)

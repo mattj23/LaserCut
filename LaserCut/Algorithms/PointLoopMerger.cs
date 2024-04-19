@@ -2,9 +2,9 @@
 
 namespace LaserCut.Algorithms;
 
-public static class PointLoopMerge
+public static class ShapeOperation
 {
-    public static PointLoop MergedSingle(PointLoop loop0, PointLoop loop1)
+    public static PointLoop SimpleMergeLoops(PointLoop loop0, PointLoop loop1)
     {
         // This will return a list of intersection pairs between the two loops. For each intersection, segment 0 will
         // refer to the segment in loop0, and segment 1 will refer to the segment in loop1
@@ -16,6 +16,23 @@ public static class PointLoopMerge
 
         // If we didn't find a merge, we will return the original loop
         return loop0;
+    }
+    
+    public static List<PointLoop> MergeLoops(PointLoop loop0, PointLoop loop1)
+    {
+        // This will return a list of intersection pairs between the two loops. For each intersection, segment 0 will
+        // refer to the segment in loop0, and segment 1 will refer to the segment in loop1
+        var intersections = loop0.Intersections(loop1);
+
+        var results = new List<PointLoop>();
+        
+        // While we have intersections, we will merge them
+        while (MergeOne(loop0, loop1, intersections) is { } merged)
+        {
+            results.Add(merged);
+        }
+
+        return results;
     }
     
     private static PointLoop? MergeOne(PointLoop loop0, PointLoop loop1, List<SegPairIntersection> intersections)
