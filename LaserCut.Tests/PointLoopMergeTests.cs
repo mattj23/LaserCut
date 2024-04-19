@@ -7,7 +7,7 @@ namespace LaserCut.Tests;
 public class PointLoopMergeTests
 {
     [Fact]
-    public void MergeTwoRectangles()
+    public void MergeOverlappingPositiveSimple()
     {
         var loop0 = Rect(-2, -2, 4, 4);
         var loop1 = Rect(-3, -1, 6, 2);
@@ -19,6 +19,50 @@ public class PointLoopMergeTests
         
         Assert.Equal(expected, values);
     }
+    
+    [Fact]
+    public void MergeOverlappingNegativeSimple()
+    {
+        var loop0 = Rect(-2, -2, 4, 4).Reversed();
+        var loop1 = Rect(-3, -1, 6, 2).Reversed();
+        var expected = ExpectedPoints((-2, -2), (2, -2), (2, -1), (3, -1), (3, 1), (2, 1), (2, 2), (-2, 2), (-2, 1),
+            (-3, 1), (-3, -1), (-2, -1)).Reverse().ToArray();
+
+        var result = loop0.MergedWith(loop1);
+        var values = OrientedPoints(result, expected);
+        
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void MergeCutoutPositiveSimple()
+    {
+        var loop0 = Rect(0, 0, 2, 3);
+        var loop1 = Rect(1, 1, 2, 1).Reversed();
+        
+        var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3));
+        var result = loop0.MergedWith(loop1);
+        var values = OrientedPoints(result, expected);
+        
+        Assert.Equal(expected, values);
+    }
+    
+    [Fact]
+    public void MergeCutoutNegativeSimple()
+    {
+        var loop0 = Rect(0, 0, 2, 3).Reversed();
+        var loop1 = Rect(1, 1, 2, 1);
+        
+        var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3))
+            .Reverse()
+            .ToArray();
+        var result = loop0.MergedWith(loop1);
+        var values = OrientedPoints(result, expected);
+        
+        Assert.Equal(expected, values);
+    }
+    
+    
 
     private Point2D[] ExpectedPoints(params ValueTuple<double, double> [] points)
     {
