@@ -173,7 +173,7 @@ public class PointLoop : Loop<Point2D>
 
     public PointLoop MergedWith(PointLoop other)
     {
-        return PointLoopMerge.Merged(this, other);
+        return PointLoopMerge.MergedSingle(this, other);
     }
 
     /// <summary>

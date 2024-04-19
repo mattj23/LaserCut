@@ -4,14 +4,23 @@ namespace LaserCut.Algorithms;
 
 public static class PointLoopMerge
 {
-    public static PointLoop Merged(PointLoop loop0, PointLoop loop1)
+    public static PointLoop MergedSingle(PointLoop loop0, PointLoop loop1)
     {
         // This will return a list of intersection pairs between the two loops. For each intersection, segment 0 will
         // refer to the segment in loop0, and segment 1 will refer to the segment in loop1
         var intersections = loop0.Intersections(loop1);
+        
+        // If we managed to find a merge, we will return it
+        if (MergeOne(loop0, loop1, intersections) is { } merged)
+            return merged;
 
-        // If there are no intersections, we can just return loop0 as is
-        if (intersections.Count == 0) return loop0.Copy();
+        // If we didn't find a merge, we will return the original loop
+        return loop0;
+    }
+    
+    private static PointLoop? MergeOne(PointLoop loop0, PointLoop loop1, List<SegPairIntersection> intersections)
+    {
+        if (intersections.Count == 0) return null;
         
         // First, we want to find an intersection pair where segment 0's direction has a positive dot product with 
         // segment 1's normal. This is an intersection where this loop is emerging from inside the other loop.
