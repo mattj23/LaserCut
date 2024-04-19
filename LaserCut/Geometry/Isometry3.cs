@@ -1,4 +1,5 @@
-﻿using MathNet.Spatial.Euclidean;
+﻿using System.Numerics;
+using MathNet.Spatial.Euclidean;
 using MathNet.Spatial.Units;
 
 namespace LaserCut.Geometry;
@@ -87,5 +88,10 @@ public static class Isometry3
     public static CoordinateSystem Tz(this CoordinateSystem cs, double distance)
     {
         return cs.TransformBy(Tz(distance));
+    }
+
+    public static CoordinateSystem Translate(this CoordinateSystem cs, Vector3D translation)
+    {
+        return cs.TransformBy(CoordinateSystem.Translation(translation));
     }
 }
