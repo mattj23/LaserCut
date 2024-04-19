@@ -27,6 +27,11 @@ public readonly struct SegPairIntersection
     public bool Seg1ExitsSeg0 => Segment1.Direction.DotProduct(Segment0.Normal) > 0;
 
     public Point2D Point => Segment0.PointAt(T0);
+
+    public override string ToString()
+    {
+        return $"[Seg Pair S0={Segment0.Index}@{T0:F3} S1={Segment1.Index}@{T1:F3}]";
+    }
 }
 
 // public readonly record struct SegPairIntersection(Segment Segment0, double T0, Segment Segment1, double T1)

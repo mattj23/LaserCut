@@ -58,6 +58,25 @@ public class Segment : Line2, IBvhIntersect
 
     public SegPairIntersection? IntersectsAsPair(Segment segment)
     {
+        if (IsCollinear(segment))
+        {
+            var t1Start = segment.ProjectionParam(Start);
+            var t1End = segment.ProjectionParam(End);
+            var t1A = Math.Min(t1Start, t1End);
+            var t1B = Math.Max(t1Start, t1End);
+            
+            if (t1B < 0 || t1A > segment.Length)
+            {
+                return null;
+            }
+
+            var valid0 = Math.Max(t1A, 0);
+            var valid1 = Math.Min(t1B, segment.Length);
+            var pt1 = (valid0 + valid1) * 0.5;
+            var pt0 = ProjectionParam(segment.PointAt(pt1));
+            return new SegPairIntersection(this, pt0, segment, pt1);
+        }
+        
         var (t0, t1) = IntersectionParams(segment);
         bool valid = t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length;
         return valid ? new SegPairIntersection(this, t0, segment, t1) : null;
