@@ -6,7 +6,7 @@ namespace LaserCut.Algorithms;
 
 public readonly record struct SegIntersection(Segment Segment, double T);
 
-public readonly struct SegPairIntersection
+public readonly struct SegPairIntersection : IEquatable<SegPairIntersection>
 {
     public SegPairIntersection(Segment segment0, double t0, Segment segment1, double t1)
     {
@@ -31,6 +31,21 @@ public readonly struct SegPairIntersection
     public override string ToString()
     {
         return $"[Seg Pair S0={Segment0.Index}@{T0:F3} S1={Segment1.Index}@{T1:F3}]";
+    }
+
+    public bool Equals(SegPairIntersection other)
+    {
+        return Segment0.Equals(other.Segment0) && Segment1.Equals(other.Segment1) && T0.Equals(other.T0) && T1.Equals(other.T1);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is SegPairIntersection other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Segment0, Segment1, T0, T1);
     }
 }
 

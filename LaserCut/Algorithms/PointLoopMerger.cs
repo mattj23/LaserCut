@@ -17,12 +17,6 @@ public static class PointLoopMerge
         // segment 1's normal. This is an intersection where this loop is emerging from inside the other loop.
         var start = FindStart(loop0, loop1, intersections);
         
-        // if (start.Segment0 == null)
-        //     throw new InvalidOperationException("No starting intersection found");
-        
-        // Now we can remove the start from the list of intersections
-        intersections.Remove(start);
-        
         // We will create a new point loop and begin from the start intersection
         var working = new PointLoop();
         var workingCursor = working.GetCursor();
@@ -38,6 +32,12 @@ public static class PointLoopMerge
             // Are there any intersections between where we are and the next segment?
             if (PopNext(intersections, lastT, isLoop0, readCursor.CurrentId) is { } next)
             {
+                if (next.Equals(start))
+                {
+                    // We have reached the end of the loop
+                    break;
+                }
+                
                 // If so, we will insert the intersection point into the working loop
                 workingCursor.InsertAbs(next.Point);
                 
@@ -53,15 +53,6 @@ public static class PointLoopMerge
                 workingCursor.InsertAbs(readCursor.Current);
                 lastT = 0;
             }
-        }
-
-        if (isLoop0) throw new InvalidOperationException("We somehow ended up on loop 0 at the end");
-        
-        // Finally, we will insert the remaining segments from loop1, until we would hit the index of seg 1 on start
-        while (readCursor.CurrentId != start.Segment1.Index)
-        {
-            readCursor.MoveForward();
-            workingCursor.InsertAbs(readCursor.Current);
         }
 
         working.RemoveAdjacentDuplicates();
