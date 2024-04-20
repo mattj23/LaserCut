@@ -48,6 +48,9 @@ public class DrawableEntities : ReactiveObject
         _drawables.Remove(drawable.Id);
     }
 
+    /// <summary>
+    /// Unregisters all drawables and clears all visible geometry
+    /// </summary>
     public void Clear()
     {
         foreach (var pair in _drawables)

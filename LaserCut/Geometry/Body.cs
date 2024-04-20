@@ -1,4 +1,5 @@
-﻿using LaserCut.Geometry.Primitives;
+﻿using LaserCut.Algorithms;
+using LaserCut.Geometry.Primitives;
 using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace LaserCut.Geometry;
@@ -6,7 +7,7 @@ namespace LaserCut.Geometry;
 /// <summary>
 /// Represents a single geometric body, consisting of one single outer boundary and zero or more inner boundaries.
 /// </summary>
-public class Body
+public class Body : IHasBounds
 {
     
     public Body(Guid id, PointLoop outer, List<PointLoop> inners)
@@ -58,6 +59,33 @@ public class Body
         }
     }
 
+    /// <summary>
+    /// Rotate the body around a specified point
+    /// </summary>
+    /// <param name="degrees"></param>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    public void RotateAround(double degrees, double x, double y)
+    {
+        // First shift to the origin, then rotate, then shift back
+        var t = Isometry2.Translate(x, y) * Isometry2.Rotate(degrees) * Isometry2.Translate(-x, -y);
+        Transform((Matrix)t);
+    }
+    
+    public void Translate(double x, double y)
+    {
+        Transform(Isometry2.Translate(x, y));
+    }
+
+    /// <summary>
+    /// Rotate the body around its center
+    /// </summary>
+    /// <param name="degrees"></param>
+    public void Rotate(double degrees)
+    {
+        RotateAround(degrees, Bounds.Center.X, Bounds.Center.Y);
+    }
+
     public void FlipX()
     {
         MirrorX(Bounds.Center.X);
@@ -66,6 +94,11 @@ public class Body
     public void FlipY()
     {
         MirrorY(Bounds.Center.Y);
+    }
+
+    public Body Copy()
+    {
+        return new Body(Outer.Copy(), Inners.Select(i => i.Copy()).ToList());
     }
     
     public Body Copy(Guid id)
