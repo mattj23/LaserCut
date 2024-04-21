@@ -9,6 +9,7 @@ namespace LaserCut.Avalonia.ViewModels;
 
 public class DrawableEntities : ReactiveObject
 {
+    private double _lastZoom = 1.0;
     private readonly ObservableCollection<IDrawViewModel> _geometries = new();
     private readonly Dictionary<Guid, RegisteredDrawable> _drawables = new();
     
@@ -28,6 +29,10 @@ public class DrawableEntities : ReactiveObject
             .Subscribe(GeometryAdded);
         var removeSub = drawable.Removed
             .Subscribe(GeometryRemoved);
+        foreach (var ge in drawable.Geometries)
+        {
+            ge.UpdateZoom(_lastZoom);
+        }
         _geometries.AddRange(drawable.Geometries);
         _drawables.Add(drawable.Id, new RegisteredDrawable(drawable, addSub, removeSub));
     }
@@ -76,9 +81,10 @@ public class DrawableEntities : ReactiveObject
     
     public void UpdateZoom(double zoom)
     {
+        _lastZoom = zoom;
         foreach (var geometry in Geometries)
         {
-            geometry.UpdateZoom(zoom);
+            geometry.UpdateZoom(_lastZoom);
         }
     }
 
@@ -187,6 +193,7 @@ public class DrawableEntities : ReactiveObject
     
     private void GeometryAdded(IDrawViewModel geometry)
     {
+        geometry.UpdateZoom(_lastZoom);
         _geometries.Add(geometry);
     }
     
