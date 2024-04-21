@@ -25,7 +25,7 @@ public class Body : IHasBounds
     
     public Guid Id { get; } 
     
-    public PointLoop Outer { get; }
+    public PointLoop Outer { get; private set; }
     public List<PointLoop> Inners { get; }
     
     public Aabb2 Bounds => Outer.Bounds;
@@ -127,5 +127,34 @@ public class Body : IHasBounds
         }
         
         return loop;
+    }
+
+    /// <summary>
+    /// This performs a *simple* boolean merge operation with a shape defined by a tool loop. If the tool has positive
+    /// area, the result will be a union operation. If the tool has negative area, the result will be a cut operation.
+    /// This is a simplified version of the more general boolean shape merge, and requires the following conditions for
+    /// the result to be correct: (1) the tool must either intersect with tbe body's outer loop or be contained within
+    /// it, and (2) if the tool is a negative area it must not split the body into multiple bodies. If either of these
+    /// conditions cannot be guarenteed, use the more general boolean merge operation.
+    /// </summary>
+    /// 
+    /// <remarks>
+    /// Internally, first the tool is intersected with the outer loop of the body. If the two do not intersect at all,
+    /// no change is made to the outer body.
+    ///
+    /// If the tool is a positive area, the tool is merged individually with each inner loop. If the tool contains the
+    /// inner loop, the inner loop is removed from the body. Otherwise, the inner loop is replaced with the results of
+    /// the merge.
+    ///
+    /// If the tool is a negative area, and it did intersect with the outer loop of the body, each of the inner loops is
+    /// merged with the body's outer loop. If the tool did not intersect with the outer loop, then each 
+    /// 
+    /// </remarks>
+    /// 
+    /// <param name="tool"></param>
+    public void SimpleBooleanMerge(PointLoop tool)
+    {
+        Outer = ShapeOperation.SimpleMergeLoops(Outer, tool);
+
     }
 }

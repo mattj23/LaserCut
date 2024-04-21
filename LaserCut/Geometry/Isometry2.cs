@@ -16,6 +16,12 @@ public static class Isometry2
         });
     }
     
+    public static Matrix Rotate(Vector2D from, Vector2D to)
+    {
+        var angle = from.SignedAngleTo(to);
+        return Rotate(angle.Degrees);
+    }
+    
     public static Matrix Rotate(double degrees)
     {
         var radians = degrees * Math.PI / 180;
