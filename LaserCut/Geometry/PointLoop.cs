@@ -42,6 +42,8 @@ public class PointLoop : Loop<Point2D>
     public Aabb2 Bounds => Bvh.Bounds;
 
     public double Area => _area = double.IsNaN(_area) ? CalculateArea() : _area;
+    
+    public AreaPolarity Polarity => Area > 0 ? AreaPolarity.Positive : AreaPolarity.Negative;
 
     public override IPointLoopCursor GetCursor(int? id = null)
     {
@@ -455,5 +457,10 @@ public class PointLoop : Loop<Point2D>
             return InsertRel(0, y);
         }
     }
-    
+
+    public enum AreaPolarity
+    {
+        Positive,
+        Negative
+    }
 }

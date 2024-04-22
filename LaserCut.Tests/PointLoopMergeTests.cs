@@ -143,7 +143,9 @@ public class ShapeOperationTests
             ExpectedPoints((-2, 1), (2, 1), (2, 2), (-2, 2))
         };
 
-        var results = ShapeOperation.MergeLoops(loop0, loop1);
+        var (a, b) = ShapeOperation.Operate(loop0, loop1);
+        Assert.Equal(ShapeOperation.ResultType.Merged, a);
+        var results = b.ToList();
         
         var match0 = TakeMatch(expected[0], results);
         var values0 = OrientedPoints(match0, expected[0]);
@@ -154,6 +156,72 @@ public class ShapeOperationTests
         Assert.Equal(expected[1], values1);
         
         Assert.Empty(results);
+    }
+
+    [Fact]
+    public void OperationDisjoint()
+    {
+        var loop0 = Rect(0, 0, 1, 1);
+        var loop1 = Rect(2, 2, 1, 1);
+        
+        var (a, b) = ShapeOperation.Operate(loop0, loop1);
+        Assert.Equal(ShapeOperation.ResultType.Disjoint, a);
+        Assert.Empty(b);
+    }
+    
+    [Fact]
+    public void OperationSubsumedNoIntersections()
+    {
+        var loop0 = Rect(0, 0, 1, 1);
+        var loop1 = Rect(-1, -1, 3, 3);
+        
+        var (a, b) = ShapeOperation.Operate(loop0, loop1);
+        Assert.Equal(ShapeOperation.ResultType.Subsumed, a);
+        Assert.Empty(b);
+    }
+    
+    [Fact]
+    public void OperationSubsumedWithIntersections()
+    {
+        var loop0 = Rect(0, 0, 1, 1);
+        var loop1 = Rect(0, 0, 1, 2);
+        
+        var (a, b) = ShapeOperation.Operate(loop0, loop1);
+        Assert.Equal(ShapeOperation.ResultType.Subsumed, a);
+        Assert.Empty(b);
+    }
+    
+    [Fact]
+    public void OperationDestroyedNoIntersections()
+    {
+        var loop0 = Rect(0, 0, 1, 1);
+        var loop1 = Rect(-1, -1, 3, 3).Reversed();
+        
+        var (a, b) = ShapeOperation.Operate(loop0, loop1);
+        Assert.Equal(ShapeOperation.ResultType.Destroyed, a);
+        Assert.Empty(b);
+    }
+    
+    [Fact]
+    public void OperationDestroyedWithIntersections()
+    {
+        var loop0 = Rect(0, 0, 1, 1);
+        var loop1 = Rect(0, 0, 1, 2).Reversed();
+        
+        var (a, b) = ShapeOperation.Operate(loop0, loop1);
+        Assert.Equal(ShapeOperation.ResultType.Destroyed, a);
+        Assert.Empty(b);
+    }
+
+    [Fact]
+    public void OperationShapeEnclosesTool()
+    {
+        var loop0 = Rect(-1, -1, 3, 3);
+        var loop1 = Rect(0, 0, 1, 1);
+        
+        var (a, b) = ShapeOperation.Operate(loop0, loop1);
+        Assert.Equal(ShapeOperation.ResultType.ShapeEnclosesTool, a);
+        Assert.Empty(b);
     }
 
     private Point2D[] ExpectedPoints(params ValueTuple<double, double> [] points)

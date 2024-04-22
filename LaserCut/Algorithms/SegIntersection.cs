@@ -15,7 +15,8 @@ public readonly struct SegPairIntersection : IEquatable<SegPairIntersection>
         Segment1 = segment1;
         T1 = t1;
     }
-
+    
+    public bool Empty => Segment0 == null || Segment1 == null;
     public Segment Segment0 { get; }
     public Segment Segment1 { get; }
     public double T0 { get; }
