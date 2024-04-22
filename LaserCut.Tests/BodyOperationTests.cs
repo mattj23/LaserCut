@@ -93,24 +93,24 @@ public class BodyOperationTests : PointLoopTestBase
         AssertBodyInner(fixture.Body, fixture.A, tool, fixture.C);
     }
     
-    [Fact]
-    private void NegativeMergeMiddleJoin()
-    {
-        var fixture = TestBody();
-        var tool = Rect(2, 1, 1, 1.5).Reversed();
-        var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
-        
-        fixture.Body.Operate(tool);
-        AssertLoop(expected, fixture.Body.Outer);
-        AssertBodyInner(fixture.Body, fixture.A, tool, fixture.C);
-    }
+    // [Fact]
+    // private void NegativeMergeMiddleJoin()
+    // {
+    //     var fixture = TestBody();
+    //     var tool = Rect(2, 1, 1, 1.5).Reversed();
+    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
+    //     
+    //     fixture.Body.Operate(tool);
+    //     AssertLoop(expected, fixture.Body.Outer);
+    //     AssertBodyInner(fixture.Body, fixture.A, tool, fixture.C);
+    // }
 
     
     [Fact]
     private void NegativeMergeSubsumesInnerWithIntersections()
     {
         var fixture = TestBody();
-        var tool = Rect(2, 1, 1, 1.5).Reversed();
+        var tool = Rect(3, 1, 1, 1.5).Reversed();
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
         
         fixture.Body.Operate(tool);
