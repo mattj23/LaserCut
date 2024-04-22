@@ -24,4 +24,10 @@ public static class AlgoExtensions
         return new[] { face.EdgeA, face.EdgeB, face.EdgeC };
     }
     
+    public static void TransferTo<T>(this Queue<T> source, Queue<T> target)
+    {
+        while (source.Count > 0)
+            target.Enqueue(source.Dequeue());
+    }
+    
 }
