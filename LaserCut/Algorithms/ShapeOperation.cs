@@ -132,7 +132,8 @@ public static class ShapeOperation
     
     private static PointLoop? MergeOne(PointLoop loop0, PointLoop loop1, List<SegPairIntersection> intersections)
     {
-        if (intersections.Count == 0) return null;
+        var initialIntersections = intersections.Count;
+        if (initialIntersections == 0) return null;
         
         // First, we want to find an intersection pair where segment 0's direction has a positive dot product with 
         // segment 1's normal. This is an intersection where this loop is emerging from inside the other loop.
@@ -175,10 +176,9 @@ public static class ShapeOperation
             // Otherwise, we will advance to the start of the next segment and insert it into the loop
             else
             {
-                // Error detection
-                if (readCursor.Current.DistanceTo(workingCursor.PeekNext()) < GeometryConstants.DistEquals)
+                // Detect if we're stuck in an infinite loop
+                if (working.Count > loop0.Count + loop1.Count + initialIntersections) 
                 {
-                    // We're about to insert a duplicate point, which means(?) that we somehow got stuck in a loop
                     throw new Exception("Merge is stuck in a loop");
                 }
                 
