@@ -224,6 +224,20 @@ public class ShapeOperationTests
         Assert.Empty(b);
     }
 
+    [Fact]
+    public void DegenerateMerge()
+    {
+        var loop0 = Rect(1, 1, 1, 1).Reversed();
+        var loop1 = Rect(2, 1, 1, 1.5).Reversed();
+        var result = loop0.MergedWith(loop1);
+        result.RemoveAdjacentCollinear();
+        
+        var expected = ExpectedPoints((1, 1), (1, 2), (2, 2), (2, 2.5), (3, 2.5), (3, 1));
+        var values = OrientedPoints(result, expected);
+        
+        Assert.Equal(expected, values);
+    }
+
     private Point2D[] ExpectedPoints(params ValueTuple<double, double> [] points)
     {
         return points.Select(p => new Point2D(p.Item1, p.Item2)).ToArray();

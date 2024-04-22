@@ -154,7 +154,11 @@ public static class ShapeOperation
             // Are there any intersections between where we are and the next segment?
             if (PopNext(intersections, lastT, isLoop0, readCursor.CurrentId) is { } next)
             {
-                if (next.Equals(start))
+                // Had to change this to pass the DegenerateMerge case and keep it from getting stuck because three
+                // intersections were being returned
+                // if (next.Equals(start)) 
+                
+                if (next.Point.DistanceTo(start.Point) < GeometryConstants.DistEquals)
                 {
                     // We have reached the end of the loop
                     break;
