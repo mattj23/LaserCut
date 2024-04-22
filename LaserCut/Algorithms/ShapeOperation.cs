@@ -175,6 +175,13 @@ public static class ShapeOperation
             // Otherwise, we will advance to the start of the next segment and insert it into the loop
             else
             {
+                // Error detection
+                if (readCursor.Current.DistanceTo(workingCursor.PeekNext()) < GeometryConstants.DistEquals)
+                {
+                    // We're about to insert a duplicate point, which means(?) that we somehow got stuck in a loop
+                    throw new Exception("Merge is stuck in a loop");
+                }
+                
                 readCursor.MoveForward();
                 workingCursor.InsertAbs(readCursor.Current);
                 lastT = 0;
@@ -205,7 +212,7 @@ public static class ShapeOperation
     {
         var more = isLoop0
             ? intersections.Where(i => i.Segment0.Index == currentId && i.T0 > lastT).ToList()
-            : intersections.Where(i => i.Segment1.Index == currentId && i.T0 > lastT).ToList();
+            : intersections.Where(i => i.Segment1.Index == currentId && i.T1 > lastT).ToList();
         
         if (more.Count == 0) return null;
 

@@ -1,11 +1,12 @@
 ﻿using LaserCut.Algorithms;
 using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry;
+using LaserCut.Tests.Helpers;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Tests;
 
-public class ShapeOperationTests
+public class ShapeOperationTests : PointLoopTestBase
 {
     [Fact]
     public void MergeOverlappingPositiveSimple()
@@ -238,32 +239,44 @@ public class ShapeOperationTests
         Assert.Equal(expected, values);
     }
 
-    private Point2D[] ExpectedPoints(params ValueTuple<double, double> [] points)
+    [Fact]
+    public void DegenerateOverlappingMerge()
     {
-        return points.Select(p => new Point2D(p.Item1, p.Item2)).ToArray();
+        // This was a test case of merge that got stuck in an infinite loop because we're effectively performing the 
+        // same cut that just created the outer loop
+        var outerPts = ExpectedPoints((4, 1.75), (7, 1.75), (7, 3), (0, 3), (0, 0), (7, 0), (7, 1.25), (4, 1.25), (4, 1),
+            (3, 1), (3, 2), (4, 2));
+        var outer = new PointLoop(outerPts);
+        var tool = new PointLoop(ExpectedPoints((3.5, 1.75), (8.5, 1.75), (8.5, 1.25), (3.5, 1.25)));
+        
+        var (a, b) = ShapeOperation.Operate(outer, tool);
+        Assert.Equal(ShapeOperation.ResultType.Merged, a);
+        
+    }
+    
+
+    [Fact]
+    public void CutMergeDoesntProduceTwoResults()
+    {
+        // This test case comes from an example while working on the body operation tests.  The tool is a 1x1 square at
+        // 5,1 and should be intersecting with an outer loop that has a concave portion.  It should produce a single
+        // result, but instead it produced two.
+        
+        var outerPts = ExpectedPoints((4, 1.75), (7, 1.75), (7, 3), (0, 3), (0, 0), (7, 0), (7, 1.25), (4, 1.25), (4, 1),
+            (3, 1), (3, 2), (4, 2));
+        var outer = new PointLoop(outerPts);
+        var tool = Rect(5, 1, 1, 1).Reversed();
+        
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 1.25),
+            (6, 1.25), (6, 1), (5, 1), (5, 1.25), (4, 1.25), (4, 1), (3, 1), (3, 2), (4, 2), (4, 1.75), (5, 1.75),
+            (5, 2), (6, 2), (6, 1.75), (7, 1.75),
+            (7, 3), (0, 3));
+        
+        var (a, b) = ShapeOperation.Operate(outer, tool);
+        Assert.Equal(ShapeOperation.ResultType.Merged, a);
+        Assert.Single(b);
+        AssertLoop(expected, b[0]);
+
     }
 
-    private PointLoop TakeMatch(Point2D[] expected, List<PointLoop> results)
-    {
-        var match = results.First(r => r.ToItemArray().Any(p => expected[0].DistanceTo(p) < 1e-10));
-        results.Remove(match);
-        return match;
-    }
-
-    private Point2D[] OrientedPoints(PointLoop result, Point2D[] expected)
-    {
-        var closest = result.FirstId(p => p.DistanceTo(expected[0]) < 1e-10);
-        return result.ToItemArray(closest);
-    }
-
-    private PointLoop Rect(double x0, double y0, double width, double height)
-    {
-        var loop = new PointLoop();
-        var cursor = loop.GetCursor();
-        cursor.InsertAbs(x0, y0);
-        cursor.InsertRelX(width);
-        cursor.InsertRelY(height);
-        cursor.InsertRelX(-width);
-        return loop;
-    }
 }

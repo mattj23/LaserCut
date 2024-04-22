@@ -121,13 +121,30 @@ public class BodyOperationTests : PointLoopTestBase
     [Fact]
     private void NegativeMergeIntersectsBoundaryOnce()
     {
-        Assert.True(false);
+        var fixture = TestBody();
+        var tool = Rect(3.25, 1.5, 0.5, 2).Reversed();
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (3.75, 3), (3.75, 2), (4, 2), (4, 1), (3, 1), (3, 2), (3.25, 2), (3.25, 3), (0, 3));
+        
+        fixture.Body.Operate(tool);
+        AssertLoop(expected, fixture.Body.Outer);
+        
+        AssertBodyInner(fixture.Body, fixture.A, fixture.C);
     }
 
     [Fact]
     private void NegativeMergeIntersectsBoundaryTwice()
     {
-        Assert.True(false);
+        var fixture = TestBody();
+        var tool = Rect(3.5, 1.25, 5, 0.5).Reversed();
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 1.25),
+            (6, 1.25), (6, 1), (5, 1), (5, 1.25), (4, 1.25), (4, 1), (3, 1), (3, 2), (4, 2), (4, 1.75), (5, 1.75),
+            (5, 2), (6, 2), (6, 1.75), (7, 1.75),
+            (7, 3), (0, 3));
+        
+        fixture.Body.Operate(tool);
+        AssertLoop(expected, fixture.Body.Outer);
+        
+        AssertBodyInner(fixture.Body, fixture.A, fixture.C);
     }
 
     [Fact]

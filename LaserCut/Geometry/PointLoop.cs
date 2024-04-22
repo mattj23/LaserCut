@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using System.Text;
 using LaserCut.Algorithms;
 using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry.Primitives;
@@ -55,7 +56,16 @@ public class PointLoop : Loop<Point2D>
         ResetCachedValues();
         base.OnItemChanged(item);
     }
-    
+
+    public override string ToString()
+    {
+        var text = new StringBuilder();
+        text.Append("[PointLoop ");
+        foreach (var node in Nodes) text.Append(node.Value.Item).Append(" ");
+        text.Append("]");
+        return text.ToString();
+    }
+
     // ==============================================================================================================
     // Bulk transformations
     // ==============================================================================================================

@@ -310,7 +310,7 @@ public class Loop<T>
 
         public override string ToString()
         {
-            return $"<Node {PreviousId} <- [{Id}] -> {NextId}: {Item}>";
+            return $"[Node {Id} | {Item} | N:{NextId} P:{PreviousId}]";
         }
     }
 
