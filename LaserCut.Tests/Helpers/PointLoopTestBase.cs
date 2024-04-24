@@ -11,6 +11,11 @@ public class PointLoopTestBase
         return points.Select(p => new Point2D(p.Item1, p.Item2)).ToArray();
     }
 
+    protected PointLoop Loop(params ValueTuple<double, double>[] points)
+    {
+        return new PointLoop(points.Select(p => new Point2D(p.Item1, p.Item2)));
+    }
+    
     protected PointLoop TakeMatch(Point2D[] expected, List<PointLoop> results)
     {
         var match = results.First(r => r.ToItemArray().Any(p => expected[0].DistanceTo(p) < 1e-10));

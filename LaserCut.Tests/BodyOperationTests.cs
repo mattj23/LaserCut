@@ -93,19 +93,6 @@ public class BodyOperationTests : PointLoopTestBase
         AssertBodyInner(fixture.Body, fixture.A, tool, fixture.C);
     }
     
-    // [Fact]
-    // private void NegativeMergeMiddleJoin()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = Rect(2, 1, 1, 1.5).Reversed();
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
-    //     
-    //     fixture.Body.Operate(tool);
-    //     AssertLoop(expected, fixture.Body.Outer);
-    //     AssertBodyInner(fixture.Body, fixture.A, tool, fixture.C);
-    // }
-
-    
     [Fact]
     private void NegativeMergeSubsumesInnerWithIntersections()
     {
@@ -144,25 +131,36 @@ public class BodyOperationTests : PointLoopTestBase
         fixture.Body.Operate(tool);
         AssertLoop(expected, fixture.Body.Outer);
         
-        AssertBodyInner(fixture.Body, fixture.A, fixture.C);
+        AssertBodyInner(fixture.Body, fixture.A);
     }
 
     [Fact]
     private void NegativeMergeJoinsTwoInners()
     {
-        Assert.True(false);
+        var fixture = TestBody();
+        var tool = Rect(3.5, 1.25, 2, 0.5).Reversed();
+        var outside = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
+        var inside = Loop((3, 1), (4, 1), (4, 1.25), (5, 1.25), (5, 1), (6, 1), (6, 2), (5, 2), (5, 1.75),
+            (4, 1.75), (4, 2), (3, 2)).Reversed();
+        
+        fixture.Body.Operate(tool);
+        AssertLoop(outside, fixture.Body.Outer);
+        AssertBodyInner(fixture.Body, fixture.A, inside);
     }
 
     [Fact]
     private void NegativeMergeJoinsThreeInners()
     {
-        Assert.True(false);
-    }
-
-    [Fact]
-    private void NegativeMergeJoinsInnersAndMergesBoundary()
-    {
-        Assert.True(false);
+        var fixture = TestBody();
+        var tool = Rect(1.5, 1.25, 4, 0.5).Reversed();
+        var outside = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
+        var inside = Loop((3, 1), (4, 1), (4, 1.25), (5, 1.25), (5, 1), (6, 1), (6, 2), (5, 2), (5, 1.75),
+            (4, 1.75), (4, 2), (3, 2), (3, 1.75), (2, 1.75), (2, 2), (1, 2), (1, 1),
+            (2, 1), (2, 1.25), (3, 1.25)).Reversed();
+        
+        fixture.Body.Operate(tool);
+        AssertLoop(outside, fixture.Body.Outer);
+        AssertBodyInner(fixture.Body, inside);
     }
 
     private TestFixture TestBody()
