@@ -18,6 +18,8 @@ public class Body : IHasBounds
     }
     
     public Body(Guid id) : this(id, new PointLoop(), new List<PointLoop>()) { }
+
+    public Body(PointLoop outer) : this(Guid.NewGuid(), outer, new List<PointLoop>()) {}
     
     public Body(PointLoop outer, List<PointLoop> inners) : this(Guid.NewGuid(), outer, inners) { }
     

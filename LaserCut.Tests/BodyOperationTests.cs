@@ -1,4 +1,5 @@
-﻿using LaserCut.Geometry;
+﻿using LaserCut.Algorithms.Loop;
+using LaserCut.Geometry;
 using LaserCut.Tests.Helpers;
 
 namespace LaserCut.Tests;
@@ -7,7 +8,7 @@ public class BodyOperationTests : PointLoopTestBase
 {
 
     [Fact]
-    private void PositiveMergeSimple()
+    public void PositiveMergeSimple()
     {
         var fixture = TestBody();
         var tool = Rect(7, 1, 1, 1);
@@ -19,7 +20,7 @@ public class BodyOperationTests : PointLoopTestBase
     }
 
     [Fact]
-    private void PositiveMergeRemovesInner()
+    public void PositiveMergeRemovesInner()
     {
         var fixture = TestBody();
         var tool = Rect(5, 1, 3, 1);
@@ -31,7 +32,7 @@ public class BodyOperationTests : PointLoopTestBase
     }
     
     [Fact]
-    private void PositiveMergeChangesInner()
+    public void PositiveMergeChangesInner()
     {
         var fixture = TestBody();
         var tool = Rect(5.5, 1, 2.5, 1);
@@ -44,7 +45,7 @@ public class BodyOperationTests : PointLoopTestBase
     }
     
     [Fact]
-    private void PositiveMergeRemovesInnerOnly()
+    public void PositiveMergeRemovesInnerOnly()
     {
         var fixture = TestBody();
         var tool = Rect(2.5, 0.5, 2, 2);
@@ -56,7 +57,7 @@ public class BodyOperationTests : PointLoopTestBase
     }
     
     [Fact]
-    private void PositiveMergeSplitsInner()
+    public void PositiveMergeSplitsInner()
     {
         var fixture = TestBody();
         var tool = Rect(2.5, 1.25, 2, 0.5);
@@ -70,7 +71,7 @@ public class BodyOperationTests : PointLoopTestBase
     }
 
     [Fact]
-    private void NegativeMergeSimple()
+    public void NegativeMergeSimple()
     {
         var fixture = TestBody();
         var tool = Rect(6.5, 1, 1, 1).Reversed();
@@ -82,7 +83,22 @@ public class BodyOperationTests : PointLoopTestBase
     }
 
     [Fact]
-    private void NegativeMergeSubsumesInnerSimple()
+    public void NegativeMergeAddsBoundary()
+    {
+        var outer = Rect(0, 0, 3, 3);
+        var body = new Body(outer);
+        var tool = Rect(1, 1, 1, 1).Reversed();
+        
+        body.Operate(tool);
+
+        var expectedOuter = outer.ToItemArray();
+        
+        AssertLoop(expectedOuter, body.Outer);
+        AssertBodyInner(body, tool);
+    }
+
+    [Fact]
+    public void NegativeMergeSubsumesInnerSimple()
     {
         var fixture = TestBody();
         var tool = Rect(2.5, 0.5, 2, 2).Reversed();
@@ -94,7 +110,7 @@ public class BodyOperationTests : PointLoopTestBase
     }
     
     [Fact]
-    private void NegativeMergeSubsumesInnerWithIntersections()
+    public void NegativeMergeSubsumesInnerWithIntersections()
     {
         var fixture = TestBody();
         var tool = Rect(3, 1, 1, 1.5).Reversed();
@@ -106,7 +122,7 @@ public class BodyOperationTests : PointLoopTestBase
     }
 
     [Fact]
-    private void NegativeMergeIntersectsBoundaryOnce()
+    public void NegativeMergeIntersectsBoundaryOnce()
     {
         var fixture = TestBody();
         var tool = Rect(3.25, 1.5, 0.5, 2).Reversed();
@@ -119,7 +135,7 @@ public class BodyOperationTests : PointLoopTestBase
     }
 
     [Fact]
-    private void NegativeMergeIntersectsBoundaryTwice()
+    public void NegativeMergeIntersectsBoundaryTwice()
     {
         var fixture = TestBody();
         var tool = Rect(3.5, 1.25, 5, 0.5).Reversed();
@@ -135,7 +151,7 @@ public class BodyOperationTests : PointLoopTestBase
     }
 
     [Fact]
-    private void NegativeMergeJoinsTwoInners()
+    public void NegativeMergeJoinsTwoInners()
     {
         var fixture = TestBody();
         var tool = Rect(3.5, 1.25, 2, 0.5).Reversed();
@@ -149,7 +165,7 @@ public class BodyOperationTests : PointLoopTestBase
     }
 
     [Fact]
-    private void NegativeMergeJoinsThreeInners()
+    public void NegativeMergeJoinsThreeInners()
     {
         var fixture = TestBody();
         var tool = Rect(1.5, 1.25, 4, 0.5).Reversed();
