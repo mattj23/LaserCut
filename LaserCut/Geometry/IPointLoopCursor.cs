@@ -16,5 +16,6 @@ public interface IPointLoopCursor : ILoopCursor<Point2D>
     int InsertRelX(double x);
     
     int InsertRelY(double y);
-    
+
+    int InsertRadius(Point2D start, Point2D end, Point2D center, int segments);
 }

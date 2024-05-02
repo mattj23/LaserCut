@@ -69,6 +69,11 @@ public class PointLoop : Loop<Point2D>
     // ==============================================================================================================
     // Bulk transformations
     // ==============================================================================================================
+    
+    public void Translate(double x, double y)
+    {
+        Transform(Isometry2.Translate(x, y));
+    }
 
     public void Transform(Matrix t)
     {
@@ -422,6 +427,65 @@ public class PointLoop : Loop<Point2D>
 
         return area / 2;
     }
+    
+    // ==============================================================================================================
+    // Construction helpers
+    // ==============================================================================================================
+
+    /// <summary>
+    /// Creates a positive rectangle with the specified height and width.  The rectangle will be centered at the origin. 
+    /// </summary>
+    /// <param name="height">The height (y) of the rectangle</param>
+    /// <param name="width">The width (x) of the rectangle</param>
+    /// <returns>A positive (counter-clockwise) loop with four corners and four edges</returns>
+    public static PointLoop Rectangle(double height, double width)
+    {
+        var loop = new PointLoop();
+        var cursor = loop.GetCursor();
+        cursor.InsertAbs(-width / 2, -height / 2);
+        cursor.InsertRelX(width);
+        cursor.InsertRelY(height);
+        cursor.InsertRelX(-width);
+        return loop;
+    }
+    
+    public static PointLoop RoundedRectangle(double height, double width, double radius, int segments = 9)
+    {
+        var x = width / 2;
+        var y = height / 2;
+        var xc = x - radius;
+        var yc = y - radius;
+
+        var loop = new PointLoop();
+        var cursor = loop.GetCursor();
+
+        cursor.InsertRadius(new(-x, -yc), new(-xc, -y), new(-xc, -yc), segments);
+        cursor.InsertRadius(new(xc, -y), new(x, -yc), new(xc, -yc), segments);
+        cursor.InsertRadius(new(x, yc), new(xc, y), new(xc, yc), segments);
+        cursor.InsertRadius(new(-xc, y), new(-x, yc), new(-xc, yc), segments);
+        
+        return loop;
+    }
+    
+    /// <summary>
+    /// Creates a positive circle with the specified radius.  The circle will be centered at the origin.  The circle
+    /// will be split into the specified number of segments.
+    /// </summary>
+    /// <param name="radius"></param>
+    /// <param name="segments"></param>
+    /// <returns></returns>
+    public static PointLoop Circle(double radius, int segments = 36)
+    {
+        var loop = new PointLoop();
+        var cursor = loop.GetCursor();
+        for (var i = 0; i < segments; i++)
+        {
+            var angle = i * 2 * Math.PI / segments;
+            cursor.InsertAbs(radius * Math.Cos(angle), radius * Math.Sin(angle));
+        }
+
+        return loop;
+    }
 
     // ==============================================================================================================
     // Internal classes
@@ -465,6 +529,26 @@ public class PointLoop : Loop<Point2D>
         public int InsertRelY(double y)
         {
             return InsertRel(0, y);
+        }
+
+        public int InsertRadius(Point2D start, Point2D end, Point2D center, int segments)
+        {
+            var v0 = start - center;
+            var v1 = end - center;
+            if (Math.Abs(v0.Length - v1.Length) > GeometryConstants.DistEquals)
+                throw new ArgumentException("Start and end points must be equidistant from the center");
+
+            var angle = v0.SignedAngleTo(v1);
+            var step = angle / segments;
+            
+            InsertAbs(start);
+            for (var i = 1; i < segments + 1; i++)
+            {
+                var v = v0.Rotate(i * step);
+                InsertAbs(center + v);
+            }
+            
+            return CurrentId;
         }
     }
 

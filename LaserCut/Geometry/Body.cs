@@ -108,6 +108,24 @@ public class Body : IHasBounds
         return new Body(id, Outer.Copy(), Inners.Select(i => i.Copy()).ToList());
     }
 
+    public Body OffsetAndFixed(double offset)
+    {
+        var outer = Outer.OffsetAndFixed(offset);
+        if (outer.Count != 1) throw new InvalidOperationException("Expected a single loop");
+
+        var working = new Body(outer[0]);
+        foreach (var inner in Inners)
+        {
+            var loops = inner.OffsetAndFixed(offset);
+            foreach (var loop in loops)
+            {
+                working.Operate(loop);
+            }
+        }
+        
+        return working;
+    }
+
     public PointLoop ToSingleLoop()
     {
         var loop = Outer.Copy();
