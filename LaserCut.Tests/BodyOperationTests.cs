@@ -1,4 +1,5 @@
-﻿using LaserCut.Algorithms.Loop;
+﻿using LaserCut.Algorithms;
+using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry;
 using LaserCut.Tests.Helpers;
 
@@ -96,6 +97,23 @@ public class BodyOperationTests : PointLoopTestBase
         AssertLoop(expectedOuter, body.Outer);
         AssertBodyInner(body, tool);
     }
+    
+    [Fact]
+    public void NegativeMergeAddsSecondBoundary()
+    {
+        var outer = Rect(0, 0, 5, 3);
+        var body = new Body(outer);
+        var tool0 = Rect(1, 1, 1, 1).Reversed();
+        var tool1 = Rect(3, 1, 1, 1).Reversed();
+        
+        body.Operate(tool0);
+        body.Operate(tool1);
+
+        var expectedOuter = outer.ToItemArray();
+        
+        AssertLoop(expectedOuter, body.Outer);
+        AssertBodyInner(body, tool0, tool1);
+    }
 
     [Fact]
     public void NegativeMergeSubsumesInnerSimple()
@@ -177,6 +195,79 @@ public class BodyOperationTests : PointLoopTestBase
         fixture.Body.Operate(tool);
         AssertLoop(outside, fixture.Body.Outer);
         AssertBodyInner(fixture.Body, inside);
+    }
+
+    [Fact]
+    public void BodyDoubleCutout()
+    {
+        // This test case comes from an actual application which was misbehaving
+        var width = 1;
+        var height = 2.7;
+
+        // Use a temporary body to cut the main pocket
+        var working = new Body(PointLoop.Rectangle(3.5, 5.0));
+
+        var c0 = PointLoop.RoundedRectangle(height, width, 0.15, 8).Reversed();
+        var c1 = PointLoop.Rectangle(0.62, 1.7).Reversed();
+        var c3 = PointLoop.Rectangle(0.25, 0.25).Reversed();
+        c1.Translate(c0.Bounds.Center.X - c1.Bounds.MinX - (1.25 / 2), c0.Bounds.MinY - c1.Bounds.MinY + .3);
+        c3.Translate(c0.Bounds.MaxX - c3.Bounds.MinX - 0.01, c0.Bounds.MaxY - c3.Bounds.MaxY - 0.73);
+
+        // Cut the main pocket
+        working.Operate(c0);
+        working.Operate(c1);
+        working.Operate(c3);
+
+        // Create the actual body
+        var cut0 = working.Inners.First().Copy();
+        var cut1 = cut0.Copy();
+        var body = new Body(PointLoop.Rectangle(4, 5.0));
+
+        var padding = (body.Bounds.Width - 2 * cut0.Bounds.Width) / 3;
+        cut0.Translate(body.Bounds.MinX - cut0.Bounds.MinX + padding, body.Bounds.MinY - cut0.Bounds.MinY + 0.3);
+        cut1.Translate(cut0.Bounds.MaxX - cut1.Bounds.MinX + padding, body.Bounds.MinY - cut1.Bounds.MinY + 0.3);
+
+        body.Operate(cut0);
+        body.Operate(cut1);
+
+        var outer = ExpectedPoints((-2.5, -2), (2.5, -2), (2.5, 2), (-2.5, 2));
+        AssertLoop(outer, body.Outer);
+        AssertBodyInner(body, cut0, cut1);
+    }
+
+    [Fact]
+    public void AvoidErroneousSubsumed()
+    {
+        // This test case comes from an actual application which was misbehaving
+        var width = 1;
+        var height = 2.7;
+
+        // Use a temporary body to cut the main pocket
+        var working = new Body(PointLoop.Rectangle(3.5, 5.0));
+
+        var c0 = PointLoop.RoundedRectangle(height, width, 0.15, 8).Reversed();
+        var c1 = PointLoop.Rectangle(0.62, 1.7).Reversed();
+        var c3 = PointLoop.Rectangle(0.25, 0.25).Reversed();
+        c1.Translate(c0.Bounds.Center.X - c1.Bounds.MinX - (1.25 / 2), c0.Bounds.MinY - c1.Bounds.MinY + .3);
+        c3.Translate(c0.Bounds.MaxX - c3.Bounds.MinX - 0.01, c0.Bounds.MaxY - c3.Bounds.MaxY - 0.73);
+
+        // Cut the main pocket
+        working.Operate(c0);
+        working.Operate(c1);
+        working.Operate(c3);
+
+        // Create the actual body
+        var cut0 = working.Inners.First().Copy();
+        var cut1 = cut0.Copy();
+        var body = new Body(PointLoop.Rectangle(4, 5.0));
+
+        var padding = (body.Bounds.Width - 2 * cut0.Bounds.Width) / 3;
+        cut0.Translate(body.Bounds.MinX - cut0.Bounds.MinX + padding, body.Bounds.MinY - cut0.Bounds.MinY + 0.3);
+        cut1.Translate(cut0.Bounds.MaxX - cut1.Bounds.MinX + padding, body.Bounds.MinY - cut1.Bounds.MinY + 0.3);
+
+        var (result, _) = ShapeOperation.Operate(cut0, cut1);
+        
+        Assert.Equal(ShapeOperation.ResultType.Disjoint, result);
     }
 
     private TestFixture TestBody()

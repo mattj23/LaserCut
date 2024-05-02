@@ -4,7 +4,10 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Algorithms;
 
-public readonly record struct SegIntersection(Segment Segment, double T);
+public readonly record struct SegIntersection(Segment Segment, double T)
+{
+    public Point2D Point => Segment.PointAt(T);
+}
 
 public readonly struct SegPairIntersection : IEquatable<SegPairIntersection>
 {

@@ -382,7 +382,26 @@ public class PointLoop : Loop<Point2D>
     {
         var ray = new Ray2(p, Vector2D.XAxis);
         var intersections = Intersections(ray);
-        return intersections.Count % 2 == 1;
+        
+        // Find unique intersections
+        // TODO: is there a more efficient way to do this?
+        var unique = new List<Point2D>();
+        foreach (var i in intersections)
+        {
+            var found = false;
+            foreach (var u in unique)
+            {
+                if (u.DistanceTo(i.Point) < GeometryConstants.DistEquals)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) unique.Add(i.Point);
+        }
+        
+        return unique.Count % 2 == 1;
     }
 
     public LoopRelation RelationTo(PointLoop other)
