@@ -4,7 +4,7 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Algorithms;
 
-public readonly record struct SegIntersection(Segment Segment, double T)
+public readonly record struct SegIntersection(Segment Segment, double T, bool Collinear)
 {
     public Point2D Point => Segment.PointAt(T);
 }

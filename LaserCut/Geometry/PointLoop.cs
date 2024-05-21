@@ -375,33 +375,47 @@ public class PointLoop : Loop<Point2D>
 
     public List<SegIntersection> Intersections(IBvhIntersect other)
     {
-        return Bvh.Intersections(other);
-    }
-    
-    public bool ContainsPoint(Point2D p)
-    {
-        var ray = new Ray2(p, Vector2D.XAxis);
-        var intersections = Intersections(ray);
-        
-        // Find unique intersections
-        // TODO: is there a more efficient way to do this?
-        var unique = new List<Point2D>();
-        foreach (var i in intersections)
+        // Remove non-unique intersections
+        var unique = new List<SegIntersection>();
+        foreach (var i in Bvh.Intersections(other))
         {
             var found = false;
             foreach (var u in unique)
             {
-                if (u.DistanceTo(i.Point) < GeometryConstants.DistEquals)
+                if (u.Point.DistanceTo(i.Point) < GeometryConstants.DistEquals)
                 {
                     found = true;
                     break;
                 }
             }
 
-            if (!found) unique.Add(i.Point);
+            if (!found) unique.Add(i);
         }
+
+        return unique;
+    }
+    
+    public bool ContainsPoint(Point2D p)
+    {
+        var r0 = new Ray2(p, new Vector2D(1, 1));
+        var r1 = r0.Reversed();
+        var i0 = Intersections(r0);
+        var i1 = Intersections(r1);
         
-        return unique.Count % 2 == 1;
+        // If either direction returns 0, the point is for sure outside of the loop
+        if (i0.Count == 0 || i1.Count == 0) return false;
+        
+        // At this point, the only thing that could screw up the count is if the test ray is collinear with an edge
+        // How should we deal with that?
+        var check0 = i0.Count % 2 == 1;
+        var check1 = i1.Count % 2 == 1;
+
+        if (check0 != check1)
+        {
+            throw new ArgumentException($"Inconsistent results on a ContainsPoint call");
+        }
+
+        return check0;
     }
 
     public LoopRelation RelationTo(PointLoop other)

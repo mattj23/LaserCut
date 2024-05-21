@@ -29,6 +29,11 @@ public class Ray2 : Line2, IBvhIntersect
     {
         var (t0, t1) = IntersectionParams(segment);
 
-        return t0 >= 0 && t1 >= 0 && t1 <= segment.Length ? new SegIntersection(segment, t1) : null;
+        return t0 >= 0 && t1 >= 0 && t1 <= segment.Length ? new SegIntersection(segment, t1, IsParallel(segment)) : null;
+    }
+    
+    public Ray2 Reversed()
+    {
+        return new Ray2(Start, Direction.Negate());
     }
 }

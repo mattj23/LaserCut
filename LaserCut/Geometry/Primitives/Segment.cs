@@ -1,4 +1,5 @@
 ﻿using LaserCut.Algorithms;
+using LaserCut.Mesh;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry.Primitives;
@@ -54,7 +55,7 @@ public class Segment : Line2, IBvhIntersect
         }
 
         var (t0, t1) = IntersectionParams(segment);
-        return t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length ? new SegIntersection(segment, t1) : null;
+        return t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length ? new SegIntersection(segment, t1, false) : null;
     }
 
     public SegPairIntersection? IntersectsAsPair(Segment segment)
