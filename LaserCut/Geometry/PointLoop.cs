@@ -376,23 +376,24 @@ public class PointLoop : Loop<Point2D>
     public List<SegIntersection> Intersections(IBvhIntersect other)
     {
         // Remove non-unique intersections
-        var unique = new List<SegIntersection>();
-        foreach (var i in Bvh.Intersections(other))
-        {
-            var found = false;
-            foreach (var u in unique)
-            {
-                if (u.Point.DistanceTo(i.Point) < GeometryConstants.DistEquals)
-                {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) unique.Add(i);
-        }
-
-        return unique;
+        // var unique = new List<SegIntersection>();
+        // foreach (var i in Bvh.Intersections(other))
+        // {
+        //     var found = false;
+        //     foreach (var u in unique)
+        //     {
+        //         if (u.Point.DistanceTo(i.Point) < GeometryConstants.DistEquals)
+        //         {
+        //             found = true;
+        //             break;
+        //         }
+        //     }
+        //
+        //     if (!found) unique.Add(i);
+        // }
+        //
+        // return unique;
+        return Bvh.Intersections(other);
     }
     
     public bool ContainsPoint(Point2D p)

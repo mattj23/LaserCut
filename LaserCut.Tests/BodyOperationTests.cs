@@ -2,6 +2,7 @@
 using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry;
 using LaserCut.Tests.Helpers;
+using LaserCut.Tests.Plotting;
 
 namespace LaserCut.Tests;
 
@@ -145,6 +146,11 @@ public class BodyOperationTests : PointLoopTestBase
         var fixture = TestBody();
         var tool = Rect(3.25, 1.5, 0.5, 2).Reversed();
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (3.75, 3), (3.75, 2), (4, 2), (4, 1), (3, 1), (3, 2), (3.25, 2), (3.25, 3), (0, 3));
+        
+        // var plot = new DebugPlot("NegativeMergeIntersectsBoundaryOnce");
+        // plot.Add(fixture.Body, "Fixture");
+        // plot.Add(tool, "Tool");
+        // plot.Plot();
         
         fixture.Body.Operate(tool);
         AssertLoop(expected, fixture.Body.Outer);
