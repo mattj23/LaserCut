@@ -35,6 +35,8 @@ public class Arc
     
     public Point2D Center => Circle.Center;
     
+    public bool IsCcW => Theta >= 0;
+    
     public Point2D PointAtFraction(double fraction)
     {
         var theta = Theta0 + Theta * fraction;
@@ -51,18 +53,15 @@ public class Arc
 
     public bool IsThetaOnArc(double theta)
     {
-        // Theta0 is a value between -pi and pi, while theta is a value between -2pi and 2pi
-        
-        // First we convert theta to a value between -pi and pi
-        var test = Circle.ThetaOf(Circle.PointAt(theta));
-        
-        // Now we look if the arc direction is clockwise or counterclockwise
-        if (Theta >= 0)
+        // Check if the arc is counterclockwise or clockwise
+        if (IsCcW)
         {
-           // return  
+            // Counterclockwise
+            return Angles.BetweenCcw(Theta0, theta) <= Theta;
         }
 
-        throw new NotImplementedException();
+        // Clockwise
+        return Angles.BetweenCw(Theta0, theta) <= -Theta;
     }
     
 }

@@ -46,6 +46,7 @@ public static class Angles
     public static double AsSignedAbs(double theta)
     {
         // Normalize the angle to be between -pi and pi
+        
         while (theta > Math.PI)
         {
             theta -= 2 * Math.PI;
