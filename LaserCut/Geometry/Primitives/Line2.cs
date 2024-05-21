@@ -18,10 +18,30 @@ public class Line2
         Normal = new Vector2D(Direction.Y, -Direction.X);
     }
     
+    /// <summary>
+    /// Gets a point on the line that is considered the start point.  This is arbitrary, as the line extends infinitely
+    /// in both directions, however the start point is associated with t=0.
+    /// </summary>
     public Point2D Start { get; }
+    
+    /// <summary>
+    /// Gets the direction of the line, which has been normalized to a unit vector.
+    /// </summary>
     public Vector2D Direction { get; }
+    
+    /// <summary>
+    /// Gets the normal direction of the line, which is a vector that is the direction rotated clockwise by 90
+    /// degrees. This represents a surface normal for a line in which the counterclockwise direction is considered
+    /// to face outward.
+    /// </summary>
     public Vector2D Normal { get; }
     
+    /// <summary>
+    /// Calculate a point on the line at the given parameter t.  Because the direction vector has been normalized,
+    /// t will correspond with the length along the line.
+    /// </summary>
+    /// <param name="t"></param>
+    /// <returns></returns>
     public Point2D PointAt(double t)
     {
         return Start + Direction * t;
@@ -103,6 +123,15 @@ public class Line2
         return Math.Abs(Determinant(other)) < GeometryConstants.NumericZero;
     }
     
+    /// <summary>
+    /// Returns the intersection parameters for this line and the other line.  The parameters are the values of t for
+    /// the intersection point.  They will be NaN if the lines are parallel.
+    ///
+    /// The first value in the tuple represents the parameter for this line, and the second value represents the
+    /// parameter for the other line.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public (double, double) IntersectionParams(Line2 other)
     {
         var det = Determinant(other);

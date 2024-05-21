@@ -80,5 +80,45 @@ public static class Angles
         
         return theta;
     }
-    
+
+    /// <summary>
+    /// Reduces the angle to be between -2pi and 2pi, representing up to a single rotation in either the
+    /// counter-clockwise or the clockwise direction.
+    /// </summary>
+    /// <param name="theta"></param>
+    /// <returns></returns>
+    public static double AsOneRotSigned(double theta)
+    {
+        // Normalize the angle to be between -2pi and 2pi
+        while (theta < -2 * Math.PI)
+        {
+            theta += 2 * Math.PI;
+        }
+        
+        while (theta >= 2 * Math.PI)
+        {
+            theta -= 2 * Math.PI;
+        }
+        
+        return theta;
+    }
+
+    /// <summary>
+    /// Finds the complimentary angle to the given angle.  The given angle will be reduced to represent up to a single
+    /// rotation in either the counter-clockwise or the clockwise direction (between -2pi and 2pi).  The complimentary
+    /// angle will be the angle which reaches the same angle, but in the opposite direction.  Its sign will be opposite
+    /// the sign of the given angle.
+    /// </summary>
+    /// <param name="theta"></param>
+    /// <returns></returns>
+    public static double Compliment(double theta)
+    {
+        var t = AsOneRotSigned(theta);
+        
+        if (double.IsPositive(t))
+        {
+            return -2.0 * Math.PI + t;
+        }
+        return 2.0 * Math.PI + t;
+    }
 }

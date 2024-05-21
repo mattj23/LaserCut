@@ -48,6 +48,58 @@ public struct Aabb2
 
         return new Aabb2(minX, minY, maxX, maxY);
     }
+    
+    /// <summary>
+    /// Creates a new bounding box that is a copy of this one.
+    /// </summary>
+    /// <returns></returns>
+    public Aabb2 Clone()
+    {
+        return new Aabb2(MinX, MinY, MaxX, MaxY);
+    }
+
+    /// <summary>
+    /// Return a new bounding box that is expanded to contain the given point.
+    /// </summary>
+    /// <param name="p"></param>
+    /// <returns></returns>
+    public void ExpandToContain(Point2D p)
+    {
+        ExpandToContain(p.X, p.Y);
+    }
+
+    /// <summary>
+    /// Return a new bounding box that is expanded to contain the given point.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
+    public void ExpandToContain(double x, double y)
+    {
+        if (double.IsNaN(MinX) || x < MinX)
+            MinX = x;
+        
+        if (double.IsNaN(MinY) || y < MinY)
+            MinY = y;
+        
+        if (double.IsNaN(MaxX) || x > MaxX)
+            MaxX = x;
+        
+        if (double.IsNaN(MaxY) || y > MaxY)
+            MaxY = y;
+    }
+    
+    /// <summary>
+    /// Expand the bounding box by the given amount.
+    /// </summary>
+    /// <param name="amount"></param>
+    public void Expand(double amount)
+    {
+        MinX -= amount;
+        MinY -= amount;
+        MaxX += amount;
+        MaxY += amount;
+    }
 
     public bool Contains(Point2D point)
     {

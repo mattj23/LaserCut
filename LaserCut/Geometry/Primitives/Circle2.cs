@@ -54,6 +54,12 @@ public class Circle2
         return Math.Atan2(a.Y, a.X);
     }
 
+
+    public Point2D Project(Point2D p)
+    {
+        return PointAt(ThetaOf(p));
+    }
+
     public Point2D PointAt(double theta)
     {
         var v = new Vector2D(Radius, 0).Rotate(Angle.FromRadians(theta));

@@ -4,7 +4,7 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry.Primitives;
 
-public class Segment : Line2, IBvhIntersect
+public class Segment : Line2, IBvhIntersect, IContourElement
 {
     public Segment(Point2D start, Point2D end, int index) : base(start, (end - start).Normalize())
     {
@@ -21,7 +21,7 @@ public class Segment : Line2, IBvhIntersect
     public Point2D End { get; }
     
     public double Length => Start.DistanceTo(End);
-    
+
     public Point2D Midpoint => PointAt(Length * 0.5);
 
     public Aabb2 Bounds { get; }
@@ -38,20 +38,6 @@ public class Segment : Line2, IBvhIntersect
         if (IsCollinear(segment))
         {
             return null;
-            // // Any point that is on both segments is a valid intersection point
-            // var t1Start = segment.ProjectionParam(Start);
-            // var t1End = segment.ProjectionParam(End);
-            // var t1A = Math.Min(t1Start, t1End);
-            // var t1B = Math.Max(t1Start, t1End);
-            //
-            // if (t1B < 0 || t1A > segment.Length)
-            // {
-            //     return null;
-            // }
-            //
-            // var valid0 = Math.Max(t1A, 0);
-            // var valid1 = Math.Min(t1B, segment.Length);
-            // return new SegIntersection(segment, (valid0 + valid1) * 0.5);
         }
 
         var (t0, t1) = IntersectionParams(segment);
@@ -63,21 +49,6 @@ public class Segment : Line2, IBvhIntersect
         if (IsCollinear(segment))
         {
             return null;
-            // var t1Start = segment.ProjectionParam(Start);
-            // var t1End = segment.ProjectionParam(End);
-            // var t1A = Math.Min(t1Start, t1End);
-            // var t1B = Math.Max(t1Start, t1End);
-            //
-            // if (t1B < 0 || t1A > segment.Length)
-            // {
-            //     return null;
-            // }
-            //
-            // var valid0 = Math.Max(t1A, 0);
-            // var valid1 = Math.Min(t1B, segment.Length);
-            // var pt1 = (valid0 + valid1) * 0.5;
-            // var pt0 = ProjectionParam(segment.PointAt(pt1));
-            // return new SegPairIntersection(this, pt0, segment, pt1);
         }
         
         var (t0, t1) = IntersectionParams(segment);
@@ -106,15 +77,93 @@ public class Segment : Line2, IBvhIntersect
         return $"[Segment {Start.X:0.000}, {Start.Y:0.000} -> {End.X:0.000}, {End.Y:0.000} | {Index}]";
     }
 
+    public SurfacePoint AtLength(double length)
+    {
+        return new SurfacePoint(PointAt(length), Direction);
+    }
+
+    /// <summary>
+    /// Compute the position on the segment that is closest to the given point.  This may be the start or end point if
+    /// the projection of the point onto the line is outside the segment.
+    /// </summary>
+    /// <param name="point"></param>
+    /// <returns></returns>
+    public Position Closest(Point2D point)
+    {
+        var t = ProjectionParam(point);
+        if (t >= 0 && t <= Length)
+        {
+            return new Position(t, this);
+        }
+        
+        return point.DistanceTo(Start) < point.DistanceTo(End) ? new Position(0, this) : new Position(Length, this);
+    }
+
+    /// <summary>
+    /// Compute the intersection point between the segment and the given line.  If the line is parallel to the segment,
+    /// no intersection will be found.
+    /// </summary>
+    /// <param name="line"></param>
+    /// <returns></returns>
+    public Position[] Intersections(Line2 line)
+    {
+        var (t0, t1) = IntersectionParams(line);
+        if (double.IsNaN(t0) || double.IsNaN(t1) || t0 < 0 || t0 > Length)
+        {
+            return [];
+        }
+
+        return [new Position(t1, this)];
+    }
+
+    /// <summary>
+    /// Compute the intersections between the segment and the given circle.  
+    /// </summary>
+    /// <param name="circle"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public Position[] Intersections(Circle2 circle)
+    {
+        var results = new List<Position>();
+        foreach (var p in circle.Intersections(this))
+        {
+            var t = ProjectionParam(p);
+            if (t >= 0 && t <= Length)
+            {
+                results.Add(new Position(t, this));
+            }
+        }
+        
+        return results.ToArray();
+    }
+    
+    
+    public ElementIntersection[] MatchIntersections(IEnumerable<Position> positions)
+    {
+        var results = new List<ElementIntersection>();
+        foreach (var other in positions)
+        {
+            var t = ProjectionParam(other.Surface.Point);
+            if (t >= 0 && t <= Length)
+            {
+                results.Add(new ElementIntersection(new Position(t, this), other));
+            }
+        }
+
+        return results.ToArray();
+    }
+    
     private Aabb2 GetAabb()
     {
-        // We slightly pad the bounding box to account for the issues with the fast slab intersection test when a 
-        // test line is collinear with certain edges of the box.
         var xMin = Math.Min(Start.X, End.X);
         var xMax = Math.Max(Start.X, End.X);
         var yMin = Math.Min(Start.Y, End.Y);
         var yMax = Math.Max(Start.Y, End.Y);
-        return new Aabb2(xMin - GeometryConstants.DistEquals, yMin - GeometryConstants.DistEquals, 
-            xMax + GeometryConstants.DistEquals, yMax + GeometryConstants.DistEquals);
+        var bounds = new Aabb2(xMin, yMin, xMax, yMax);
+        
+        // We slightly pad the bounding box to account for the issues with the fast slab intersection test when a 
+        // test line is collinear with certain edges of the box.
+        bounds.Expand(GeometryConstants.DistEquals);
+        return bounds;
     }
 }
