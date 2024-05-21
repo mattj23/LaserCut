@@ -10,6 +10,21 @@ public static class GeometryExtensions
     {
         return new Point2D(point.X, point.Y);
     }
+
+    public static double SignedAngle(this Vector2D v1, Vector2D v2)
+    {
+        return Math.Atan2(v1.X * v2.Y - v1.Y * v2.X, v1.X * v2.X + v1.Y * v2.Y);
+    }
+    
+    public static double AngleToCcw(this Vector2D v1, Vector2D v2)
+    {
+        return v1.SignedAngleTo(v2).Radians;
+    }
+    
+    public static double AngleToCw(this Vector2D v1, Vector2D v2)
+    {
+        return v1.SignedAngleTo(v2, true).Radians;
+    }
     
     public static Point2D[] ToPoint2Ds(this IEnumerable<Point3D> points, bool removeAdjacentDuplicates = false)
     {
