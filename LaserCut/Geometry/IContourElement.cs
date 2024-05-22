@@ -20,6 +20,12 @@ public interface IContourElement
     Position Closest(Point2D point);
     
     /// <summary>
+    /// Update the index of this element.
+    /// </summary>
+    /// <param name="index">The new value of the index</param>
+    void SetIndex(int index);
+    
+    /// <summary>
     /// Compute the intersection positions between this element and a line. The positions returned will reference *this*
     /// entity as the `Element` property.
     /// </summary>

@@ -26,8 +26,13 @@ public class Segment : Line2, IContourElement, IBvhIntersect
 
     public Aabb2 Bounds { get; }
     
-    public int Index { get; }
-    
+    public int Index { get; private set; }
+
+    public void SetIndex(int index)
+    {
+        Index = index;
+    }
+
     public bool RoughIntersects(Aabb2 box)
     {
         return Bounds.Intersects(box);
@@ -47,22 +52,6 @@ public class Segment : Line2, IContourElement, IBvhIntersect
 
         return results.ToArray();
     }
-    
-    // public Point2D? Intersect(Segment other)
-    // {
-    //     var (t0, t1) = IntersectionParams(other);
-    //     if (double.IsNaN(t0) || double.IsNaN(t1))
-    //     {
-    //         return null;
-    //     }
-    //     
-    //     if (t0 < 0 || t0 > Length || t1 < 0 || t1 > other.Length)
-    //     {
-    //         return null;
-    //     }
-    //     
-    //     return PointAt(t0);
-    // }
 
     public override string ToString()
     {

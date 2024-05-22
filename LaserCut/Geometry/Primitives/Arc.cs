@@ -44,7 +44,7 @@ public class Arc : IContourElement
         return new Arc(c, t0, t, index);
     }
     
-    public int Index {get;}
+    public int Index {get; private set; }
 
     public Point2D Start { get; }
 
@@ -55,14 +55,14 @@ public class Arc : IContourElement
     public double Length { get; }
 
     /// <summary>
-    ///     Gets the sweep angle of the arc in radians.  Positive values are counterclockwise, negative values are
-    ///     clockwise.  This value will be between -2π and 2π.
+    /// Gets the sweep angle of the arc in radians.  Positive values are counterclockwise, negative values are
+    /// clockwise.  This value will be between -2π and 2π.
     /// </summary>
     public double Theta { get; }
 
     /// <summary>
-    ///     Gets the starting angle of the arc in radians.  This is the angle of the start point relative to the center of
-    ///     the underlying circle, with 0 being the positive x direction.  This value will be between -π and π.
+    /// Gets the starting angle of the arc in radians.  This is the angle of the start point relative to the center of
+    /// the underlying circle, with 0 being the positive x direction.  This value will be between -π and π.
     /// </summary>
     public double Theta0 { get; }
 
@@ -74,6 +74,11 @@ public class Arc : IContourElement
 
     public bool IsCcW => Theta >= 0;
 
+    public void SetIndex(int index)
+    {
+        Index = index;
+    }
+    
     public double FractionToLength(double fraction)
     {
         return fraction * Length;

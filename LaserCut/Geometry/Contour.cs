@@ -35,10 +35,12 @@ public class Contour : Loop<IContourElement>
 
     private class ContourCursor : LoopCursor, IContourCursor
     {
-        public ContourCursor(Loop<IContourElement> loop, int nodeId) : base(loop, nodeId)
+        public ContourCursor(Loop<IContourElement> loop, int nodeId) : base(loop, nodeId) { }
+
+        protected override void OnItemAdded(IContourElement item, int id)
         {
+            item.SetIndex(id);
+            base.OnItemAdded(item, id);
         }
-        
-        
     }
 }
