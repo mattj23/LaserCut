@@ -91,9 +91,9 @@ public class Bvh
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public ElementIntersection[] Intersections(Bvh other)
+    public IntersectionPair[] Intersections(Bvh other)
     {
-        var results = new List<ElementIntersection>();
+        var results = new List<IntersectionPair>();
         
         if (!other.Bounds.Intersects(Bounds)) return [];
         
@@ -115,8 +115,8 @@ public class Bvh
                 {
                     var intersections = e0 switch
                     {
-                        Arc arc => e1.Intersections(arc.Circle),
-                        Segment seg => e1.Intersections(seg),
+                        Arc arc => e1.IntersectionsWithCircle(arc.Circle),
+                        Segment seg => e1.IntersectionsWithLine(seg),
                         _ => throw new ArgumentOutOfRangeException(nameof(e0))
                     };
                     results.AddRange(e0.MatchIntersections(intersections));

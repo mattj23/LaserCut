@@ -130,7 +130,7 @@ public static class ShapeOperation
         return (ResultType.Merged, results.ToArray());
     }
     
-    private static PointLoop? MergeOne(PointLoop loop0, PointLoop loop1, List<ElementIntersection> intersections)
+    private static PointLoop? MergeOne(PointLoop loop0, PointLoop loop1, List<IntersectionPair> intersections)
     {
         var initialIntersections = intersections.Count;
         if (initialIntersections == 0) return null;
@@ -193,8 +193,8 @@ public static class ShapeOperation
         return working;
     }
 
-    private static ElementIntersection FindStart(PointLoop loop0, PointLoop loop1,
-        List<ElementIntersection> intersections)
+    private static IntersectionPair FindStart(PointLoop loop0, PointLoop loop1,
+        List<IntersectionPair> intersections)
     {
         if (loop0.Area > 0 && loop1.Area > 0)
             return intersections.FirstOrDefault(i => i.FirstExitsSecond);
@@ -208,7 +208,7 @@ public static class ShapeOperation
         return intersections.FirstOrDefault(i => i.FirstEntersSecond);
     }
 
-    private static ElementIntersection? PopNext(List<ElementIntersection> intersections, double lastT, bool isLoop0, int currentId)
+    private static IntersectionPair? PopNext(List<IntersectionPair> intersections, double lastT, bool isLoop0, int currentId)
     {
         var more = isLoop0
             ? intersections.Where(i => i.First.Element.Index == currentId && i.First.LengthAlong > lastT).ToList()

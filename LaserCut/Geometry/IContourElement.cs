@@ -19,9 +19,21 @@ public interface IContourElement
 
     Position Closest(Point2D point);
     
-    Position[] Intersections(Line2 line);
+    /// <summary>
+    /// Compute the intersection positions between this element and a line. The positions returned will reference *this*
+    /// entity as the `Element` property.
+    /// </summary>
+    /// <param name="line"></param>
+    /// <returns></returns>
+    Position[] IntersectionsWithLine(Line2 line);
 
-    Position[] Intersections(Circle2 circle);
+    /// <summary>
+    /// Compute the intersection positions between this element and a circle. The positions returned will reference
+    /// *this* entity as the `Element` property.
+    /// </summary>
+    /// <param name="circle"></param>
+    /// <returns></returns>
+    Position[] IntersectionsWithCircle(Circle2 circle);
     
     /// <summary>
     /// Given a collection of positions on another element, return an array of valid ElementIntersections where the
@@ -31,7 +43,7 @@ public interface IContourElement
     /// <param name="positions">An iterable of `Position` items representing candidate locations on another
     /// element.</param>
     /// <returns></returns>
-    ElementIntersection[] MatchIntersections(IEnumerable<Position> positions);
+    IntersectionPair[] MatchIntersections(IEnumerable<Position> positions);
 
     /// <summary>
     /// Determines if this element is followed by the given element, such that the end of this element is within the

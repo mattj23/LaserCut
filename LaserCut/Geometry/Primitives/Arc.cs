@@ -162,7 +162,7 @@ public class Arc : IContourElement
     /// </summary>
     /// <param name="line"></param>
     /// <returns></returns>
-    public Position[] Intersections(Line2 line)
+    public Position[] IntersectionsWithLine(Line2 line)
     {
         return ValidPositionsFromPoints(Circle.Intersections(line));
     }
@@ -172,21 +172,21 @@ public class Arc : IContourElement
     /// </summary>
     /// <param name="circle"></param>
     /// <returns></returns>
-    public Position[] Intersections(Circle2 circle)
+    public Position[] IntersectionsWithCircle(Circle2 circle)
     {
         return ValidPositionsFromPoints(Circle.Intersections(circle));
     }
     
-    public ElementIntersection[] MatchIntersections(IEnumerable<Position> positions)
+    public IntersectionPair[] MatchIntersections(IEnumerable<Position> positions)
     {
-        var results = new List<ElementIntersection>();
+        var results = new List<IntersectionPair>();
         foreach (var other in positions)
         {
             var theta = Circle.ThetaOf(other.Surface.Point);
             if (IsThetaOnArc(theta))
             {
                 var position = new Position(FractionToLength(ThetaToFraction(theta)), this);
-                results.Add(new ElementIntersection(position, other));
+                results.Add(new IntersectionPair(position, other));
             }
         }
 

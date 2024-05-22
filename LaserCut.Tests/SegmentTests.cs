@@ -21,9 +21,9 @@ public class SegmentTests
             Assert.Equal(a0, t0, 1e-10);
             Assert.Equal(a1, t1, 1e-10);
 
-            var s = seg0.Intersects(seg1);
-            Assert.NotNull(s);
-            Assert.Equal(t1, s.Value.T, 1e-10);
+            var s = seg0.Intersections(seg1);
+            Assert.Single(s);
+            Assert.Equal(t1, s.First().LengthAlong, 1e-10);
         }
     }
 
@@ -38,8 +38,8 @@ public class SegmentTests
             var seg0 = r.Segment(b);
             var seg1 = r.NonIntersectingSegment(seg0);
             
-            var s = seg0.Intersects(seg1);
-            Assert.Null(s);
+            var s = seg1.Intersections(seg0);
+            Assert.Empty(s);
         }
     }
     

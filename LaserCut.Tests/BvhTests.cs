@@ -48,13 +48,10 @@ public class BvhTests
             var segments1 = r.Segments(b1, 20);
             
             // Brute force the expected results
-            var expected = new List<SegIntersection>();
+            var expected = new List<Position>();
             foreach (var seg in segments1)
             {
-                if (test.Intersects(seg) is { } s)
-                {
-                    expected.Add(s);
-                }
+                expected.AddRange(test.Intersections(seg));
             }
             
             // Test the BVH
@@ -62,8 +59,8 @@ public class BvhTests
             var results = bvh.Intersections(test);
 
             var exp = expected
-                .OrderBy(x => x.Segment.Index)
-                .Select(x => (x.Segment.Index, x.T))
+                .OrderBy(x => x.Element.Index)
+                .Select(x => (x.Element.Index, x.LengthAlong))
                 .ToArray();
             
             var tst = results
@@ -89,15 +86,13 @@ public class BvhTests
             var segments1 = r.Segments(b1, r.Int(5, 30));
             
             // Brute force the expected results
-            var expected = new List<SegPairIntersection>();
+            var expected = new List<IntersectionPair>();
             foreach (var test in segments0)
             {
                 foreach (var seg in segments1)
                 {
-                    if (test.IntersectsAsPair(seg) is { } s)
-                    {
-                        expected.Add(s);
-                    }
+                    var positions = seg.IntersectionsWithLine(test);
+                    expected.AddRange(test.MatchIntersections(positions));
                 }
             }
             
@@ -106,21 +101,21 @@ public class BvhTests
             var bvh1 = new Bvh(segments1);
             var results = bvh0.Intersections(bvh1);
 
-            var exp = expected
-                .OrderBy(x => x.Segment0.Index)
-                .ThenBy(x => x.Segment1.Index)
-                .Select(x => (x.Segment0.Index, x.Segment1.Index, Math.Round(x.T0, 6), Math.Round(x.T1, 6)))
-                .ToArray();
-            
-            var tst = results
-                .OrderBy(x => x.First.Element.Index)
-                .ThenBy(x => x.Second.Element.Index)
-                .Select(x => (x.First.Element.Index, x.Second.Element.Index, 
-                    Math.Round(x.First.LengthAlong, 6), Math.Round(x.Second.LengthAlong, 6)))
-                .ToArray();
+            var exp = Prepare(expected);
+            var tst = Prepare(results);
             
             Assert.Equal(exp, tst);
         }
+    }
+
+    private (int, int, double, double)[] Prepare(IEnumerable<IntersectionPair> pairs)
+    {
+        return pairs
+            .OrderBy(x => x.First.Element.Index)
+            .ThenBy(x => x.Second.Element.Index)
+            .Select(x => (x.First.Element.Index, x.Second.Element.Index,
+                Math.Round(x.First.LengthAlong, 6), Math.Round(x.Second.LengthAlong, 6)))
+            .ToArray();
     }
     
 }

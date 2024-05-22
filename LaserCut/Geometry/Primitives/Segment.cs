@@ -4,7 +4,7 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry.Primitives;
 
-public class Segment : Line2, IBvhIntersect, IContourElement, IBvhTest
+public class Segment : Line2, IContourElement, IBvhTest
 {
     public Segment(Point2D start, Point2D end, int index) : base(start, (end - start).Normalize())
     {
@@ -36,7 +36,7 @@ public class Segment : Line2, IBvhIntersect, IContourElement, IBvhTest
     public Position[] Intersections(IContourElement element)
     {
         var results = new List<Position>();
-        foreach (var position in element.Intersections(this))
+        foreach (var position in element.IntersectionsWithLine(this))
         {
             var t = ProjectionParam(position.Surface.Point);
             if (t >= 0 && t <= Length)
@@ -47,45 +47,22 @@ public class Segment : Line2, IBvhIntersect, IContourElement, IBvhTest
 
         return results.ToArray();
     }
-
-    public SegIntersection? Intersects(Segment segment)
-    {
-        if (IsCollinear(segment))
-        {
-            return null;
-        }
-
-        var (t0, t1) = IntersectionParams(segment);
-        return t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length ? new SegIntersection(segment, t1, false) : null;
-    }
-
-    public SegPairIntersection? IntersectsAsPair(Segment segment)
-    {
-        if (IsCollinear(segment))
-        {
-            return null;
-        }
-        
-        var (t0, t1) = IntersectionParams(segment);
-        bool valid = t0 >= 0 && t1 >= 0 && t0 <= Length && t1 <= segment.Length;
-        return valid ? new SegPairIntersection(this, t0, segment, t1) : null;
-    }
     
-    public Point2D? Intersect(Segment other)
-    {
-        var (t0, t1) = IntersectionParams(other);
-        if (double.IsNaN(t0) || double.IsNaN(t1))
-        {
-            return null;
-        }
-        
-        if (t0 < 0 || t0 > Length || t1 < 0 || t1 > other.Length)
-        {
-            return null;
-        }
-        
-        return PointAt(t0);
-    }
+    // public Point2D? Intersect(Segment other)
+    // {
+    //     var (t0, t1) = IntersectionParams(other);
+    //     if (double.IsNaN(t0) || double.IsNaN(t1))
+    //     {
+    //         return null;
+    //     }
+    //     
+    //     if (t0 < 0 || t0 > Length || t1 < 0 || t1 > other.Length)
+    //     {
+    //         return null;
+    //     }
+    //     
+    //     return PointAt(t0);
+    // }
 
     public override string ToString()
     {
@@ -120,7 +97,7 @@ public class Segment : Line2, IBvhIntersect, IContourElement, IBvhTest
     /// </summary>
     /// <param name="line"></param>
     /// <returns></returns>
-    public Position[] Intersections(Line2 line)
+    public Position[] IntersectionsWithLine(Line2 line)
     {
         var (t0, t1) = IntersectionParams(line);
         if (double.IsNaN(t0) || double.IsNaN(t1) || t0 < 0 || t0 > Length)
@@ -136,8 +113,7 @@ public class Segment : Line2, IBvhIntersect, IContourElement, IBvhTest
     /// </summary>
     /// <param name="circle"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
-    public Position[] Intersections(Circle2 circle)
+    public Position[] IntersectionsWithCircle(Circle2 circle)
     {
         var results = new List<Position>();
         foreach (var p in circle.Intersections(this))
@@ -153,15 +129,15 @@ public class Segment : Line2, IBvhIntersect, IContourElement, IBvhTest
     }
     
     
-    public ElementIntersection[] MatchIntersections(IEnumerable<Position> positions)
+    public IntersectionPair[] MatchIntersections(IEnumerable<Position> positions)
     {
-        var results = new List<ElementIntersection>();
+        var results = new List<IntersectionPair>();
         foreach (var other in positions)
         {
             var t = ProjectionParam(other.Surface.Point);
             if (t >= 0 && t <= Length)
             {
-                results.Add(new ElementIntersection(new Position(t, this), other));
+                results.Add(new IntersectionPair(new Position(t, this), other));
             }
         }
 

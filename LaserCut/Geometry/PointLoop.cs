@@ -368,7 +368,7 @@ public class PointLoop : Loop<Point2D>
         return results.Select(r => (r.Key.Item1, r.Key.Item2, r.Value)).ToList();
     }
 
-    public ElementIntersection[] Intersections(PointLoop other)
+    public IntersectionPair[] Intersections(PointLoop other)
     {
         return Bvh.Intersections(other.Bvh);
     }

@@ -7,7 +7,7 @@ namespace LaserCut.Algorithms;
 /// </summary>
 /// <param name="First"></param>
 /// <param name="Second"></param>
-public readonly record struct ElementIntersection(Position First, Position Second)
+public readonly record struct IntersectionPair(Position First, Position Second)
 {
     public bool Empty => First.Empty || Second.Empty;
     
