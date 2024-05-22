@@ -9,8 +9,16 @@ namespace LaserCut.Algorithms;
 /// <param name="Second"></param>
 public readonly record struct IntersectionPair(Position First, Position Second)
 {
+    /// <summary>
+    /// Gets whether this intersection pair is empty, meaning that one or both of the positions are null. Because this
+    /// is a value type, it is not possible to have a null IntersectionPair, so use this property to check for
+    /// emptiness (as might be returned by `FirstOrDefault`)
+    /// </summary>
     public bool Empty => First.Empty || Second.Empty;
     
+    /// <summary>
+    /// Gets the point of intersection between the two elements.
+    /// </summary>
     public Point2D Point => First.Surface.Point;
     
     /// <summary>
@@ -19,7 +27,7 @@ public readonly record struct IntersectionPair(Position First, Position Second)
     /// of the intersection to be less than the length of the first element. Essentially, there must be *some* amount
     /// of the first element beyond the intersection point.
     /// </summary>
-    public bool FirstExitsSecond => FirstDirDotSecondNorm > 0 && First.LengthAlong < First.Element.Length;
+    public bool FirstExitsSecond => FirstDirDotSecondNorm > 0 && First.L < First.Element.Length;
 
     /// <summary>
     /// Returns true if the first element 'enters' the second element at the intersection. This requires the direction
@@ -27,8 +35,11 @@ public readonly record struct IntersectionPair(Position First, Position Second)
     /// position of the intersection to be less than the length of the first element. Essentially, there must be *some*
     /// of the first element beyond the intersection point.
     /// </summary>
-    public bool FirstEntersSecond => FirstDirDotSecondNorm < 0 && First.LengthAlong < First.Element.Length;
+    public bool FirstEntersSecond => FirstDirDotSecondNorm < 0 && First.L < First.Element.Length;
     
+    /// <summary>
+    /// Shortcut for the dot product of the direction of the first surface and the normal of the second surface.
+    /// </summary>
     private double FirstDirDotSecondNorm => First.Surface.Direction.DotProduct(Second.Surface.Normal);
     
 }

@@ -58,7 +58,7 @@ public class Bvh
     /// <param name="entity">An entity capable of testing for intersections against both the Aabb2 bounds and
     /// any `IContourElement` object.</param>
     /// <returns>An array with all valid intersections.</returns>
-    public Position[] Intersections(IBvhTest entity)
+    public Position[] Intersections(IBvhIntersect entity)
     {
         
         if (!entity.RoughIntersects(Bounds))

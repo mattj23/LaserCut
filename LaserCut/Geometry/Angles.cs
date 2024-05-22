@@ -1,5 +1,8 @@
 namespace LaserCut.Geometry;
 
+/// <summary>
+/// This class provides utility functions for working with angles.
+/// </summary>
 public static class Angles
 {
     /// <summary>

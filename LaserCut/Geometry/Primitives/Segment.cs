@@ -4,7 +4,7 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry.Primitives;
 
-public class Segment : Line2, IContourElement, IBvhTest
+public class Segment : Line2, IContourElement, IBvhIntersect
 {
     public Segment(Point2D start, Point2D end, int index) : base(start, (end - start).Normalize())
     {

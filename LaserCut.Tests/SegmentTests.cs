@@ -23,7 +23,7 @@ public class SegmentTests
 
             var s = seg0.Intersections(seg1);
             Assert.Single(s);
-            Assert.Equal(t1, s.First().LengthAlong, 1e-10);
+            Assert.Equal(t1, s.First().L, 1e-10);
         }
     }
 

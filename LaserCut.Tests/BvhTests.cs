@@ -31,7 +31,7 @@ public class BvhTests
             
             Assert.Single(results);
             Assert.Equal(seg1, results[0].Element);
-            Assert.Equal(t1, results[0].LengthAlong, 1e-10);
+            Assert.Equal(t1, results[0].L, 1e-10);
         }
     }
     
@@ -60,12 +60,12 @@ public class BvhTests
 
             var exp = expected
                 .OrderBy(x => x.Element.Index)
-                .Select(x => (x.Element.Index, x.LengthAlong))
+                .Select(x => (x.Element.Index, LengthAlong: x.L))
                 .ToArray();
             
             var tst = results
                 .OrderBy(x => x.Element.Index)
-                .Select(x => (x.Element.Index, x.LengthAlong))
+                .Select(x => (x.Element.Index, LengthAlong: x.L))
                 .ToArray();
             
             Assert.Equal(exp, tst);
@@ -114,7 +114,7 @@ public class BvhTests
             .OrderBy(x => x.First.Element.Index)
             .ThenBy(x => x.Second.Element.Index)
             .Select(x => (x.First.Element.Index, x.Second.Element.Index,
-                Math.Round(x.First.LengthAlong, 6), Math.Round(x.Second.LengthAlong, 6)))
+                Math.Round(x.First.L, 6), Math.Round(x.Second.L, 6)))
             .ToArray();
     }
     

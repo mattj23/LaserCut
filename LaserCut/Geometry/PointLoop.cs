@@ -373,7 +373,7 @@ public class PointLoop : Loop<Point2D>
         return Bvh.Intersections(other.Bvh);
     }
 
-    public Position[] Intersections(IBvhTest other)
+    public Position[] Intersections(IBvhIntersect other)
     {
         return Bvh.Intersections(other);
     }

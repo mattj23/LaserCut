@@ -146,7 +146,7 @@ public static class ShapeOperation
         workingCursor.InsertAbs(start.First.Surface.Point);
 
         // Now we will work our way through the loop.
-        var lastT = start.First.LengthAlong;
+        var lastT = start.First.L;
         var readCursor = loop0.GetCursor(start.First.Element.Index);
         bool isLoop0 = true;
 
@@ -170,7 +170,7 @@ public static class ShapeOperation
                 
                 // Now we will switch to the other loop
                 isLoop0 = !isLoop0;
-                lastT = isLoop0 ? next.First.LengthAlong : next.Second.LengthAlong;
+                lastT = isLoop0 ? next.First.L : next.Second.L;
                 readCursor = isLoop0 ? loop0.GetCursor(next.First.Element.Index) : loop1.GetCursor(next.Second.Element.Index);
             }
             // Otherwise, we will advance to the start of the next segment and insert it into the loop
@@ -211,14 +211,14 @@ public static class ShapeOperation
     private static IntersectionPair? PopNext(List<IntersectionPair> intersections, double lastT, bool isLoop0, int currentId)
     {
         var more = isLoop0
-            ? intersections.Where(i => i.First.Element.Index == currentId && i.First.LengthAlong > lastT).ToList()
-            : intersections.Where(i => i.Second.Element.Index == currentId && i.Second.LengthAlong > lastT).ToList();
+            ? intersections.Where(i => i.First.Element.Index == currentId && i.First.L > lastT).ToList()
+            : intersections.Where(i => i.Second.Element.Index == currentId && i.Second.L > lastT).ToList();
         
         if (more.Count == 0) return null;
 
         var next = isLoop0
-            ? more.MinBy(i => i.First.LengthAlong)
-            : more.MinBy(i => i.Second.LengthAlong);
+            ? more.MinBy(i => i.First.L)
+            : more.MinBy(i => i.Second.L);
 
         intersections.Remove(next);
         return next;
