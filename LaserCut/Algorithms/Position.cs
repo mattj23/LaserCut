@@ -8,8 +8,9 @@ namespace LaserCut.Algorithms;
 /// </summary>
 /// <param name="LengthAlong"></param>
 /// <param name="Element"></param>
-public record struct Position(double LengthAlong, IContourElement Element)
+public readonly record struct Position(double LengthAlong, IContourElement Element)
 {
     public SurfacePoint Surface => Element.AtLength(LengthAlong);
 
+    public bool Empty => Element == null;
 }

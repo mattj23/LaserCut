@@ -12,7 +12,7 @@ namespace LaserCut.Geometry;
 public class PointLoop : Loop<Point2D>
 {
     private List<Segment>? _segments;
-    private BvhNode? _bvh;
+    private Bvh? _bvh;
     private double _area = double.NaN;
 
     public PointLoop(Guid id)
@@ -38,7 +38,7 @@ public class PointLoop : Loop<Point2D>
 
     public IReadOnlyList<Segment> Segments => _segments ??= BuildSegments();
 
-    public BvhNode Bvh => _bvh ??= new BvhNode(Segments);
+    public Bvh Bvh => _bvh ??= new Bvh(Segments);
 
     public Aabb2 Bounds => Bvh.Bounds;
 
@@ -356,67 +356,34 @@ public class PointLoop : Loop<Point2D>
             var prevIndex = Nodes[index].PreviousId;
 
             var items = Bvh.Intersections(seg0)
-                .Where(s => s.Segment.Index != index && s.Segment.Index != nextIndex && s.Segment.Index != prevIndex)
+                .Where(s => s.Element.Index != index && s.Element.Index != nextIndex && s.Element.Index != prevIndex)
                 .ToArray();
             foreach (var item in items)
             {
-                var key = (Math.Min(index, item.Segment.Index), Math.Max(index, item.Segment.Index));
-                if (!results.ContainsKey(key)) results[key] = item.Segment.PointAt(item.T);
+                var key = (Math.Min(index, item.Element.Index), Math.Max(index, item.Element.Index));
+                if (!results.ContainsKey(key)) results[key] = item.Surface.Point;
             }
         }
 
         return results.Select(r => (r.Key.Item1, r.Key.Item2, r.Value)).ToList();
     }
 
-    public List<SegPairIntersection> Intersections(PointLoop other)
+    public ElementIntersection[] Intersections(PointLoop other)
     {
         return Bvh.Intersections(other.Bvh);
     }
 
-    public List<SegIntersection> Intersections(IBvhIntersect other)
+    public Position[] Intersections(IBvhTest other)
     {
-        // Remove non-unique intersections
-        // var unique = new List<SegIntersection>();
-        // foreach (var i in Bvh.Intersections(other))
-        // {
-        //     var found = false;
-        //     foreach (var u in unique)
-        //     {
-        //         if (u.Point.DistanceTo(i.Point) < GeometryConstants.DistEquals)
-        //         {
-        //             found = true;
-        //             break;
-        //         }
-        //     }
-        //
-        //     if (!found) unique.Add(i);
-        // }
-        //
-        // return unique;
         return Bvh.Intersections(other);
     }
     
     public bool ContainsPoint(Point2D p)
     {
         var r0 = new Ray2(p, new Vector2D(1, 1));
-        var r1 = r0.Reversed();
-        var i0 = Intersections(r0);
-        var i1 = Intersections(r1);
-        
-        // If either direction returns 0, the point is for sure outside of the loop
-        if (i0.Count == 0 || i1.Count == 0) return false;
-        
-        // At this point, the only thing that could screw up the count is if the test ray is collinear with an edge
-        // How should we deal with that?
-        var check0 = i0.Count % 2 == 1;
-        var check1 = i1.Count % 2 == 1;
+        var positions = Bvh.Intersections(r0);
 
-        if (check0 != check1)
-        {
-            throw new ArgumentException($"Inconsistent results on a ContainsPoint call");
-        }
-
-        return check0;
+        return EnclosesPoint.Check(r0, positions);
     }
 
     public LoopRelation RelationTo(PointLoop other)
@@ -424,9 +391,7 @@ public class PointLoop : Loop<Point2D>
         if (Intersections(other).Any()) return LoopRelation.Intersecting;
 
         // Is the other loop inside this loop?
-        var ray = new Ray2(Head, Vector2D.XAxis);
-        var intersections = other.Intersections(ray);
-        if (intersections.Count % 2 == 1) return LoopRelation.Inside;
+        if (other.ContainsPoint(Head)) return LoopRelation.Inside;
 
         return LoopRelation.Outside;
     }

@@ -10,7 +10,7 @@ namespace LaserCut.Tests.Algorithms;
 /// These tests exercise some of the logic in the ContainsPoint class, including some of the stranger edge cases which
 /// involve the test ray passing through vertices or corners of the geometry.
 /// </summary>
-public class ContainsPointTests
+public class EnclosesPointTests
 {
     [Fact]
     public void SimpleContainsPoint()
@@ -21,7 +21,7 @@ public class ContainsPointTests
         var positions = geom.Intersections(ray);
         Assert.Single(positions);
         
-        Assert.True(ContainsPoint.Check(ray, positions));
+        Assert.True(EnclosesPoint.Check(ray, positions));
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class ContainsPointTests
         var ray = new Ray2(new Point2D(-1, 3), Vector2D.XAxis);
 
         var positions = geom.Intersections(ray);
-        Assert.False(ContainsPoint.Check(ray, positions));
+        Assert.False(EnclosesPoint.Check(ray, positions));
     }
     
     [Fact]
@@ -41,7 +41,7 @@ public class ContainsPointTests
         var ray = new Ray2(new Point2D(-2, 0.5), Vector2D.XAxis);
 
         var positions = geom.Intersections(ray);
-        Assert.False(ContainsPoint.Check(ray, positions));
+        Assert.False(EnclosesPoint.Check(ray, positions));
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class ContainsPointTests
 
         var positions = geom.Intersections(ray);
         Assert.Equal(2, positions.Length);
-        Assert.False(ContainsPoint.Check(ray, positions));
+        Assert.False(EnclosesPoint.Check(ray, positions));
     }
     
     [Fact]
@@ -63,7 +63,7 @@ public class ContainsPointTests
 
         var positions = geom.Intersections(ray);
         Assert.Equal(2, positions.Length);
-        Assert.True(ContainsPoint.Check(ray, positions));
+        Assert.True(EnclosesPoint.Check(ray, positions));
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class ContainsPointTests
 
         var positions = geom.Intersections(ray);
         Assert.Equal(2, positions.Length);
-        Assert.True(ContainsPoint.Check(ray, positions));
+        Assert.True(EnclosesPoint.Check(ray, positions));
     }
     
     [Fact]
@@ -85,7 +85,7 @@ public class ContainsPointTests
 
         var positions = geom.Intersections(ray);
         Assert.Equal(4, positions.Length);
-        Assert.False(ContainsPoint.Check(ray, positions));
+        Assert.False(EnclosesPoint.Check(ray, positions));
     }
 
     private class SimpleGeometry

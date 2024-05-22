@@ -13,7 +13,7 @@ namespace LaserCut.Algorithms;
 /// multiple intersections some of which are unique and some of which are not. This is handled by the logic here
 /// in this class.
 /// </summary>
-public static class ContainsPoint
+public static class EnclosesPoint
 {
     public static bool Check(Ray2 ray, Position[] positions)
     {

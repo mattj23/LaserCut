@@ -4,7 +4,7 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry.Primitives;
 
-public class Segment : Line2, IBvhIntersect, IContourElement
+public class Segment : Line2, IBvhIntersect, IContourElement, IBvhTest
 {
     public Segment(Point2D start, Point2D end, int index) : base(start, (end - start).Normalize())
     {
@@ -32,7 +32,22 @@ public class Segment : Line2, IBvhIntersect, IContourElement
     {
         return Bounds.Intersects(box);
     }
-    
+
+    public Position[] Intersections(IContourElement element)
+    {
+        var results = new List<Position>();
+        foreach (var position in element.Intersections(this))
+        {
+            var t = ProjectionParam(position.Surface.Point);
+            if (t >= 0 && t <= Length)
+            {
+                results.Add(position);
+            }
+        }
+
+        return results.ToArray();
+    }
+
     public SegIntersection? Intersects(Segment segment)
     {
         if (IsCollinear(segment))

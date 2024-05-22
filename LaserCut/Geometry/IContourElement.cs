@@ -6,6 +6,8 @@ namespace LaserCut.Geometry;
 
 public interface IContourElement
 {
+    int Index { get; }
+    
     Point2D Start { get; }
     Point2D End { get; }
     

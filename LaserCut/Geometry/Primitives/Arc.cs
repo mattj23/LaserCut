@@ -6,8 +6,9 @@ namespace LaserCut.Geometry.Primitives;
 
 public class Arc : IContourElement
 {
-    public Arc(Circle2 circle, double theta0, double theta)
+    public Arc(Circle2 circle, double theta0, double theta, int index = 0)
     {
+        Index = index;
         Circle = circle;
         Theta = Angles.AsOneRotSigned(theta);
         Theta0 = Angles.AsSignedAbs(theta0);
@@ -15,21 +16,21 @@ public class Arc : IContourElement
         Start = Circle.PointAt(Theta0);
         End = Circle.PointAt(Theta0 + Theta);
         Length = Math.Abs(Theta) * Circle.Radius;
-        
+
         UpdateBounds();
     }
 
-    public Arc(Point2D center, double radius, double theta0, double theta) 
-        : this(new Circle2(center, radius), theta0, theta)
-    {
-    }
-    
-    public Arc(double cx, double cy, double radius, double theta0, double theta) 
-        : this(new Point2D(cx, cy), radius, theta0, theta)
+    public Arc(Point2D center, double radius, double theta0, double theta, int index = 0)
+        : this(new Circle2(center, radius), theta0, theta, index)
     {
     }
 
-    public static Arc FromEnds(Point2D start, Point2D end, Point2D center, bool clockwise)
+    public Arc(double cx, double cy, double radius, double theta0, double theta, int index = 0)
+        : this(new Point2D(cx, cy), radius, theta0, theta, index)
+    {
+    }
+
+    public static Arc FromEnds(Point2D start, Point2D end, Point2D center, bool clockwise, int index = 0)
     {
         if (Math.Abs(start.DistanceTo(center) - end.DistanceTo(center)) > GeometryConstants.DistEquals)
             throw new ArgumentException("Start and end points must be equidistant from the center");
@@ -40,8 +41,10 @@ public class Arc : IContourElement
         var v0 = start - center;
         var v1 = end - center;
         var t = clockwise ? -v0.AngleToCw(v1) : v0.AngleToCcw(v1);
-        return new Arc(c, t0, t);
+        return new Arc(c, t0, t, index);
     }
+    
+    public int Index {get;}
 
     public Point2D Start { get; }
 

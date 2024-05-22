@@ -38,7 +38,7 @@ public static class ShapeOperation
     {
         // This will return a list of intersection pairs between the two loops. For each intersection, segment 0 will
         // refer to the segment in loop0, and segment 1 will refer to the segment in loop1
-        var intersections = loop0.Intersections(loop1);
+        var intersections = loop0.Intersections(loop1).ToList();
         
         // If we managed to find a merge, we will return it
         if (MergeOne(loop0, loop1, intersections) is { } merged)
@@ -90,7 +90,7 @@ public static class ShapeOperation
         
         // This will return a list of intersection pairs between the two loops. For each intersection, segment 0 will
         // refer to the segment in `shape`, and segment 1 will refer to the segment in `tool`
-        var intersections = shape.Intersections(tool);
+        var intersections = shape.Intersections(tool).ToList();
 
         // If there are no intersections, we will determine if the shapes are disjoint or if one is inside the other
         if (intersections.Count == 0)
@@ -130,7 +130,7 @@ public static class ShapeOperation
         return (ResultType.Merged, results.ToArray());
     }
     
-    private static PointLoop? MergeOne(PointLoop loop0, PointLoop loop1, List<SegPairIntersection> intersections)
+    private static PointLoop? MergeOne(PointLoop loop0, PointLoop loop1, List<ElementIntersection> intersections)
     {
         var initialIntersections = intersections.Count;
         if (initialIntersections == 0) return null;
@@ -143,11 +143,11 @@ public static class ShapeOperation
         // We will create a new point loop and begin from the start intersection
         var working = new PointLoop();
         var workingCursor = working.GetCursor();
-        workingCursor.InsertAbs(start.Point);
+        workingCursor.InsertAbs(start.First.Surface.Point);
 
         // Now we will work our way through the loop.
-        var lastT = start.T0;
-        var readCursor = loop0.GetCursor(start.Segment0.Index);
+        var lastT = start.First.LengthAlong;
+        var readCursor = loop0.GetCursor(start.First.Element.Index);
         bool isLoop0 = true;
 
         while (intersections.Count != 0)
@@ -159,7 +159,7 @@ public static class ShapeOperation
                 // intersections were being returned
                 // if (next.Equals(start)) 
                 
-                if (next.Point.DistanceTo(start.Point) < GeometryConstants.DistEquals)
+                if (next.Point.DistanceTo(start.First.Surface.Point) < GeometryConstants.DistEquals)
                 {
                     // We have reached the end of the loop
                     break;
@@ -170,8 +170,8 @@ public static class ShapeOperation
                 
                 // Now we will switch to the other loop
                 isLoop0 = !isLoop0;
-                lastT = isLoop0 ? next.T0 : next.T1;
-                readCursor = isLoop0 ? loop0.GetCursor(next.Segment0.Index) : loop1.GetCursor(next.Segment1.Index);
+                lastT = isLoop0 ? next.First.LengthAlong : next.Second.LengthAlong;
+                readCursor = isLoop0 ? loop0.GetCursor(next.First.Element.Index) : loop1.GetCursor(next.Second.Element.Index);
             }
             // Otherwise, we will advance to the start of the next segment and insert it into the loop
             else
@@ -193,32 +193,32 @@ public static class ShapeOperation
         return working;
     }
 
-    private static SegPairIntersection FindStart(PointLoop loop0, PointLoop loop1,
-        List<SegPairIntersection> intersections)
+    private static ElementIntersection FindStart(PointLoop loop0, PointLoop loop1,
+        List<ElementIntersection> intersections)
     {
         if (loop0.Area > 0 && loop1.Area > 0)
-            return intersections.FirstOrDefault(i => i.Seg0ExitsSeg1);
+            return intersections.FirstOrDefault(i => i.FirstExitsSecond);
         
         if (loop0.Area < 0 && loop1.Area < 0)
-            return intersections.FirstOrDefault(i => i.Seg0EntersSeg1);
+            return intersections.FirstOrDefault(i => i.FirstEntersSecond);
         
         if (loop0.Area < 0 && loop1.Area > 0)
-            return intersections.FirstOrDefault(i => i.Seg0ExitsSeg1);
+            return intersections.FirstOrDefault(i => i.FirstExitsSecond);
         
-        return intersections.FirstOrDefault(i => i.Seg0EntersSeg1);
+        return intersections.FirstOrDefault(i => i.FirstEntersSecond);
     }
 
-    private static SegPairIntersection? PopNext(List<SegPairIntersection> intersections, double lastT, bool isLoop0, int currentId)
+    private static ElementIntersection? PopNext(List<ElementIntersection> intersections, double lastT, bool isLoop0, int currentId)
     {
         var more = isLoop0
-            ? intersections.Where(i => i.Segment0.Index == currentId && i.T0 > lastT).ToList()
-            : intersections.Where(i => i.Segment1.Index == currentId && i.T1 > lastT).ToList();
+            ? intersections.Where(i => i.First.Element.Index == currentId && i.First.LengthAlong > lastT).ToList()
+            : intersections.Where(i => i.Second.Element.Index == currentId && i.Second.LengthAlong > lastT).ToList();
         
         if (more.Count == 0) return null;
 
         var next = isLoop0
-            ? more.MinBy(i => i.T0)
-            : more.MinBy(i => i.T1);
+            ? more.MinBy(i => i.First.LengthAlong)
+            : more.MinBy(i => i.Second.LengthAlong);
 
         intersections.Remove(next);
         return next;
