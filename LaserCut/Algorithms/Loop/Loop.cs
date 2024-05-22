@@ -54,6 +54,8 @@ public class Loop<T>
     /// </summary>
     public int Count => Nodes.Count;
     
+    public bool IsEmpty => Count == 0;
+    
     public T Head => Nodes[_headId].Item;
     
     public T Tail => Nodes[GetTailId()].Item;
@@ -82,7 +84,7 @@ public class Loop<T>
     }
     
     /// <summary>
-    /// Returns an enumerable of all items in the loop.  If a startId is provided, the enumeration will start at that
+    /// Returns an enumerable with all items in the loop.  If a startId is provided, the enumeration will start at that
     /// item, otherwise it will start at the head of the loop.
     /// </summary>
     /// <param name="startId"></param>
@@ -93,7 +95,7 @@ public class Loop<T>
     }
     
     /// <summary>
-    /// Returns an enumerable of all edges (pairs of consecutive items) in the loop.  If a startId is provided, the
+    /// Returns an enumerable with all edges (pairs of consecutive items) in the loop.  If a startId is provided, the
     /// enumeration will start at that item, otherwise it will start at the head of the loop.
     /// </summary>
     /// <param name="startId"></param>
@@ -440,6 +442,8 @@ public class Loop<T>
                 _nodeId = id;
             }
             
+            OnItemAdded(item, id);
+            
             return id;
         }
         
@@ -450,6 +454,8 @@ public class Loop<T>
             {
                 _nodeId = id;
             }
+            
+            OnItemAdded(item, id);
 
             return id;
         }
@@ -538,6 +544,8 @@ public class Loop<T>
                 _nodeId = Loop.GetTailId();
             }
         }
+        
+        protected virtual void OnItemAdded(T item, int id) {}
         
         // what happens if we remove the node at the cursor position?
     }

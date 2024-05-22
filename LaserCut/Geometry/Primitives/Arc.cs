@@ -23,6 +23,11 @@ public class Arc : IContourElement
         : this(new Circle2(center, radius), theta0, theta)
     {
     }
+    
+    public Arc(double cx, double cy, double radius, double theta, double theta0) 
+        : this(new Point2D(cx, cy), radius, theta, theta0)
+    {
+    }
 
     public static Arc FromEnds(Point2D start, Point2D end, Point2D center, bool clockwise)
     {

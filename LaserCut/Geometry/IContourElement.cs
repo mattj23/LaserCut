@@ -30,4 +30,30 @@ public interface IContourElement
     /// element.</param>
     /// <returns></returns>
     ElementIntersection[] MatchIntersections(IEnumerable<Position> positions);
+
+    /// <summary>
+    /// Determines if this element is followed by the given element, such that the end of this element is within the
+    /// given tolerance of the start of the other element.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <param name="tol">The max allowable between the end of this element and the start of the next. If no value
+    /// is specified, the `GeometryConstants.DistEquals` is used.</param>
+    /// <returns></returns>
+    bool FollowedBy(IContourElement other, double? tol = null)
+    {
+        return End.DistanceTo(other.Start) <= (tol ?? GeometryConstants.DistEquals);
+    }
+    
+    /// <summary>
+    /// Determines if this element is preceded by the given element, such that the start of this element is within the
+    /// given tolerance of the end of the other element.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <param name="tol">The max allowable between the start of this element and the end of the next. If no value
+    /// is specified, the `GeometryConstants.DistEquals` is used.</param>
+    /// <returns></returns>
+    bool PrecededBy(IContourElement other, double? tol = null)
+    {
+        return Start.DistanceTo(other.End) <= (tol ?? GeometryConstants.DistEquals);
+    }
 }
