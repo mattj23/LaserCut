@@ -51,6 +51,13 @@ public class Bvh
     public bool IsLeaf => Left == null && Right == null;
     
     
+    /// <summary>
+    /// Find all intersections between items in this subtree and the specified entity, using the BVH structure to
+    /// accelerate the search.
+    /// </summary>
+    /// <param name="entity">An entity capable of testing for intersections against both the Aabb2 bounds and
+    /// any `IContourElement` object.</param>
+    /// <returns>An array with all valid intersections.</returns>
     public Position[] Intersections(IBvhTest entity)
     {
         
@@ -73,6 +80,65 @@ public class Bvh
         if (Right is not null)
         {
             results.AddRange(Right.Intersections(entity));
+        }
+        
+        return results.ToArray();
+    }
+
+    /// <summary>
+    /// Find all intersections between items in this subtree and the other subtree, using the BVH structure to
+    /// accelerate the search.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public ElementIntersection[] Intersections(Bvh other)
+    {
+        var results = new List<ElementIntersection>();
+        
+        if (!other.Bounds.Intersects(Bounds)) return [];
+        
+        // Four possible cases:
+        // 1. Both nodes are leaves
+        // 2. This node is a leaf
+        // 3. Other node is a leaf
+        // 4. Both nodes are not leaves
+        
+        // Only leaf nodes can have intersections, so if both nodes are leaves, check all pairwise combinations, but
+        // if only one of the nodes is a leaf we continue to recurse down on the non-leaf side.  If both nodes are
+        // non-leaf, we recurse down both sides.
+
+        if (IsLeaf && other.IsLeaf)
+        {
+            foreach (var e0 in _elements)
+            {
+                foreach (var e1 in other._elements)
+                {
+                    var intersections = e0 switch
+                    {
+                        Arc arc => e1.Intersections(arc.Circle),
+                        Segment seg => e1.Intersections(seg),
+                        _ => throw new ArgumentOutOfRangeException(nameof(e0))
+                    };
+                    results.AddRange(e0.MatchIntersections(intersections));
+                }
+            }
+        }
+        else if (IsLeaf)
+        {
+            results.AddRange(Intersections(other.Left!));
+            results.AddRange(Intersections(other.Right!));
+        }
+        else if (other.IsLeaf)
+        {
+            results.AddRange(Left!.Intersections(other));
+            results.AddRange(Right!.Intersections(other));
+        }
+        else
+        {
+            results.AddRange(Left!.Intersections(other.Left!));
+            results.AddRange(Left.Intersections(other.Right!));
+            results.AddRange(Right!.Intersections(other.Left!));
+            results.AddRange(Right.Intersections(other.Right!));
         }
         
         return results.ToArray();
