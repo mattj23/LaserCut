@@ -26,12 +26,12 @@ public class BvhTests
                 r.NonIntersectingSegment(seg, 6),
             };
             
-            var bvh = new BvhNode(segments);
+            var bvh = new Bvh(segments);
             var results = bvh.Intersections(seg);
             
             Assert.Single(results);
-            Assert.Equal(seg1, results[0].Segment);
-            Assert.Equal(t1, results[0].T, 1e-10);
+            Assert.Equal(seg1, results[0].Element);
+            Assert.Equal(t1, results[0].LengthAlong, 1e-10);
         }
     }
     
@@ -58,7 +58,7 @@ public class BvhTests
             }
             
             // Test the BVH
-            var bvh = new BvhNode(segments1);
+            var bvh = new Bvh(segments1);
             var results = bvh.Intersections(test);
 
             var exp = expected
@@ -67,8 +67,8 @@ public class BvhTests
                 .ToArray();
             
             var tst = results
-                .OrderBy(x => x.Segment.Index)
-                .Select(x => (x.Segment.Index, x.T))
+                .OrderBy(x => x.Element.Index)
+                .Select(x => (x.Element.Index, x.LengthAlong))
                 .ToArray();
             
             Assert.Equal(exp, tst);
@@ -102,20 +102,21 @@ public class BvhTests
             }
             
             // Test the BVH
-            var bvh0 = new BvhNode(segments0);
-            var bvh1 = new BvhNode(segments1);
+            var bvh0 = new Bvh(segments0);
+            var bvh1 = new Bvh(segments1);
             var results = bvh0.Intersections(bvh1);
 
             var exp = expected
                 .OrderBy(x => x.Segment0.Index)
                 .ThenBy(x => x.Segment1.Index)
-                .Select(x => (x.Segment0.Index, x.Segment1.Index, x.T0, x.T1))
+                .Select(x => (x.Segment0.Index, x.Segment1.Index, Math.Round(x.T0, 6), Math.Round(x.T1, 6)))
                 .ToArray();
             
             var tst = results
-                .OrderBy(x => x.Segment0.Index)
-                .ThenBy(x => x.Segment1.Index)
-                .Select(x => (x.Segment0.Index, x.Segment1.Index, x.T0, x.T1))
+                .OrderBy(x => x.First.Element.Index)
+                .ThenBy(x => x.Second.Element.Index)
+                .Select(x => (x.First.Element.Index, x.Second.Element.Index, 
+                    Math.Round(x.First.LengthAlong, 6), Math.Round(x.Second.LengthAlong, 6)))
                 .ToArray();
             
             Assert.Equal(exp, tst);
