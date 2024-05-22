@@ -53,7 +53,7 @@ public class ArcTests
         {
             var t0 = r.Double(-Math.PI, Math.PI);
             var t = r.Double(-2.0 * Math.PI, 2.0 * Math.PI);
-            var a = new Arc(new Point2D(0, 0), 1, t, t0);
+            var a = new Arc(new Point2D(0, 0), 1, t0, t);
             var step = t / (n - 1);
             
             // Check the angles which should be on the arc
@@ -90,7 +90,7 @@ public class ArcTests
             var t0 = r.Double(-Math.PI, Math.PI);
             var t = r.Double(-2.0 * Math.PI, 2.0 * Math.PI);
             var c = r.Point(10);
-            var a = new Arc(c, r.Double(0.1, 5.0), t, t0);
+            var a = new Arc(c, r.Double(0.1, 5.0), t0, t);
 
             var n = (int)Math.Ceiling(a.Length / 0.01);
             n = int.Max(100, n);
@@ -118,7 +118,7 @@ public class ArcTests
             var t0 = r.Double(-Math.PI, Math.PI);
             var t = r.Double(-2.0 * Math.PI, 2.0 * Math.PI);
             var c = r.Point(10);
-            var a = new Arc(c, r.Double(0.1, 5.0), t, t0);
+            var a = new Arc(c, r.Double(0.1, 5.0), t0, t);
 
             for (int k = 0; k < 1000; k++)
             {

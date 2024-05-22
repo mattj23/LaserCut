@@ -19,13 +19,13 @@ public class Arc : IContourElement
         UpdateBounds();
     }
 
-    public Arc(Point2D center, double radius, double theta, double theta0) 
+    public Arc(Point2D center, double radius, double theta0, double theta) 
         : this(new Circle2(center, radius), theta0, theta)
     {
     }
     
-    public Arc(double cx, double cy, double radius, double theta, double theta0) 
-        : this(new Point2D(cx, cy), radius, theta, theta0)
+    public Arc(double cx, double cy, double radius, double theta0, double theta) 
+        : this(new Point2D(cx, cy), radius, theta0, theta)
     {
     }
 

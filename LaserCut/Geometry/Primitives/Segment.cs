@@ -113,7 +113,7 @@ public class Segment : Line2, IBvhIntersect, IContourElement
             return [];
         }
 
-        return [new Position(t1, this)];
+        return [new Position(t0, this)];
     }
 
     /// <summary>

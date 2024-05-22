@@ -18,7 +18,7 @@ public class ContourTests
         // Creates a single element which is a full circle arc starting at 0
         var contour = new Contour();
         var cursor = contour.GetCursor();
-        cursor.InsertAfter(new Arc(0, 0, 1, 2 * Math.PI, 0));
+        cursor.InsertAfter(new Arc(0, 0, 1, 0, 2 * Math.PI));
         
         Assert.Equal(1, contour.Count);
         Assert.True(contour.IsClosed);
@@ -30,7 +30,7 @@ public class ContourTests
         // Creates a single element which is a half circle arc starting at 0
         var contour = new Contour();
         var cursor = contour.GetCursor();
-        cursor.InsertAfter(new Arc(0, 0, 1, Math.PI, 0));
+        cursor.InsertAfter(new Arc(0, 0, 1, 0, Math.PI));
         
         Assert.Equal(1, contour.Count);
         Assert.False(contour.IsClosed);
