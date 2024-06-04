@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text;
 using LaserCut.Algorithms;
 using LaserCut.Geometry;
 using MathNet.Spatial.Euclidean;
@@ -78,7 +79,7 @@ public class Mesh3
         var toRemove = new List<int>();
         for (var i = 0; i < _faces.Count; i++)
         {
-            if (FaceArea(_faces[i]) < 1e-6)
+            if (Math.Abs(FaceArea(_faces[i])) < 1e-6)
             {
                 toRemove.Add(i);
             }
@@ -179,7 +180,7 @@ public class Mesh3
     /// <returns></returns>
     public Point3D[][] ExtractEdgeChains()
     {
-        var edges = new List<Edge>();
+        var edges = new HashSet<Edge>();
         foreach (var face in _faces)
         {
             edges.Add(face.EdgeA);
@@ -283,26 +284,43 @@ public class Mesh3
         return patches;
     }
 
-    public Body[] ExtractSilhouetteBodies(CoordinateSystem view)
+    public Body[] BackSilhouette(CoordinateSystem view)
     {
-        var workingMesh = FromFacesWhere((_, n) => n.DotProduct(view.ZAxis) > 0);
-        workingMesh.Transform(view);
-        
-        // TODO: Separate into patch bodies first
-        
-        // Flatten everything to the XY plane
-        workingMesh.MutateVertices(p => new Point3D(p.X, p.Y, 0));
+        var temp = Clone();
+        temp.Transform(view);
+        var workingMesh = temp.FromFacesWhere((_, n) => n.Z < -1e-6);
         workingMesh.MergeVertices();
-        
-        var chains = workingMesh
-            .ExtractEdgeChains()
-            .Select(c => new PointLoop(c.ToPoint2Ds(true).SkipLast(1)))
+        workingMesh.MutateVertices(p => new Point3D(p.X, p.Y, 0));
+
+        var initial = workingMesh.ExtractEdgeChains()
+            .Select(c => new PointLoop(c.ToPoint2Ds(true).SkipLast(1)).Reversed())
             .ToArray();
+
+        var chains = new List<PointLoop>();
         
+        foreach (var chain in initial)
+        {
+            var resolved = chain.SelfIntersectingLoops();
+            if (resolved.Length == 1)
+            {
+                chains.Add(resolved.First());
+            }
+            else
+            {
+                // Debug.WriteLine($"Chain with {chain.Area} area and {chain.Count} vertices");
+                // foreach (var loop in resolved)
+                // {
+                //     Debug.WriteLine($" * Loop with {loop.Area} area and {loop.Count} vertices");
+                // }
+                //
+                chains.Add(resolved.MaxBy(l => Math.Abs(l.Area))!);
+            }
+        }
+
         // Separate inside and outside chains
         var insideChains = chains.Where(c => c.Area < 0).ToList();
         var outsideChains = chains.Where(c => c.Area > 0).ToList();
-
+        
         // if (outsideChains.Count > 1)
         // {
         //     throw new NotImplementedException("Doesn't yet handle multiple outside chains");
@@ -318,8 +336,200 @@ public class Mesh3
             
             results.Add(new Body(outside, insides));
         }
-
+        
         return results.ToArray();
+    }
+    
+    public Body[] ExtractSilhouetteBodies(CoordinateSystem view)
+    {
+        var temp = Clone();
+        temp.Transform(view);
+        var workingMesh = temp.FromFacesWhere((_, n) => n.Z > 1e-6);
+        workingMesh.MergeVertices();
+        workingMesh.MutateVertices(p => new Point3D(p.X, p.Y, 0));
+
+        var initial = workingMesh.ExtractEdgeChains()
+            .Select(c => new PointLoop(c.ToPoint2Ds(true).SkipLast(1)))
+            .ToArray();
+
+        var chains = new List<PointLoop>();
+        
+        foreach (var chain in initial)
+        {
+            var resolved = chain.SelfIntersectingLoops();
+            if (resolved.Length == 1)
+            {
+                chains.Add(resolved.First());
+            }
+            else
+            {
+                // Debug.WriteLine($"Chain with {chain.Area} area and {chain.Count} vertices");
+                // foreach (var loop in resolved)
+                // {
+                //     Debug.WriteLine($" * Loop with {loop.Area} area and {loop.Count} vertices");
+                // }
+                //
+                chains.Add(resolved.MaxBy(l => Math.Abs(l.Area))!);
+            }
+        }
+        // Separate inside and outside chains
+        var insideChains = chains.Where(c => c.Area < 0).ToList();
+        var outsideChains = chains.Where(c => c.Area > 0).ToList();
+        
+        // if (outsideChains.Count > 1)
+        // {
+        //     throw new NotImplementedException("Doesn't yet handle multiple outside chains");
+        // }
+        
+        var results = new List<Body>();
+        foreach (var outside in outsideChains)
+        {
+            // Find all inside chains which are contained within the outside chain
+            var insides = insideChains
+                .Where(inside => inside.RelationTo(outside) == LoopRelation.Inside)
+                .ToList();
+            
+            results.Add(new Body(outside, insides));
+        }
+        
+        return results.ToArray();
+        // // A silhouette is the set of edges that are visible from a particular viewpoint.  It can be defined as the
+        // // edges which are adjacent to two faces, one which is facing the viewer and one which is facing away. The
+        // // challenge to using this definition is when the mesh is not closed, and when there are faces that are facing
+        // // normal to the view direction.
+        // //
+        // // We'll ignore the first case for now, and handle the second by flattening and merging all vertices and then
+        // // removing faces that are left with zero area.
+        //
+        // var workingMesh = Clone();
+        // workingMesh.Transform(view);
+        // workingMesh.MergeVertices();
+        // workingMesh.MutateVertices(p => new Point3D(p.X, p.Y, 0));
+        // workingMesh.MergeCoincidentFaceVertices();
+        //
+        // workingMesh.WriteStl("D:/temp/flat.stl");
+        //
+        // // If this was a closed mesh, every edge will belong to exactly two faces.  We want to find the edges which
+        // // connect to one face that is facing the viewer and one that is facing away.  
+        // var edgeMap = new Dictionary<ulong, List<Face>>();
+        // var edgesByIndex = new Dictionary<ulong, Edge>();
+        // foreach (var face in workingMesh.Faces)
+        // {
+        //     foreach (var edge in face.Edges())
+        //     {
+        //         if (!edgeMap.ContainsKey(edge.Key))
+        //         {
+        //             edgeMap[edge.Key] = new List<Face>();
+        //             edgesByIndex[edge.Key] = edge;
+        //         }
+        //         
+        //         edgeMap[edge.Key].Add(face);
+        //     }
+        // }
+        //
+        // // Verify that every edge is connected to exactly two faces
+        // // foreach (var pair in edgeMap)
+        // // {
+        // //     if (pair.Value.Count != 2)
+        // //     {
+        // //         var p0 =(1.0 / 25.4) * workingMesh._vertices[(int)edgesByIndex[pair.Key].A].ToVector3D();
+        // //         var p1 = (1.0 / 25.4) * workingMesh._vertices[(int)edgesByIndex[pair.Key].B].ToVector3D();
+        // //         Debug.WriteLine($"Edge {pair.Key} connected to {pair.Value.Count} faces: {p0} -> {p1}");
+        // //         var areas = pair.Value.Select(f => workingMesh.FaceArea(f)).ToArray();
+        // //         var areaText = string.Join(", ", areas.Select(a => a.ToString("F3")));
+        // //         Debug.WriteLine($"Edge {pair.Key} connected to {pair.Value.Count} faces with areas {areaText}");
+        // //     }
+        // // }
+        //
+        // // Find the edges that are connected to one face that is facing the viewer and one that is facing away, and
+        // // use the front face to determine the first and second vertex of the edge, assembling a dictionary which 
+        // // maps any vertex on the border to the next vertex on the border.
+        // var nextVertexMap = new Dictionary<uint, uint>();
+        // foreach (var pair in edgeMap)
+        // {
+        //     bool hasFront = false;
+        //     bool hasBack = false;
+        //     var fwdEdge = Edge.Empty;
+        //     foreach (var face in pair.Value)
+        //     {
+        //         var normal = workingMesh._normals[workingMesh._faces.IndexOf(face)];
+        //         if (normal.Z > 0)
+        //         {
+        //             hasFront = true;
+        //             fwdEdge = face.Edges().First(e => e.Key == pair.Key);
+        //         }
+        //         else if (normal.Z < 0)
+        //         {
+        //             hasBack = true;
+        //         }
+        //     }
+        //     
+        //     if (hasFront && hasBack)
+        //     {
+        //         nextVertexMap[fwdEdge.A] = fwdEdge.B;
+        //     }
+        // }
+        //
+        // // Now we isolate the chains of vertices that make up the silhouette
+        // var pointChains = new List<Point3D[]>();
+        // while (nextVertexMap.Count > 0)
+        // {
+        //     var start = nextVertexMap.First().Key;
+        //     var chain = new List<Point3D> { _vertices[(int)start] };
+        //     var current = start;
+        //     while (nextVertexMap.ContainsKey(current))
+        //     {
+        //         var next = nextVertexMap[current];
+        //         var v = _vertices[(int)next];
+        //         if (v.DistanceTo(chain.Last()) > 1e-6)
+        //         {
+        //             chain.Add(v);
+        //         }
+        //         nextVertexMap.Remove(current);
+        //         current = next;
+        //     }
+        //     
+        //     pointChains.Add(chain.ToArray());
+        // }
+        //
+        // foreach (var c in pointChains)
+        // {
+        //     if (c.Length < 3)
+        //     {
+        //         Debug.WriteLine($"Chain with {c.Length} vertices");
+        //     }
+        //     
+        //     if (c.First().DistanceTo(c.Last()) > 1e-6)
+        //     {
+        //         Debug.WriteLine("Chain not closed");
+        //     }
+        // }
+        //
+        // var chains = pointChains
+        //     .Where(c => c.Length >= 3 && c.First().DistanceTo(c.Last()) < 1e-6)
+        //     .Select(c => new PointLoop(c.ToPoint2Ds(true).SkipLast(1))).ToArray();
+        //
+        // // Separate inside and outside chains
+        // var insideChains = chains.Where(c => c.Area < 0).ToList();
+        // var outsideChains = chains.Where(c => c.Area > 0).ToList();
+        //
+        // // if (outsideChains.Count > 1)
+        // // {
+        // //     throw new NotImplementedException("Doesn't yet handle multiple outside chains");
+        // // }
+        //
+        // var results = new List<Body>();
+        // foreach (var outside in outsideChains)
+        // {
+        //     // Find all inside chains which are contained within the outside chain
+        //     var insides = insideChains
+        //         .Where(inside => inside.RelationTo(outside) == LoopRelation.Inside)
+        //         .ToList();
+        //     
+        //     results.Add(new Body(outside, insides));
+        // }
+        //
+        // return results.ToArray();
     }
 
     public void Transform(CoordinateSystem cs)
@@ -334,6 +544,113 @@ public class Mesh3
             _normals[i] = cs.Transform(_normals[i]);
         }
     }
+
+    private uint UpdatedVertexIndex(uint original, uint toKeep, uint toRemove)
+    {
+        if (original == toRemove)
+        {
+            return toKeep;
+        }
+
+        if (original > toRemove)
+        {
+            return original - 1;
+        }
+
+        return original;
+    }
+
+    private void MergeSingleVertex(uint a, uint b)
+    {
+        // We will keep the lower vertex index. We need to update all faces that reference the higher index to
+        // now reference the lower index.  We will also need to shift all higher indices down by one.
+        var toKeep = Math.Min(a, b);
+        var toRemove = Math.Max(a, b);
+        
+        for (var i = 0; i < _faces.Count; i++)
+        {
+            _faces[i] = new Face(
+                UpdatedVertexIndex(_faces[i].A, toKeep, toRemove),
+                UpdatedVertexIndex(_faces[i].B, toKeep, toRemove),
+                UpdatedVertexIndex(_faces[i].C, toKeep, toRemove)
+            );
+        }
+        
+        _vertices.RemoveAt((int)toRemove);
+        StripFacesWithRepeatedVertices();
+    }
+    
+    public void StripFacesWithRepeatedVertices()
+    {
+        var toRemove = new List<int>();
+        for (var i = 0; i < _faces.Count; i++)
+        {
+            if (_faces[i].HasRepeatedVertex)
+            {
+                toRemove.Add(i);
+            }
+        }
+        
+        if (toRemove.Any())
+        {
+            toRemove.Sort();
+            toRemove.Reverse();
+            foreach (var i in toRemove)
+            {
+                _faces.RemoveAt(i);
+                _normals.RemoveAt(i);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Merge vertices on the same face that are within a certain tolerance distance of each other, removing
+    /// the face in the process.
+    /// </summary>
+    /// <param name="tolerance"></param>
+    public void MergeCoincidentFaceVertices(double tolerance = 1e-6)
+    {
+        StripFacesWithRepeatedVertices();
+        // This is going to be a brute force method.
+        var i = 0;
+        while (i < _faces.Count)
+        {
+            var face = _faces[i];
+            var a = _vertices[(int)face.A];
+            var b = _vertices[(int)face.B];
+            var c = _vertices[(int)face.C];
+            
+            if (a.DistanceTo(b) < tolerance)
+            {
+                _faces.RemoveAt(i);
+                _normals.RemoveAt(i);
+                MergeSingleVertex(face.A, face.B);
+                i = 0;
+                continue;
+            }
+            
+            if (b.DistanceTo(c) < tolerance)
+            {
+                _faces.RemoveAt(i);
+                _normals.RemoveAt(i);
+                MergeSingleVertex(face.B, face.C);
+                i = 0;
+                continue;
+            }
+            
+            if (c.DistanceTo(a) < tolerance)
+            {
+                _faces.RemoveAt(i);
+                _normals.RemoveAt(i);
+                MergeSingleVertex(face.C, face.A);
+                i = 0;
+                continue;
+            }
+            
+            i++;
+        }
+    }
+
 
     /// <summary>
     /// Merge vertices that are within a certain tolerance distance of each other.
@@ -375,6 +692,33 @@ public class Mesh3
         _vertices.AddRange(newVertices);
         _faces.Clear();
         _faces.AddRange(newFaces);
+    }
+
+    public void WriteStl(string path)
+    {
+        var text = new StringBuilder();
+        text.AppendLine("solid mesh");
+        
+        for (var i = 0; i < _faces.Count; i++)
+        {
+            var face = _faces[i];
+            var normal = _normals[i];
+            var a = _vertices[(int)face.A];
+            var b = _vertices[(int)face.B];
+            var c = _vertices[(int)face.C];
+            
+            text.AppendLine($"facet normal {normal.X} {normal.Y} {normal.Z}");
+            text.AppendLine("  outer loop");
+            text.AppendLine($"    vertex {a.X} {a.Y} {a.Z}");
+            text.AppendLine($"    vertex {b.X} {b.Y} {b.Z}");
+            text.AppendLine($"    vertex {c.X} {c.Y} {c.Z}");
+            text.AppendLine("  endloop");
+            text.AppendLine("endfacet");
+        }
+        
+        text.AppendLine("endsolid mesh");
+        
+        File.WriteAllText(path, text.ToString());
     }
 
     public static Mesh3 ReadStl(string path, bool mergeVertices = false)

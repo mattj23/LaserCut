@@ -16,4 +16,6 @@ public struct Face
     public Edge EdgeA => new Edge(A, B);
     public Edge EdgeB => new Edge(B, C);
     public Edge EdgeC => new Edge(C, A);
+    
+    public bool HasRepeatedVertex => A == B || B == C || C == A;
 }

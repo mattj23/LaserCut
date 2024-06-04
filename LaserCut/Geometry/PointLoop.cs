@@ -9,7 +9,7 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
 
-public class PointLoop : Loop<Point2D>
+public class PointLoop : Loop<Point2D>, IHasBounds
 {
     private List<Segment>? _segments;
     private BvhNode? _bvh;
@@ -485,6 +485,36 @@ public class PointLoop : Loop<Point2D>
         }
 
         return loop;
+    }
+    
+    public PointLoop[] SelfIntersectingLoops()
+    {
+        var finished = new List<PointLoop>();
+        var working = new List<PointLoop> { Copy()};
+
+        while (working.Any())
+        {
+            var loop = working.First();
+            working.RemoveAt(0);
+            
+            loop.RemoveAdjacentDuplicates();
+            loop.RemoveAdjacentCollinear();
+            
+            var intersections = loop.SelfIntersections();
+            if (!intersections.Any())
+            {
+                finished.Add(loop);
+            }
+            else
+            {
+                var i = intersections[0];
+                var (loop0, loop1) = loop.Split(i.Item1, i.Item2, i.Item3);
+                if (loop0.Count > 2) working.Add(loop0);
+                if (loop1.Count > 2) working.Add(loop1);
+            }
+        }
+        
+        return finished.ToArray();
     }
 
     // ==============================================================================================================
