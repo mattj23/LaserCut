@@ -2,9 +2,9 @@ using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
 using MathNet.Spatial.Euclidean;
 
-namespace LaserCut.Tests;
+namespace LaserCut.Tests.Contours;
 
-public class ContourTests
+public class BasicContourTests
 {
     [Fact]
     public void ContourStartsEmpty()
@@ -32,13 +32,7 @@ public class ContourTests
     [Fact]
     public void RectangleArea()
     {
-        var contour = new Contour();
-        var cursor = contour.GetCursor();
-        cursor.InsertAfter(new ContourLine(new Point2D(0, 0)));
-        cursor.InsertAfter(new ContourLine(new Point2D(2, 0)));
-        cursor.InsertAfter(new ContourLine(new Point2D(2, 1)));
-        cursor.InsertAfter(new ContourLine(new Point2D(0, 1)));
-        
+        var contour = Contour.Rectangle(0, 0, 2, 1);
         Assert.Equal(2.0, contour.Area, 1e-10);
     }
     
@@ -56,7 +50,47 @@ public class ContourTests
     }
 
     [Fact]
+    public void CircleArea()
+    {
+        var contour = Contour.Circle(0, 0, 1);
+        Assert.Equal(Math.PI, contour.Area, 1e-5);
+    }
+    
+    [Fact]
+    public void CircleAreaNegative()
+    {
+        var contour = Contour.Circle(0, 0, 1, true);
+        Assert.Equal(-Math.PI, contour.Area, 1e-5);
+    }
+    
+    [Fact]
+    public void ReversedCircleArea()
+    {
+        var contour = Contour.Circle(0, 0, 1);
+        var r = contour.Reversed();
+        Assert.Equal(-Math.PI, r.Area, 1e-5);
+    }
+
+    [Fact]
     public void PillArea()
+    {
+        var contour = PillContour();
+        Assert.Equal(Math.PI + 2, contour.Area, 1e-5);
+    }
+
+    [Fact]
+    public void ReversedPillArea()
+    {
+        var contour = PillContour();
+        var r = contour.Reversed();
+        Assert.Equal(-(Math.PI + 2), r.Area, 1e-5);
+    }
+
+    /// <summary>
+    /// Creates a contour that is a rectangle with a half circle on each end.
+    /// </summary>
+    /// <returns></returns>
+    private Contour PillContour()
     {
         var contour = new Contour();
         var cursor = contour.GetCursor();
@@ -64,9 +98,7 @@ public class ContourTests
         cursor.InsertAfter(new ContourArc(new Point2D(1, 0), new Point2D(1, 1), false));
         cursor.InsertAfter(new ContourLine(new Point2D(1, 2)));
         cursor.InsertAfter(new ContourArc(new Point2D(0, 2), new Point2D(0, 1), false));
-        
-        Assert.Equal(Math.PI + 2, contour.Area, 1e-5);
+        return contour;
     }
-
     
 }
