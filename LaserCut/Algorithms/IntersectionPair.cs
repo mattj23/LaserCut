@@ -1,3 +1,4 @@
+using LaserCut.Geometry;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Algorithms;
@@ -41,5 +42,19 @@ public readonly record struct IntersectionPair(Position First, Position Second)
     /// Shortcut for the dot product of the direction of the first surface and the normal of the second surface.
     /// </summary>
     private double FirstDirDotSecondNorm => First.Surface.Direction.DotProduct(Second.Surface.Normal);
-    
+
+    /// <summary>
+    /// Checks if the two intersection pairs are equivalent, meaning that the elements are the same and the point of
+    /// intersection is the same.  However, the first and second elements/positions may be swapped.  This is useful
+    /// for identifying redundant intersections.
+    /// </summary>
+    /// <param name="other">The other intersection pair to compare against</param>
+    /// <returns></returns>
+    public bool IsEquivalentTo(IntersectionPair other)
+    {
+        var elementsMatch = (First.Element == other.First.Element && Second.Element == other.Second.Element) ||
+                            (First.Element == other.Second.Element && Second.Element == other.First.Element);
+
+        return elementsMatch && Point.DistanceTo(other.Point) < GeometryConstants.DistEquals;
+    }
 }

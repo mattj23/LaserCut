@@ -252,8 +252,14 @@ public class Contour : Loop<ContourPoint>
         
         // Finally we will have to individualize the results, since theoretically each intersection should have 
         // appeared twice in our list.
+        // TODO: Optimize this, for now it's brute force
+        var uniqueResults = new List<IntersectionPair>();
+        foreach (var pair in results)
+        {
+            if (!uniqueResults.Any(p => p.IsEquivalentTo(pair))) uniqueResults.Add(pair);
+        }
         
-        return results.ToArray();
+        return uniqueResults.ToArray();
     }
     
     // ==============================================================================================================

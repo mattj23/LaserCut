@@ -24,6 +24,6 @@ public readonly record struct Position(double L, IContourElement Element)
 
     public override string ToString()
     {
-        return Empty ? "<Empty>" : $"<Position {Element} @ {L:F4}>";
+        return Empty ? "Empty" : $"{Element}@{L:F4}";
     }
 }

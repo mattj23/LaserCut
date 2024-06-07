@@ -6,6 +6,9 @@ namespace LaserCut.Geometry.Primitives;
 
 public class Segment : Line2, IContourElement
 {
+    public Segment(double x0, double y0, double x1, double y1, int index) 
+        : this(new Point2D(x0, y0), new Point2D(x1, y1), index) { }
+    
     public Segment(Point2D start, Point2D end, int index) : base(start, (end - start).Normalize())
     {
         if (start.DistanceTo(end) < GeometryConstants.DistEquals)
@@ -57,7 +60,7 @@ public class Segment : Line2, IContourElement
 
     public override string ToString()
     {
-        return $"<Segment {Index}>";
+        return $"[Segment {Index}]";
     }
 
     public SurfacePoint AtLength(double length)

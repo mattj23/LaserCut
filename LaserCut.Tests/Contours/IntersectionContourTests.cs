@@ -1,5 +1,6 @@
 ﻿using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
+using LaserCut.Tests.Helpers;
 
 namespace LaserCut.Tests.Contours;
 
@@ -70,22 +71,47 @@ public class IntersectionContourTests
     }
 
     [Fact]
-    public void HalfCircleIntersection()
+    public void HalfCircleSelfIntersection()
     {
         var c = new Contour();
         var cursor = c.GetCursor();
 
         var arc1 = cursor.ArcAbs(2, 0, 1, 0, false);
-        var seg1 = cursor.SegAbs(0, 0);
+        cursor.SegAbs(0, 0);
         var seg2 = cursor.SegAbs(0, 1);
 
         var i = c.SelfIntersections();
         Assert.Single(i);
+        var m = i.First();
+        var (ai, si) = m.First.Element.Index == arc1 ? (m.First, m.Second) : (m.Second, m.First);
+        
+        Assert.Equal(arc1, ai.Element.Index);
+        Assert.Equal(seg2, si.Element.Index);
+
+        Assert.Equal(0.4, m.Point.X, 1e-6);
+        Assert.Equal(0.8, m.Point.Y, 1e-6);
     }
 
     [Fact]
-    public void HalfCircleTwoIntersections()
+    public void HalfCircleTwoSelfIntersections()
     {
+        var c = new Contour();
+        var cursor = c.GetCursor();
+
+        var arc1 = cursor.ArcAbs(2, 0, 1, 0, false);
+        cursor.SegAbs(0, 0);
+        var seg2 = cursor.SegAbs(0, 0.5);
+        cursor.SegAbs(2, 0.5);
+
+        var i = c.SelfIntersections();
+        Assert.Equal(2, i.Length);
+        Assert.All(i, m => Assert.True(m.HasIndices(arc1, seg2)));
+
+        var points = i.Select(x => x.Point).OrderBy(x => x.X).ToArray();
+        Assert.Equal(0.133974, points[0].X, 1e-5);
+        Assert.Equal(0.5, points[0].Y, 1e-5);
         
+        Assert.Equal(1.866025, points[1].X, 1e-5);
+        Assert.Equal(0.5, points[1].Y, 1e-5);
     }
 }

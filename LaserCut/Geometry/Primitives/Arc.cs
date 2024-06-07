@@ -85,7 +85,7 @@ public class Arc : IContourElement
 
     public override string ToString()
     {
-        return $"<Arc {Index}>";
+        return $"[Arc {Index}]";
     }
 
     public void SetIndex(int index)
