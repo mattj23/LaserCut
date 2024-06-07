@@ -386,14 +386,14 @@ public class PointLoop : Loop<Point2D>
         return EnclosesPoint.Check(r0, positions);
     }
 
-    public LoopRelation RelationTo(PointLoop other)
+    public ContourRelation RelationTo(PointLoop other)
     {
-        if (Intersections(other).Any()) return LoopRelation.Intersecting;
+        if (Intersections(other).Any()) return ContourRelation.Intersects;
 
         // Is the other loop inside this loop?
-        if (other.ContainsPoint(Head)) return LoopRelation.Inside;
+        if (other.ContainsPoint(Head)) return ContourRelation.EnclosedBy;
 
-        return LoopRelation.Outside;
+        return ContourRelation.DisjointTo;
     }
     
     // ==============================================================================================================

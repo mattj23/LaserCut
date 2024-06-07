@@ -313,7 +313,7 @@ public class Mesh3
         {
             // Find all inside chains which are contained within the outside chain
             var insides = insideChains
-                .Where(inside => inside.RelationTo(outside) == LoopRelation.Inside)
+                .Where(inside => inside.RelationTo(outside) == ContourRelation.EnclosedBy)
                 .ToList();
             
             results.Add(new Body(outside, insides));

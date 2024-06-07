@@ -111,7 +111,7 @@ public class PointLoopTests
         var loop0 = CreateRectangle(0, 0, 5, 5);
         var loop1 = CreateRectangle(1, 1, 3, 3);
         
-        Assert.Equal(LoopRelation.Outside, loop0.RelationTo(loop1));
+        Assert.Equal(ContourRelation.DisjointTo, loop0.RelationTo(loop1));
     }
     
     [Fact]
@@ -120,7 +120,7 @@ public class PointLoopTests
         var loop0 = CreateRectangle(0, 0, 5, 5);
         var loop1 = CreateRectangle(1, 1, 3, 3);
         
-        Assert.Equal(LoopRelation.Inside, loop1.RelationTo(loop0));
+        Assert.Equal(ContourRelation.EnclosedBy, loop1.RelationTo(loop0));
     }
     
     [Fact]
@@ -129,8 +129,8 @@ public class PointLoopTests
         var loop0 = CreateRectangle(0, 0, 5, 5);
         var loop1 = CreateRectangle(1, 1, 6, 6);
         
-        Assert.Equal(LoopRelation.Intersecting, loop0.RelationTo(loop1));
-        Assert.Equal(LoopRelation.Intersecting, loop1.RelationTo(loop0));
+        Assert.Equal(ContourRelation.Intersects, loop0.RelationTo(loop1));
+        Assert.Equal(ContourRelation.Intersects, loop1.RelationTo(loop0));
     }
 
     [Fact]

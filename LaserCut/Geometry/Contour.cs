@@ -103,6 +103,14 @@ public class Contour : Loop<ContourPoint>
     /// geometric elements.  If the contour is in an invalid state, an exception will be thrown.
     /// </summary>
     public double Area => _area = double.IsNaN(_area) ? CalculateArea() : _area;
+    
+    /// <summary>
+    /// Gets a flag indicating whether the area of the contour is positive.  A positive area implies that the contour
+    /// defines a region where a shape exists, while a negative area implies that it defines an area where a shape
+    /// does not exist (such as a hole).  This will trigger the construction of geometric elements, so if the contour is
+    /// in an invalid state, an exception will be thrown.
+    /// </summary>
+    public bool IsPositive => Area > 0;
 
     // ==============================================================================================================
     // Geometric operations
@@ -139,6 +147,73 @@ public class Contour : Loop<ContourPoint>
         elements.Reverse();
         return new Contour(elements);
     }
+    
+    // ==============================================================================================================
+    // Intersections and distance testing
+    // ==============================================================================================================
+
+    /// <summary>
+    /// Determines whether the contour encloses the specified point inside its boundary, ignoring the "direction" of
+    /// the boundary. This works by casting a ray from the point to the right and counting the number of times it
+    /// enters and exits the boundary. Points on the boundary are considered enclosed.
+    ///
+    /// To determine if a point is on the side of the boundary considered "inside" the contour, compare this result
+    /// against the `IsPositive` property.  If the point is inside the contour, the result will be true if the area is
+    /// positive, and false if the area is negative.
+    /// </summary>
+    /// <remarks>
+    /// This will trigger the construction of the geometric elements.  If the contour is in an invalid state, an
+    /// exception will be thrown.
+    /// </remarks>
+    /// <param name="p">The specific point to test.</param>
+    /// <returns></returns>
+    public bool Encloses(Point2D p)
+    {
+        var ray = new Ray2(p, Vector2D.XAxis);
+        var positions = Bvh.Intersections(ray);
+        return EnclosesPoint.Check(ray, positions);
+    }
+
+    /// <summary>
+    /// Calculates all intersections between this contour and another contour, returning the results as an array of
+    /// `IntersectionPairs`.  The `First` element of each pair will be the element from *this* contour, while the
+    /// `Second` will be from the *other* contour. 
+    /// </summary>
+    /// <param name="other">The contour to test for intersections with</param>
+    /// <returns>An array of intersection pairs where the first element is from *this* contour.</returns>
+    public IntersectionPair[] IntersectionPairs(Contour other)
+    {
+        return Bvh.Intersections(other.Bvh);
+    }
+    
+    /// <summary>
+    /// Determines the intersection/spatial relationship between this contour and another contour. The relationship
+    /// will be either that the contours are disjoint, one is enclosed by the other, one encloses the other, or they
+    /// intersect in some way.
+    ///
+    /// The resulting enum value can be interpreted as a verb describing the relation of *this contour* to the
+    /// *other contour*. For example, if the result is `EnclosedBy`, interpret it as "this contour is enclosed by the
+    /// other contour".  If the result is `Encloses`, interpret it as "this contour encloses the other contour".
+    ///
+    /// Note that enclosure does not imply anything about whether the contours exist on the positive or negative side
+    /// of the boundary.  To determine this, you must interpret the `IsPositive` property of each contour against the
+    /// specific relationship.
+    /// </summary>
+    /// <param name="other">The other contour to test the relationship to</param>
+    /// <returns>The relation of *this contour* to the *other contour*.</returns>
+    public ContourRelation RelationTo(Contour other)
+    {
+        if (IntersectionPairs(other).Any()) return ContourRelation.Intersects;
+
+        // Is the other loop enclosing this loop?
+        if (other.Encloses(Head.Point)) return ContourRelation.EnclosedBy;
+        
+        // Is this loop enclosing the other loop?
+        if (Encloses(other.Head.Point)) return ContourRelation.Encloses;
+
+        return ContourRelation.DisjointTo;
+    }
+    
     
     // ==============================================================================================================
     // Management methods
