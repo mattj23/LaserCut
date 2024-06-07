@@ -168,4 +168,104 @@ public class ArcTests
         Assert.Equal(1, i[0].Surface.Point.X, 1e-10);
         Assert.Equal(1, i[0].Surface.Point.Y, 1e-10);
     }
+
+    [Fact]
+    public void SplitAfterNull()
+    {
+        var arc = new Arc(1, 0, 1, 0, Math.PI, 0);
+        var after = arc.SplitAfter(Math.PI);
+        Assert.Null(after);
+    }
+    
+    [Fact]
+    public void SplitBeforeNull()
+    {
+        var arc = new Arc(1, 0, 1, 0, Math.PI, 0);
+        var before = arc.SplitBefore(0);
+        Assert.Null(before);
+    }
+
+    [Fact]
+    public void SplitBeforeCcw()
+    {
+        var arc = new Arc(1, 0, 1, 0, Math.PI, 0);
+        var before = arc.SplitBefore(Math.PI / 4);
+        
+        Assert.NotNull(before);
+        if (before is Arc b)
+        {
+            Assert.Equal(arc.IsCcW, b.IsCcW);
+            Assert.Equal(arc.Center, b.Center, PointCheck.Default);
+            Assert.Equal(arc.Radius, b.Radius, 1e-10);
+            Assert.Equal(arc.Start, b.Start, PointCheck.Default);
+            Assert.Equal(MakePoint.AtDirection(1, 0, 1, 1, 1), b.End, PointCheck.Default);
+        }
+        else
+        {
+            Assert.Fail("SplitBefore did not return an arc");
+        }
+    }
+    
+    [Fact]
+    public void SplitBeforeCw()
+    {
+        var arc = new Arc(1, 0, 1, 0, -Math.PI, 0);
+        var before = arc.SplitBefore(Math.PI / 4);
+        
+        Assert.NotNull(before);
+        if (before is Arc b)
+        {
+            Assert.Equal(arc.IsCcW, b.IsCcW);
+            Assert.Equal(arc.Center, b.Center, PointCheck.Default);
+            Assert.Equal(arc.Radius, b.Radius, 1e-10);
+            Assert.Equal(arc.Start, b.Start, PointCheck.Default);
+            Assert.Equal(MakePoint.AtDirection(1, 0, 1, -1, 1), b.End, PointCheck.Default);
+        }
+        else
+        {
+            Assert.Fail("SplitBefore did not return an arc");
+        }
+    }
+    
+    [Fact]
+    public void SplitAfterCcw()
+    {
+        var arc = new Arc(1, 0, 1, 0, Math.PI, 0);
+        var before = arc.SplitAfter(Math.PI / 4);
+        
+        Assert.NotNull(before);
+        if (before is Arc b)
+        {
+            Assert.Equal(arc.IsCcW, b.IsCcW);
+            Assert.Equal(arc.Center, b.Center, PointCheck.Default);
+            Assert.Equal(arc.Radius, b.Radius, 1e-10);
+            Assert.Equal(arc.End, b.End, PointCheck.Default);
+            Assert.Equal(MakePoint.AtDirection(1, 0, 1, 1, 1), b.Start, PointCheck.Default);
+        }
+        else
+        {
+            Assert.Fail("SplitBefore did not return an arc");
+        }
+    }
+    
+    [Fact]
+    public void SplitAfterCw()
+    {
+        var arc = new Arc(1, 0, 1, 0, -Math.PI, 0);
+        var before = arc.SplitAfter(Math.PI / 4);
+        
+        Assert.NotNull(before);
+        if (before is Arc b)
+        {
+            Assert.Equal(arc.IsCcW, b.IsCcW);
+            Assert.Equal(arc.Center, b.Center, PointCheck.Default);
+            Assert.Equal(arc.Radius, b.Radius, 1e-10);
+            Assert.Equal(arc.End, b.End, PointCheck.Default);
+            Assert.Equal(MakePoint.AtDirection(1, 0, 1, -1, 1), b.Start, PointCheck.Default);
+        }
+        else
+        {
+            Assert.Fail("SplitBefore did not return an arc");
+        }
+    }
 }

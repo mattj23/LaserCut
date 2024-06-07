@@ -82,4 +82,20 @@ public interface IContourElement : IBvhIntersect
     {
         return Start.DistanceTo(other.End) <= (tol ?? GeometryConstants.DistEquals);
     }
+    
+    /// <summary>
+    /// Returns a new element that consists of the portion of this element starting at the given length and continuing
+    /// to the end of this element.  The original element is unmodified.  If the length is within tolerance of the
+    /// endpoint of the element (or longer), a null value is returned.
+    /// </summary>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    IContourElement? SplitAfter(double length);
+    
+    /// <summary>
+    /// Returns a new element that consists of the portion of this element starting at the beginning and continuing
+    /// to the given length.  The original element is unmodified.  If the length is within tolerance of the start of the
+    /// element (or shorter), a null value is returned.
+    /// </summary>
+    IContourElement? SplitBefore(double length);
 }

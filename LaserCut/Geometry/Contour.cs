@@ -261,6 +261,28 @@ public class Contour : Loop<ContourPoint>
         
         return uniqueResults.ToArray();
     }
+
+    /// <summary>
+    /// Splits a contour at a self-intersection. The intersection pair must be a self-intersection of the contour, and
+    /// its elements must be elements in this contour, or undefined behavior may occur.
+    /// </summary>
+    /// <param name="split"></param>
+    /// <returns></returns>
+    [Pure]
+    public (Contour, Contour) SplitAtSelfIntersection(IntersectionPair split)
+    {
+        /* Splitting at self-intersection
+         * 
+         * At any self intersection, we will have two elements which intersect. We will trace out the two loops formed
+         * by the split by tracing our way along the contour from the intersection point for both the first and
+         * second element.  Each contour ends when it reaches the other element's equivalent intersection point.
+         */
+        
+        // We'll start by the `First` element
+        var c0 = new Contour();
+
+        throw new NotImplementedException();
+    }
     
     // ==============================================================================================================
     // Management methods

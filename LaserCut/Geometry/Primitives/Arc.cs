@@ -221,6 +221,28 @@ public class Arc : IContourElement
         return results.ToArray();
     }
 
+    public IContourElement? SplitAfter(double length)
+    {
+        if (length >= Length - GeometryConstants.DistEquals)
+        {
+            return null;
+        }
+
+        var start = AtLength(length).Point;
+        return FromEnds(start, End, Center, !IsCcW, -1);
+    }
+
+    public IContourElement? SplitBefore(double length)
+    {
+        if (length <= GeometryConstants.DistEquals)
+        {
+            return null;
+        }
+        
+        var end = AtLength(length).Point;
+        return FromEnds(Start, end, Center, !IsCcW, -1);
+    }
+
     private Position[] ValidPositionsFromPoints(IEnumerable<Point2D> points)
     {
         var results = new List<Position>();

@@ -137,7 +137,27 @@ public class Segment : Line2, IContourElement
 
         return results.ToArray();
     }
-    
+
+    public IContourElement? SplitAfter(double length)
+    {
+        if (length >= Length - GeometryConstants.DistEquals)
+        {
+            return null;
+        }
+
+        return new Segment(PointAt(length), End, -1);
+    }
+
+    public IContourElement? SplitBefore(double length)
+    {
+        if (length <= GeometryConstants.DistEquals)
+        {
+            return null;
+        }
+        
+        return new Segment(Start, PointAt(length), -1);
+    }
+
     private Aabb2 GetAabb()
     {
         var xMin = Math.Min(Start.X, End.X);
