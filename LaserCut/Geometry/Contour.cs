@@ -38,7 +38,7 @@ public record ContourArc(Point2D Point, Point2D Center, bool Clockwise) : Contou
 /// ending point, the arc will be considered a full circle.
 /// 
 /// </summary>
-public class Contour : Loop<ContourPoint>
+public class Contour : Loop<ContourPoint>, IHasBounds
 {
     private Bvh? _bvh = null;
     private List<IContourElement>? _elements = null;
@@ -97,6 +97,12 @@ public class Contour : Loop<ContourPoint>
     /// the construction of the geometric elements.  If the contour is in an invalid state, an exception will be thrown.
     /// </summary>
     public Bvh Bvh => _bvh ??= new Bvh(Elements);
+    
+    /// <summary>
+    /// Gets the bounding box of the contour.  This will trigger the construction of the geometric elements.  If the
+    /// contour is in an invalid state, an exception will be thrown.
+    /// </summary>
+    public Aabb2 Bounds => Bvh.Bounds;
     
     /// <summary>
     /// Gets the area of the contour found by the shoelace formula.  This will trigger the construction of the
@@ -168,12 +174,55 @@ public class Contour : Loop<ContourPoint>
          * elements.
          */
 
-        var newElements = new List<IContourElement>();
+        // First, create the new elements by offsetting each element in the contour
+        var newElements = Elements.ToDictionary(e => e.Index, e => e.OffsetBy(distance));
         
-        
-        
+        // Now we will need to find the new start point for each element.  We will look at each element and its 
+        // previous neighbor to determine what its new start point is.  We will take advantage of the fact that 
+        // arc element endpoints offset correctly, so we only need to compute the new start point for segments 
+        // preceded by another segment.
+        var newContour = new Contour();
+        var write = newContour.GetCursor();
 
-        throw new NotImplementedException();
+        foreach (var item in IterItems())
+        {
+            var element = newElements[item.Id];
+            var previous = newElements[Nodes[item.Id].PreviousId];
+
+            if (element is Arc arc)
+            {
+                write.InsertFromElement(arc);
+            }
+            else if (previous is Arc prevArc)
+            {
+                // This is a segment preceded by an arc, so we can use the arc's endpoint as the start point
+                write.SegAbs(prevArc.End.X, prevArc.End.Y);
+            }
+            else if (previous is Segment prevSeg && element is Segment seg)
+            {
+                // This is a segment preceded by a segment, so we will need to calculate the new start point. If the
+                // two segments are collinear, the midpoint between the previous end and the new start will be the new
+                // starting point. If they are not collinear, they will have a single intersection point which must be 
+                // the new start point.
+                if (prevSeg.IsCollinear(seg))
+                {
+                    write.SegAbs((prevSeg.End.X + seg.Start.X) / 2, (prevSeg.End.Y + seg.Start.Y) / 2);
+                }
+                else
+                {
+                    var (_, t1) = prevSeg.IntersectionParams(seg);
+                    var p = seg.PointAt(t1);
+                    write.SegAbs(p.X, p.Y);
+                }
+            }
+            else
+            {
+                // This case should not occur, so throw an error
+                throw new NotImplementedException();
+            }
+        }
+
+        return newContour;
     }
     
     // ==============================================================================================================
@@ -548,5 +597,5 @@ public class Contour : Loop<ContourPoint>
         cursor.SegRel(-w, 0);
         return contour;
     }
-    
+
 }
