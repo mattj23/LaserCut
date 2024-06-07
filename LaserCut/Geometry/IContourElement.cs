@@ -98,4 +98,14 @@ public interface IContourElement : IBvhIntersect
     /// element (or shorter), a null value is returned.
     /// </summary>
     IContourElement? SplitBefore(double length);
+
+    /// <summary>
+    /// Returns a new element that has the same properties as this element but has its surface offset in its normal
+    /// direction by the given distance.  For an arc, this will expand or contract it around its center.  For a segment,
+    /// this will shift it in space.  Be aware that an arc can change direction if it is offset towards its center by
+    /// a distance greater than its radius.
+    /// </summary>
+    /// <param name="distance">The distance to offset the element by</param>
+    /// <returns>A new element of the same type as this element</returns>
+    IContourElement OffsetBy(double distance);
 }

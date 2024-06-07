@@ -158,6 +158,12 @@ public class Segment : Line2, IContourElement
         return new Segment(Start, PointAt(length), -1);
     }
 
+    public IContourElement OffsetBy(double distance)
+    {
+        var offset = Normal * distance;
+        return new Segment(Start + offset, End + offset, -1);
+    }
+
     private Aabb2 GetAabb()
     {
         var xMin = Math.Min(Start.X, End.X);

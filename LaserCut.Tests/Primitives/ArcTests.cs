@@ -268,4 +268,128 @@ public class ArcTests
             Assert.Fail("SplitBefore did not return an arc");
         }
     }
+
+    [Fact]
+    public void OffsetPositiveCcw()
+    {
+        var arc = new Arc(1, 0, 1, 0, Math.PI);
+        var offset = arc.OffsetBy(0.5);
+        if (offset is Arc a)
+        {
+            Assert.Equal(new Point2D(2.5, 0), a.Start, PointCheck.Default);
+            Assert.Equal(new Point2D(-0.5, 0.0), a.End, PointCheck.Default);
+            Assert.Equal(arc.Radius + 0.5, a.Radius, 1e-10);
+            Assert.Equal(arc.Theta, a.Theta, 1e-10);
+            Assert.Equal(arc.Theta0, a.Theta0, 1e-10);
+            Assert.Equal(arc.IsCcW, a.IsCcW);
+            Assert.Equal(arc.Center, a.Center, PointCheck.Default);
+        }
+        else
+        {
+            Assert.Fail("OffsetBy did not return an arc");
+        }
+    }
+    
+    [Fact]
+    public void OffsetNegativeCcw()
+    {
+        var arc = new Arc(1, 0, 1, 0, Math.PI);
+        var offset = arc.OffsetBy(-0.5);
+        if (offset is Arc a)
+        {
+            Assert.Equal(new Point2D(1.5, 0), a.Start, PointCheck.Default);
+            Assert.Equal(new Point2D(0.5, 0.0), a.End, PointCheck.Default);
+            Assert.Equal(arc.Radius - 0.5, a.Radius, 1e-10);
+            Assert.Equal(arc.Theta, a.Theta, 1e-10);
+            Assert.Equal(arc.Theta0, a.Theta0, 1e-10);
+            Assert.Equal(arc.IsCcW, a.IsCcW);
+            Assert.Equal(arc.Center, a.Center, PointCheck.Default);
+        }
+        else
+        {
+            Assert.Fail("OffsetBy did not return an arc");
+        }
+    }
+    
+    [Fact]
+    public void OffsetNegativeCcwInvert()
+    {
+        var arc = new Arc(1, 0, 1, 0, Math.PI);
+        var offset = arc.OffsetBy(-2.0);
+        if (offset is Arc a)
+        {
+            Assert.Equal(new Point2D(0, 0), a.Start, PointCheck.Default);
+            Assert.Equal(new Point2D(2, 0), a.End, PointCheck.Default);
+            Assert.Equal(1, a.Radius, 1e-10);
+            Assert.Equal(arc.Theta, a.Theta, 1e-10);
+            Assert.Equal(arc.IsCcW, a.IsCcW);
+            Assert.Equal(arc.Center, a.Center, PointCheck.Default);
+        }
+        else
+        {
+            Assert.Fail("OffsetBy did not return an arc");
+        }
+    }
+    
+    [Fact]
+    public void OffsetPositiveCw()
+    {
+        var arc = new Arc(1, 0, 1, 0, -Math.PI);
+        var offset = arc.OffsetBy(0.5);
+        if (offset is Arc a)
+        {
+            Assert.Equal(new Point2D(1.5, 0), a.Start, PointCheck.Default);
+            Assert.Equal(new Point2D(0.5, 0.0), a.End, PointCheck.Default);
+            Assert.Equal(arc.Radius - 0.5, a.Radius, 1e-10);
+            Assert.Equal(arc.Theta, a.Theta, 1e-10);
+            Assert.Equal(arc.Theta0, a.Theta0, 1e-10);
+            Assert.Equal(arc.IsCcW, a.IsCcW);
+            Assert.Equal(arc.Center, a.Center, PointCheck.Default);
+        }
+        else
+        {
+            Assert.Fail("OffsetBy did not return an arc");
+        }
+    }
+    
+    [Fact]
+    public void OffsetNegativeCw()
+    {
+        var arc = new Arc(1, 0, 1, 0, -Math.PI);
+        var offset = arc.OffsetBy(-0.5);
+        if (offset is Arc a)
+        {
+            Assert.Equal(new Point2D(2.5, 0), a.Start, PointCheck.Default);
+            Assert.Equal(new Point2D(-0.5, 0.0), a.End, PointCheck.Default);
+            Assert.Equal(arc.Radius + 0.5, a.Radius, 1e-10);
+            Assert.Equal(arc.Theta, a.Theta, 1e-10);
+            Assert.Equal(arc.Theta0, a.Theta0, 1e-10);
+            Assert.Equal(arc.IsCcW, a.IsCcW);
+            Assert.Equal(arc.Center, a.Center, PointCheck.Default);
+        }
+        else
+        {
+            Assert.Fail("OffsetBy did not return an arc");
+        }
+    }
+    
+    [Fact]
+    public void OffsetPositiveCwInvert()
+    {
+        var arc = new Arc(1, 0, 1, 0, -Math.PI);
+        var offset = arc.OffsetBy(2.0);
+        if (offset is Arc a)
+        {
+            Assert.Equal(new Point2D(0, 0), a.Start, PointCheck.Default);
+            Assert.Equal(new Point2D(2, 0), a.End, PointCheck.Default);
+            Assert.Equal(1, a.Radius, 1e-10);
+            Assert.Equal(arc.Theta, a.Theta, 1e-10);
+            Assert.Equal(arc.IsCcW, a.IsCcW);
+            Assert.Equal(arc.Center, a.Center, PointCheck.Default);
+        }
+        else
+        {
+            Assert.Fail("OffsetBy did not return an arc");
+        }
+    }
 }

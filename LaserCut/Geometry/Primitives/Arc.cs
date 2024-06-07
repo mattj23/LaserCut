@@ -243,6 +243,19 @@ public class Arc : IContourElement
         return FromEnds(Start, end, Center, !IsCcW, -1);
     }
 
+    public IContourElement OffsetBy(double distance)
+    {
+        // If the arc is ccw, the offset is added to the radius, if it is cw, the offset is subtracted
+        var radiusChange = IsCcW ? distance : -distance;
+        var newRadius = Radius + radiusChange;
+        
+        // If the new radius is negative, the arc will be flipped. That consists of making the new radius positive
+        // and rotating the start angle of the arc by 180 degrees.  Everything else stays the same, allowing us to
+        // essentially only modify Theta0
+        var newTheta0 = newRadius < 0 ? Theta0 + Math.PI : Theta0;
+        return new Arc(Circle.Center, Math.Abs(newRadius), newTheta0, Theta, -1);
+    }
+
     private Position[] ValidPositionsFromPoints(IEnumerable<Point2D> points)
     {
         var results = new List<Position>();

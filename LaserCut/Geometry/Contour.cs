@@ -147,6 +147,34 @@ public class Contour : Loop<ContourPoint>
         elements.Reverse();
         return new Contour(elements);
     }
+
+    /// <summary>
+    /// Generate a new contour in which the boundaries are offset in their positive direction by a specified distance.
+    /// For instance, if the contour has positive area, a positive distance will increase its area and a negative
+    /// distance will decrease it. If the contour has a negative area, the opposite will be true. (In both cases this
+    /// assumes that the offset is small enough that the contour does not invert.)
+    ///
+    /// Offsetting a contour may result in a new contour with self intersection. If this is the case, using the
+    /// `NonSelfIntersectingLoops` method will return a set of non-self-intersecting loops which can be used to
+    /// determine which part(s) of the offset contour is the desired intention of the operation.
+    /// </summary>
+    /// <param name="distance">The distance to offset the surface by</param>
+    /// <returns>A new contour, which may have self-intersections</returns>
+    public Contour Offset(double distance)
+    {
+        /* Offsetting a contour is more complicated than offsetting a polyline, because the arc and segment boundaries
+         * behave different. Instead of moving the vertices directly, we will have to perform the geometric offset
+         * operation on each segment and arc and then determine the location of the new vertices between neighboring
+         * elements.
+         */
+
+        var newElements = new List<IContourElement>();
+        
+        
+        
+
+        throw new NotImplementedException();
+    }
     
     // ==============================================================================================================
     // Intersections and distance testing
