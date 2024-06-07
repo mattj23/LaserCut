@@ -89,5 +89,30 @@ public class Contour : Loop<ContourPoint>
         {
             base.OnItemAdded(item, id);
         }
+
+        public int SegAbs(double x, double y)
+        {
+            return InsertAfter(new ContourLine(new Point2D(x, y)));
+        }
+        
+        public int ArcAbs(double x, double y, double cx, double cy, bool cw)
+        {
+            return InsertAfter(new ContourArc(new Point2D(x, y), new Point2D(cx, cy), cw));
+        }
+        
+        public int SegRel(double x, double y)
+        {
+            var previous = Loop.Count == 0 ? new Point2D(0, 0) : Current.Point;
+            var pv = previous + new Vector2D(x, y);
+            return SegAbs(pv.X, pv.Y);
+        }
+        
+        public int ArcRel(double x, double y, double cx, double cy, bool cw)
+        {
+            var previous = Loop.Count == 0 ? new Point2D(0, 0) : Current.Point;
+            var pv = previous + new Vector2D(x, y);
+            var cv = previous + new Vector2D(cx, cy);
+            return ArcAbs(pv.X, pv.Y, cv.X, cv.Y, cw);
+        }
     }
 }
