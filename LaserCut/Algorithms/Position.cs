@@ -21,4 +21,9 @@ public readonly record struct Position(double L, IContourElement Element)
     /// `FirstOrDefault`).
     /// </summary>
     public bool Empty => Element == null;
+
+    public override string ToString()
+    {
+        return Empty ? "<Empty>" : $"<Position {Element} @ {L:F4}>";
+    }
 }

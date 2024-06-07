@@ -54,6 +54,9 @@ public class Bvh
     /// <summary>
     /// Find all intersections between items in this subtree and the specified entity, using the BVH structure to
     /// accelerate the search.
+    ///
+    /// The results will be an array of `Position` objects, which will reference the `IContourElement` object that
+    /// was found *in the BVH* to intersect with the given entity. 
     /// </summary>
     /// <param name="entity">An entity capable of testing for intersections against both the Aabb2 bounds and
     /// any `IContourElement` object.</param>

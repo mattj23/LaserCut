@@ -46,5 +46,46 @@ public class IntersectionContourTests
         
         Assert.Equal(ContourRelation.DisjointTo, c0.RelationTo(c1));
     }
-    
+
+    [Fact]
+    public void CircleNoSelfIntersection()
+    {
+        var c = Contour.Circle(10, 10, 1);
+        var i = c.SelfIntersections();
+        
+        Assert.Empty(i);
+    }
+
+    [Fact]
+    public void HalfCircleNoSelfIntersection()
+    {
+        var c = new Contour();
+        var cursor = c.GetCursor();
+
+        cursor.SegAbs(0, 0);
+        cursor.ArcAbs(2, 0, 1, 0, false);
+        
+        var i = c.SelfIntersections();
+        Assert.Empty(i);
+    }
+
+    [Fact]
+    public void HalfCircleIntersection()
+    {
+        var c = new Contour();
+        var cursor = c.GetCursor();
+
+        var arc1 = cursor.ArcAbs(2, 0, 1, 0, false);
+        var seg1 = cursor.SegAbs(0, 0);
+        var seg2 = cursor.SegAbs(0, 1);
+
+        var i = c.SelfIntersections();
+        Assert.Single(i);
+    }
+
+    [Fact]
+    public void HalfCircleTwoIntersections()
+    {
+        
+    }
 }

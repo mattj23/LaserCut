@@ -142,4 +142,16 @@ public class ArcTests
             }
         }
     }
+
+    [Fact]
+    public void DegenerateIntersection()
+    {
+        // This test is based off of an observed degenerate intersection case. When constructed this way, one of the 
+        // returned positions is the start of the arc, but at 2 * Math.PI, which is not a valid position on the arc.
+        var a = new Arc(1, 0, 1, 0, Math.PI);
+        var s = new Segment(new Point2D(0, 1), a.Start, 0);
+        var p = s.Intersections(a);
+        
+        Assert.All(p, x => Assert.True(x.L >= 0 && x.L <= a.Length));
+    }
 }

@@ -213,7 +213,48 @@ public class Contour : Loop<ContourPoint>
 
         return ContourRelation.DisjointTo;
     }
-    
+
+    /// <summary>
+    /// Calculate any self-intersections within the contour.  This will return an array of `IntersectionPair` objects,
+    /// but be aware that the `First` and `Second` elements of each pair will be from the same contour. The results of
+    /// this method cannot be interchanged with the results of `IntersectionPairs` with another contour.
+    /// </summary>
+    /// <returns>An array of self-intersection pairs, if there are any</returns>
+    public IntersectionPair[] SelfIntersections()
+    {
+        var results = new List<IntersectionPair>();
+        foreach (var e in Elements)
+        {
+            var index = e.Index;
+            var nextIndex = Nodes[index].NextId;
+            var prevIndex = Nodes[index].PreviousId;
+            
+            // We find all `Position` objects which represent intersections of element `e` against the other elements
+            // in the contour.  Keep in mind that the `Position` results will reference the other element, so to
+            // create the pairs we need to match the positions against `e`.
+            
+            // By definition, an element can't intersect itself.  However, an element will intersect its neigbors at 
+            // its endpoints, so we need to exclude intersections where endpoints are involved.
+            var intersections = new List<Position>();
+            foreach (var p in Bvh.Intersections(e))
+            {
+                if (p.Element.Index == index) continue;
+                
+                if (p.Element.Index == nextIndex && p.L < GeometryConstants.DistEquals) continue;
+                
+                if (p.Element.Index == prevIndex && p.L > p.Element.Length - GeometryConstants.DistEquals) continue;
+                
+                intersections.Add(p);
+            }
+            
+            results.AddRange(e.MatchIntersections(intersections));
+        }
+        
+        // Finally we will have to individualize the results, since theoretically each intersection should have 
+        // appeared twice in our list.
+        
+        return results.ToArray();
+    }
     
     // ==============================================================================================================
     // Management methods

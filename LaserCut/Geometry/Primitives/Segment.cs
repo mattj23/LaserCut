@@ -4,7 +4,7 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry.Primitives;
 
-public class Segment : Line2, IContourElement, IBvhIntersect
+public class Segment : Line2, IContourElement
 {
     public Segment(Point2D start, Point2D end, int index) : base(start, (end - start).Normalize())
     {
@@ -57,7 +57,7 @@ public class Segment : Line2, IContourElement, IBvhIntersect
 
     public override string ToString()
     {
-        return $"[Segment {Start.X:0.000}, {Start.Y:0.000} -> {End.X:0.000}, {End.Y:0.000} | {Index}]";
+        return $"<Segment {Index}>";
     }
 
     public SurfacePoint AtLength(double length)

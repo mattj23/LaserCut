@@ -124,4 +124,11 @@ public static class Angles
         }
         return 2.0 * Math.PI + t;
     }
+
+    public static double Shortest(double startAngle, double destAngle)
+    {
+        var cw = BetweenCw(startAngle, destAngle);
+        var ccw = BetweenCcw(startAngle, destAngle);
+        return Math.Abs(cw) < Math.Abs(ccw) ? cw : ccw;
+    }
 }

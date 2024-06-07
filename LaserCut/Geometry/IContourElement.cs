@@ -4,7 +4,7 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
 
-public interface IContourElement
+public interface IContourElement : IBvhIntersect
 {
     int Index { get; }
     

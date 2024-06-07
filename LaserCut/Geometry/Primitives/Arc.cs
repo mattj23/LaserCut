@@ -83,6 +83,11 @@ public class Arc : IContourElement
 
     public bool IsCcW => Theta >= 0;
 
+    public override string ToString()
+    {
+        return $"<Arc {Index}>";
+    }
+
     public void SetIndex(int index)
     {
         Index = index;
@@ -112,6 +117,15 @@ public class Arc : IContourElement
     public double ThetaToFraction(double theta)
     {
         theta = Angles.AsSignedAbs(theta);
+        
+        // To deal with cases where the theta is very close to Theta0 or theta1 and so may have been considered to be
+        // on the arc while actually in the numerical tolerance beyond, we will check for equality and snap here
+        var tol = GeometryConstants.AngleFromDist(Radius);
+        if (Math.Abs(Angles.Shortest(theta, Theta0)) < tol) return 0;
+        
+        var theta1 = Angles.AsSignedAbs(Theta0 + Theta);
+        if (Math.Abs(Angles.Shortest(theta, theta1)) < tol) return 1;
+        
         if (IsCcW)
         {
             return Angles.BetweenCcw(Theta0, theta) / Theta;
@@ -252,5 +266,25 @@ public class Arc : IContourElement
         }
 
         return area;
+    }
+
+    public bool RoughIntersects(Aabb2 box)
+    {
+        return Bounds.Intersects(box);
+    }
+
+    public Position[] Intersections(IContourElement element)
+    {
+        var results = new List<Position>();
+        foreach (var position in element.IntersectionsWithCircle(Circle))
+        {
+            var theta = Circle.ThetaOf(position.Surface.Point);
+            if (IsThetaOnArc(theta))
+            {
+                results.Add(position);
+            }
+        }
+        
+        return results.ToArray();
     }
 }
