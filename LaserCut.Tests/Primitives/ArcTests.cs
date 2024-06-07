@@ -144,7 +144,7 @@ public class ArcTests
     }
 
     [Fact]
-    public void DegenerateIntersection()
+    public void DegenerateIntersection0()
     {
         // This test is based off of an observed degenerate intersection case. When constructed this way, one of the 
         // returned positions is the start of the arc, but at 2 * Math.PI, which is not a valid position on the arc.
@@ -153,5 +153,19 @@ public class ArcTests
         var p = s.Intersections(a);
         
         Assert.All(p, x => Assert.True(x.L >= 0 && x.L <= a.Length));
+    }
+    
+    [Fact]
+    public void DegenerateIntersection1()
+    {
+        // This test is based off of an observed degenerate intersection case. When constructed this way, there is no
+        // valid intersection point, but there should be one at the segment's 0 position.
+        var a = new Arc(1, 0, 1, 0, Math.PI);
+        var s = new Segment(1, 1, 1.5, 0.5, 1);
+        var i = s.Intersections(a);
+        Assert.Single(i);
+        
+        Assert.Equal(1, i[0].Surface.Point.X, 1e-10);
+        Assert.Equal(1, i[0].Surface.Point.Y, 1e-10);
     }
 }

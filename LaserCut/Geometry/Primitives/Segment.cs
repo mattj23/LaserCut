@@ -49,7 +49,7 @@ public class Segment : Line2, IContourElement
         foreach (var position in element.IntersectionsWithLine(this))
         {
             var t = ProjectionParam(position.Surface.Point);
-            if (t >= 0 && t <= Length)
+            if (t >= -GeometryConstants.DistEquals && t <= Length + GeometryConstants.DistEquals)
             {
                 results.Add(position);
             }
@@ -129,7 +129,7 @@ public class Segment : Line2, IContourElement
         foreach (var other in positions)
         {
             var t = ProjectionParam(other.Surface.Point);
-            if (t >= 0 && t <= Length)
+            if (t >= -GeometryConstants.DistEquals && t <= Length + GeometryConstants.DistEquals)
             {
                 results.Add(new IntersectionPair(new Position(t, this), other));
             }

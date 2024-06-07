@@ -114,4 +114,20 @@ public class IntersectionContourTests
         Assert.Equal(1.866025, points[1].X, 1e-5);
         Assert.Equal(0.5, points[1].Y, 1e-5);
     }
+
+    [Fact]
+    public void HalfCircleMiddleSelfIntersection()
+    {
+        var c = new Contour();
+        var cursor = c.GetCursor();
+
+        cursor.ArcAbs(2, 0, 1, 0, false);
+        cursor.SegAbs(0, 0);
+        cursor.SegAbs(1, 1);
+        
+        var i = c.SelfIntersections();
+        Assert.Equal(2, i.Length);
+        Assert.All(i, x => Assert.Equal(1.0, x.Point.X, 1e-6));
+        Assert.All(i, x => Assert.Equal(1.0, x.Point.Y, 1e-6));
+    }
 }
