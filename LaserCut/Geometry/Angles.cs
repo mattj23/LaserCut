@@ -98,7 +98,7 @@ public static class Angles
             theta += 2 * Math.PI;
         }
         
-        while (theta >= 2 * Math.PI)
+        while (theta > 2 * Math.PI)
         {
             theta -= 2 * Math.PI;
         }

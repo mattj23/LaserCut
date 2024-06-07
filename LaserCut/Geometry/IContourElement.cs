@@ -20,6 +20,12 @@ public interface IContourElement
     Position Closest(Point2D point);
     
     /// <summary>
+    /// Gets the cross product of the vectors between the origin and the end points of this element, the way that is
+    /// performed when finding the area associated with a segment of a polygon
+    /// </summary>
+    double CrossProductWedge { get; }
+    
+    /// <summary>
     /// Update the index of this element.
     /// </summary>
     /// <param name="index">The new value of the index</param>

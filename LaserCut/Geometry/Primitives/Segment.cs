@@ -32,6 +32,8 @@ public class Segment : Line2, IContourElement, IBvhIntersect
     {
         Index = index;
     }
+    
+    public double CrossProductWedge => Start.X * End.Y - End.X * Start.Y;
 
     public bool RoughIntersects(Aabb2 box)
     {

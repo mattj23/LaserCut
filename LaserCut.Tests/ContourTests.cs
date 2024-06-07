@@ -1,5 +1,6 @@
 using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
+using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Tests;
 
@@ -18,22 +19,54 @@ public class ContourTests
         // Creates a single element which is a full circle arc starting at 0
         var contour = new Contour();
         var cursor = contour.GetCursor();
-        cursor.InsertAfter(new Arc(0, 0, 1, 0, 2 * Math.PI));
+        cursor.InsertAfter(new ContourArc(new Point2D(0, 0), new Point2D(1, 0), false));
         
         Assert.Equal(1, contour.Count);
-        Assert.True(contour.IsClosed);
+
+        var e = contour.Elements[0];
+        Assert.IsType<Arc>(e);
+        var arc = (Arc)e;
+        Assert.Equal(Math.PI * 2, arc.Theta, 1e-10);
     }
 
     [Fact]
-    public void SingleElementContourOpen()
+    public void RectangleArea()
     {
-        // Creates a single element which is a half circle arc starting at 0
         var contour = new Contour();
         var cursor = contour.GetCursor();
-        cursor.InsertAfter(new Arc(0, 0, 1, 0, Math.PI));
+        cursor.InsertAfter(new ContourLine(new Point2D(0, 0)));
+        cursor.InsertAfter(new ContourLine(new Point2D(2, 0)));
+        cursor.InsertAfter(new ContourLine(new Point2D(2, 1)));
+        cursor.InsertAfter(new ContourLine(new Point2D(0, 1)));
         
-        Assert.Equal(1, contour.Count);
-        Assert.False(contour.IsClosed);
+        Assert.Equal(2.0, contour.Area, 1e-10);
     }
+    
+    [Fact]
+    public void RectangleAreaNegative()
+    {
+        var contour = new Contour();
+        var cursor = contour.GetCursor();
+        cursor.InsertAfter(new ContourLine(new Point2D(0, 0)));
+        cursor.InsertAfter(new ContourLine(new Point2D(0, 1)));
+        cursor.InsertAfter(new ContourLine(new Point2D(2, 1)));
+        cursor.InsertAfter(new ContourLine(new Point2D(2, 0)));
+        
+        Assert.Equal(-2.0, contour.Area, 1e-10);
+    }
+
+    [Fact]
+    public void PillArea()
+    {
+        var contour = new Contour();
+        var cursor = contour.GetCursor();
+        cursor.InsertAfter(new ContourLine(new Point2D(0, 0)));
+        cursor.InsertAfter(new ContourArc(new Point2D(1, 0), new Point2D(1, 1), false));
+        cursor.InsertAfter(new ContourLine(new Point2D(1, 2)));
+        cursor.InsertAfter(new ContourArc(new Point2D(0, 2), new Point2D(0, 1), false));
+        
+        Assert.Equal(Math.PI + 2, contour.Area, 1e-5);
+    }
+
     
 }

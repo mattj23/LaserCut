@@ -44,6 +44,14 @@ public class ArcTests
     }
 
     [Fact]
+    public void AreaTest()
+    {
+        var a = new Arc(10, 10, 5, 0, 2.0 * Math.PI);
+        var area = a.CrossProductWedge / 2.0;
+        Assert.Equal(Math.PI * a.Radius * a.Radius, area, 1e-4);
+    }
+
+    [Fact]
     public void StressTestIsThetaOnArc()
     {
         var r = new RandomValues();

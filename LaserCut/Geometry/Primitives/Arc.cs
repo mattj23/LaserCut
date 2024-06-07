@@ -41,6 +41,13 @@ public class Arc : IContourElement
         var v0 = start - center;
         var v1 = end - center;
         var t = clockwise ? -v0.AngleToCw(v1) : v0.AngleToCcw(v1);
+        
+        // Special case for a full circle
+        if (start.DistanceTo(end) < GeometryConstants.DistEquals)
+        {
+            t = clockwise ? -Math.PI * 2 : Math.PI * 2;
+        }
+        
         return new Arc(c, t0, t, index);
     }
     
@@ -71,6 +78,8 @@ public class Arc : IContourElement
     public double Radius => Circle.Radius;
 
     public Point2D Center => Circle.Center;
+    
+    public double CrossProductWedge => CrossEndsArea();
 
     public bool IsCcW => Theta >= 0;
 
@@ -225,5 +234,23 @@ public class Arc : IContourElement
         }
 
         Bounds = bounds;
+    }
+
+    private double CrossEndsArea()
+    {
+        var e = GeometryConstants.DistEquals * 4 / Radius;
+        var n = (int)Math.Ceiling(Math.Abs(Theta) / (Math.Acos(1 - e) * 2));
+        n = Math.Max(5, n);
+        var step = Theta / n;
+        var area = 0.0;
+        var a = Start;
+        for (var i = 0; i < n; i++)
+        {
+            var b = Circle.PointAt(Theta0 + (i + 1) * step);
+            area += a.X * b.Y - b.X * a.Y;
+            a = b;
+        }
+
+        return area;
     }
 }

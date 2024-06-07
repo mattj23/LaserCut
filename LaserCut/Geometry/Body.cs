@@ -156,7 +156,7 @@ public class Body : IHasBounds
     /// <param name="tool"></param>
     public void Operate(PointLoop tool)
     {
-        if (tool.Polarity is PointLoop.AreaPolarity.Negative)
+        if (tool.Polarity is AreaPolarity.Negative)
         {
             OperateNegative(tool);
         }
@@ -168,7 +168,7 @@ public class Body : IHasBounds
 
     private void OperatePositive(PointLoop tool)
     {
-        if (tool.Polarity is PointLoop.AreaPolarity.Negative)
+        if (tool.Polarity is AreaPolarity.Negative)
             throw new InvalidOperationException("Cannot perform a positive operation with a negative tool");
 
         /*
@@ -236,7 +236,7 @@ public class Body : IHasBounds
     
     private void OperateNegative(PointLoop tool)
     {
-        if (tool.Polarity is PointLoop.AreaPolarity.Positive)
+        if (tool.Polarity is AreaPolarity.Positive)
             throw new InvalidOperationException("Cannot perform a negative operation with a positive tool");
 
         /*

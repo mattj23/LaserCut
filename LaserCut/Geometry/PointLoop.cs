@@ -551,9 +551,4 @@ public class PointLoop : Loop<Point2D>
         }
     }
 
-    public enum AreaPolarity
-    {
-        Positive,
-        Negative
-    }
 }
