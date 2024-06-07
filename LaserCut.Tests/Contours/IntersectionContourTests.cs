@@ -150,4 +150,61 @@ public class IntersectionContourTests
         Assert.True(b.IsPositive);
         Assert.Equal(c.Area, a.Area + b.Area, 1e-6);
     }
+
+    [Fact]
+    public void NonSelfIntersectingReturnsOriginalContour()
+    {
+        var c = new Contour();
+        var cursor = c.GetCursor();
+
+        cursor.SegAbs(0, 0);
+        cursor.ArcAbs(2, 0, 1, 0, false);
+
+        var result = c.NonSelfIntersectingLoops();
+        Assert.Single(result);
+        Assert.Equal(c, result.First());
+    }
+
+    [Fact]
+    public void SingleSelfIntersectionReturnsTwoContours()
+    {
+        var c = new Contour();
+        var cursor = c.GetCursor();
+        cursor.ArcAbs(2, 0, 1, 0, false);
+        cursor.SegAbs(0, 0);
+        cursor.SegAbs(0, 1);
+        
+        var result = c.NonSelfIntersectingLoops();
+        Assert.Equal(2, result.Length);
+        Assert.Equal(c.Area, result.Sum(x => x.Area), 1e-6);
+    }
+
+    [Fact]
+    public void MiddleSelfIntersectionReturnsTwoContours()
+    {
+        var c = new Contour();
+        var cursor = c.GetCursor();
+        cursor.ArcAbs(2, 0, 1, 0, false);
+        cursor.SegAbs(0, 0);
+        cursor.SegAbs(1, 1);
+        
+        var result = c.NonSelfIntersectingLoops();
+        Assert.Equal(2, result.Length);
+        Assert.Equal(c.Area, result.Sum(x => x.Area), 1e-6);
+    }
+
+    [Fact]
+    public void DoubleSelfIntersectionReturnsThreeContours()
+    {
+        var c = new Contour();
+        var cursor = c.GetCursor();
+        cursor.ArcAbs(2, 0, 1, 0, false);
+        cursor.SegAbs(0, 0);
+        cursor.SegAbs(0, 0.5);
+        cursor.SegAbs(2, 0.5);
+        
+        var result = c.NonSelfIntersectingLoops();
+        Assert.Equal(3, result.Length);
+        Assert.Equal(c.Area, result.Sum(x => x.Area), 1e-6);
+    }
 }

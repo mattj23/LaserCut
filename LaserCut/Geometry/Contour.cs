@@ -286,6 +286,40 @@ public class Contour : Loop<ContourPoint>
     }
 
     /// <summary>
+    /// Decompose this contour into a set of non-self-intersecting loops.  This will return an array of `Contour`
+    /// objects, each of which will be a non-self-intersecting loop.  If the contour is already non-self-intersecting,
+    /// it will return an array with a single element, which is the original contour.  If the contour *is* self
+    /// intersecting, the result will be a set of completely new contours, each with a new identifier.
+    /// </summary>
+    /// <returns></returns>
+    [Pure]
+    public Contour[] NonSelfIntersectingLoops()
+    {
+        var final = new List<Contour>();
+        var working = new List<Contour> {this};
+        
+        while (working.Count > 0)
+        {
+            var current = working[0];
+            working.RemoveAt(0);
+            
+            var intersections = current.SelfIntersections();
+            if (intersections.Length == 0)
+            {
+                final.Add(current);
+            }
+            else
+            {
+                var (c0, c1) = current.SplitAtSelfIntersection(intersections.First());
+                working.Add(c0);
+                working.Add(c1);
+            }
+        }
+        
+        return final.ToArray();
+    }
+
+    /// <summary>
     /// Traces out a new contour starting at `l0` on `e0` and ending at `l1` on `e1`.  The new contour will have a new
     /// identifier and the entity integer IDs will be different from the original.
     /// </summary>
