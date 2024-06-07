@@ -130,4 +130,24 @@ public class IntersectionContourTests
         Assert.All(i, x => Assert.Equal(1.0, x.Point.X, 1e-6));
         Assert.All(i, x => Assert.Equal(1.0, x.Point.Y, 1e-6));
     }
+
+    [Fact]
+    public void SplitAtSelfIntersection()
+    {
+        var c = new Contour();
+        var cursor = c.GetCursor();
+        cursor.ArcAbs(2, 0, 1, 0, false);
+        cursor.SegAbs(0, 0);
+        cursor.SegAbs(0, 1);
+
+        var i = c.SelfIntersections().First();
+
+        var (s0, s1) = c.SplitAtSelfIntersection(i);
+
+        var (a, b) = i.First.Element is Arc ? (s0, s1) : (s1, s0);
+        
+        Assert.False(a.IsPositive);
+        Assert.True(b.IsPositive);
+        Assert.Equal(c.Area, a.Area + b.Area, 1e-6);
+    }
 }

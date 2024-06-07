@@ -279,9 +279,43 @@ public class Contour : Loop<ContourPoint>
          */
         
         // We'll start by the `First` element
-        var c0 = new Contour();
+        var c0 = ExtractLoopFromTo(split.First.Element, split.First.L, split.Second.Element, split.Second.L);
+        var c1 = ExtractLoopFromTo(split.Second.Element, split.Second.L, split.First.Element, split.First.L);
+        
+        return (c0, c1);
+    }
 
-        throw new NotImplementedException();
+    /// <summary>
+    /// Traces out a new contour starting at `l0` on `e0` and ending at `l1` on `e1`.  The new contour will have a new
+    /// identifier and the entity integer IDs will be different from the original.
+    /// </summary>
+    /// <param name="e0">The element to begin the new contour at</param>
+    /// <param name="l0">The distance at which to begin on the first element</param>
+    /// <param name="e1">The element to end the new contour on</param>
+    /// <param name="l1">THe distance at which to end on the end element</param>
+    /// <returns>A new contour</returns>
+    [Pure]
+    private Contour ExtractLoopFromTo(IContourElement e0, double l0, IContourElement e1, double l1)
+    {
+        var contour = new Contour();
+        var write = contour.GetCursor();
+        var read = GetCursor(e0.Index);
+        
+        // Add the first element's portion after the intersection
+        write.InsertFromElement(e0.SplitAfter(l0));
+        read.MoveForward();
+        
+        // Now we will iterate forward until the read cursor reaches the second element's index
+        while (read.CurrentId != e1.Index)
+        {
+            write.InsertAfter(read.Current);
+            read.MoveForward();
+        }
+        
+        // Now we add the second element's portion before the intersection
+        write.InsertFromElement(e1.SplitBefore(l1));
+
+        return contour;
     }
     
     // ==============================================================================================================
@@ -379,6 +413,17 @@ public class Contour : Loop<ContourPoint>
             var pv = previous + new Vector2D(x, y);
             var cv = previous + new Vector2D(cx, cy);
             return ArcAbs(pv.X, pv.Y, cv.X, cv.Y, cw);
+        }
+
+        public int? InsertFromElement(IContourElement? element)
+        {
+            if (element == null) return null;
+            return element switch
+            {
+                Segment s => SegAbs(s.Start.X, s.Start.Y),
+                Arc a => ArcAbs(a.Start.X, a.Start.Y, a.Center.X, a.Center.Y, !a.IsCcW),
+                _ => throw new NotImplementedException()
+            };
         }
     }
     

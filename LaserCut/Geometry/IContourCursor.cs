@@ -45,7 +45,7 @@ public interface IContourCursor : ILoopCursor<ContourPoint>
     /// <param name="x">The x position relative to the current cursor entity's start point</param>
     /// <param name="y">The y position relative to the current cursor entity's start point</param>
     /// <returns>The integer ID of the entity created by this operation</returns>
-    public int SegRel(double x, double y);
+    int SegRel(double x, double y);
 
     /// <summary>
     /// Insert an arc entity that starts at a position relative to the entity at the current cursor position. The center
@@ -64,6 +64,17 @@ public interface IContourCursor : ILoopCursor<ContourPoint>
     /// arc implies the positive surface direction faces away from the center, a clockwise arc implies the positive
     /// surface direction faces towards the center.</param>
     /// <returns>The integer ID of the entity created by this operation</returns>
-    public int ArcRel(double x, double y, double cx, double cy, bool cw);
+    int ArcRel(double x, double y, double cx, double cy, bool cw);
 
+    /// <summary>
+    /// Insert an entity from the properties of a provided `IContourElement`.  If the argument is null, nothing will
+    /// occur.  Otherwise, the cursor will determine if the element is a segment or an arc, and will insert the
+    /// corresponding `ContourPoint` with the `Start` point of the element. If the element is an arc, the center of the
+    /// arc circle and the direction are also copied over.
+    ///
+    /// This is a convenience method that is useful when assembling new contours from intersection information.
+    /// </summary>
+    /// <param name="element">The `IContourElement` whose properties will be copied</param>
+    /// <returns>The integer ID of the entity created by this operation, or a null value if nothing occured</returns>
+    int? InsertFromElement(IContourElement? element);
 }
