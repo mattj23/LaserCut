@@ -277,18 +277,20 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// specific relationship.
     /// </summary>
     /// <param name="other">The other contour to test the relationship to</param>
-    /// <returns>The relation of *this contour* to the *other contour*.</returns>
-    public ContourRelation RelationTo(Contour other)
+    /// <returns>The relation of *this contour* to the *other contour* and a list of any intersections.</returns>
+    public (ContourRelation, IntersectionPair[]) RelationTo(Contour other)
     {
-        if (IntersectionPairs(other).Any()) return ContourRelation.Intersects;
+        var intersections = IntersectionPairs(other);
+        
+        if (intersections.Length != 0) return (ContourRelation.Intersects, intersections);
 
         // Is the other loop enclosing this loop?
-        if (other.Encloses(Head.Point)) return ContourRelation.EnclosedBy;
+        if (other.Encloses(Head.Point)) return (ContourRelation.EnclosedBy, []);
         
         // Is this loop enclosing the other loop?
-        if (Encloses(other.Head.Point)) return ContourRelation.Encloses;
+        if (Encloses(other.Head.Point)) return (ContourRelation.Encloses, []);
 
-        return ContourRelation.DisjointTo;
+        return (ContourRelation.DisjointTo, []);
     }
 
     /// <summary>
@@ -582,8 +584,8 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// <summary>
     /// Create a new rectangular contour with the center at (cx, cy) and the width and height specified.
     /// </summary>
-    /// <param name="x">The x position of the rectangle center in absolute coordinates</param>
-    /// <param name="y">The y position of the rectangle center in absolute coordinates</param>
+    /// <param name="cx">The x position of the rectangle center in absolute coordinates</param>
+    /// <param name="cy">The y position of the rectangle center in absolute coordinates</param>
     /// <param name="w">The width of the rectangle</param>
     /// <param name="h">The height of the rectangle</param>
     /// <returns>A newly created `Contour` object</returns>
