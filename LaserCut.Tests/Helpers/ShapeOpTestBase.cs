@@ -10,6 +10,18 @@ public class ShapeOpTestBase
     {
         return points.Select(p => new Point2D(p.Item1, p.Item2)).ToArray();
     }
+    
+    protected Contour Loop(Point2D[] points)
+    {
+        var contour = new Contour();
+        var cursor = contour.GetCursor();
+        foreach (var p in points)
+        {
+            cursor.SegAbs(p.X, p.Y);
+        }
+
+        return contour;
+    }
 
     protected Contour Loop(params ValueTuple<double, double>[] points)
     {

@@ -217,91 +217,92 @@ public class ShapeOpsTests : ShapeOpTestBase
         Assert.Equal(loop1, b[0]);
     }
 
-    // [Fact]
-    // public void OperationDestroyedNoIntersections()
-    // {
-    //     var loop0 = Contour.Rectangle(0, 0, 1, 1);
-    //     var loop1 = Contour.Rectangle(-1, -1, 3, 3).Reversed();
-    //     
-    //     var (a, b) = ShapeOperation.Operate(loop0, loop1);
-    //     Assert.Equal(ShapeOperation.ResultType.Destroyed, a);
-    //     Assert.Empty(b);
-    // }
+    [Fact]
+    public void OperationDestroyedNoIntersections()
+    {
+        var loop0 = Contour.Rectangle(0, 0, 1, 1);
+        var loop1 = Contour.Rectangle(-1, -1, 3, 3).Reversed();
 
-    // [Fact]
-    // public void OperationDestroyedWithIntersections()
-    // {
-    //     var loop0 = Contour.Rectangle(0, 0, 1, 1);
-    //     var loop1 = Contour.Rectangle(0, 0, 1, 2).Reversed();
-    //     
-    //     var (a, b) = ShapeOperation.Operate(loop0, loop1);
-    //     Assert.Equal(ShapeOperation.ResultType.Destroyed, a);
-    //     Assert.Empty(b);
-    // }
+        var (a, b) = loop0.Mutate(loop1);
+        Assert.Equal(MutateResult.Destroyed, a);
+        Assert.Empty(b);
+    }
 
-    // [Fact]
-    // public void OperationShapeEnclosesTool()
-    // {
-    //     var loop0 = Contour.Rectangle(-1, -1, 3, 3);
-    //     var loop1 = Contour.Rectangle(0, 0, 1, 1);
-    //     
-    //     var (a, b) = ShapeOperation.Operate(loop0, loop1);
-    //     Assert.Equal(ShapeOperation.ResultType.ShapeEnclosesTool, a);
-    //     Assert.Empty(b);
-    // }
+    [Fact]
+    public void OperationDestroyedWithIntersections()
+    {
+        var loop0 = Contour.Rectangle(0, 0, 1, 1);
+        var loop1 = Contour.Rectangle(0, 0, 1, 2).Reversed();
+        
+        var (a, b) = loop0.Mutate(loop1);
+        Assert.Equal(MutateResult.Destroyed, a);
+        Assert.Empty(b);
+    }
 
-    // [Fact]
-    // public void DegenerateMerge()
-    // {
-    //     var loop0 = Contour.Rectangle(1, 1, 1, 1).Reversed();
-    //     var loop1 = Contour.Rectangle(2, 1, 1, 1.5).Reversed();
-    //     var result = loop0.MergedWith(loop1);
-    //     result.RemoveAdjacentCollinear();
-    //     
-    //     var expected = ExpectedPoints((1, 1), (1, 2), (2, 2), (2, 2.5), (3, 2.5), (3, 1));
-    //     var values = OrientedPoints(result, expected);
-    //     
-    //     Assert.Equal(expected, values);
-    // }
+    [Fact]
+    public void OperationShapeEnclosesTool()
+    {
+        var loop0 = Contour.Rectangle(-1, -1, 3, 3);
+        var loop1 = Contour.Rectangle(0, 0, 1, 1);
+        
+        var (a, b) = loop0.Mutate(loop1);
+        Assert.Equal(MutateResult.ShapeEnclosesTool, a);
+        Assert.Single(b);
+        Assert.Equal(loop0, b[0]);
+    }
 
-    // [Fact]
-    // public void DegenerateOverlappingMerge()
-    // {
-    //     // This was a test case of merge that got stuck in an infinite loop because we're effectively performing the 
-    //     // same cut that just created the outer loop
-    //     var outerPts = ExpectedPoints((4, 1.75), (7, 1.75), (7, 3), (0, 3), (0, 0), (7, 0), (7, 1.25), (4, 1.25), (4, 1),
-    //         (3, 1), (3, 2), (4, 2));
-    //     var outer = new PointLoop(outerPts);
-    //     var tool = new PointLoop(ExpectedPoints((3.5, 1.75), (8.5, 1.75), (8.5, 1.25), (3.5, 1.25)));
-    //     
-    //     var (a, b) = ShapeOperation.Operate(outer, tool);
-    //     Assert.Equal(ShapeOperation.ResultType.Merged, a);
-    //     
-    // }
+    [Fact]
+    public void DegenerateMerge()
+    {
+        var loop0 = Contour.Rectangle(1, 1, 1, 1).Reversed();
+        var loop1 = Contour.Rectangle(2, 1, 1, 1.5).Reversed();
+        var (_, b) = loop0.Mutate(loop1);
+        Assert.Single(b);
+        var result = b[0];
+        
+        var expected = ExpectedPoints((1, 1), (1, 2), (2, 2), (2, 2.5), (3, 2.5), (3, 1));
+        var values = OrientedPoints(result, expected);
+        
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void DegenerateOverlappingMerge()
+    {
+        // This was a test case of merge that got stuck in an infinite loop because we're effectively performing the 
+        // same cut that just created the outer loop
+        var outerPts = ExpectedPoints((4, 1.75), (7, 1.75), (7, 3), (0, 3), (0, 0), (7, 0), (7, 1.25), (4, 1.25), (4, 1),
+            (3, 1), (3, 2), (4, 2));
+
+        var outer = Loop(outerPts);
+        var tool = Loop((3.5, 1.75), (8.5, 1.75), (8.5, 1.25), (3.5, 1.25));
+
+        var (a, _) = outer.Mutate(tool);
+        Assert.Equal(MutateResult.Merged, a);
+    }
 
 
-    // [Fact]
-    // public void CutMergeDoesntProduceTwoResults()
-    // {
-    //     // This test case comes from an example while working on the body operation tests.  The tool is a 1x1 square at
-    //     // 5,1 and should be intersecting with an outer loop that has a concave portion.  It should produce a single
-    //     // result, but instead it produced two.
-    //     
-    //     var outerPts = ExpectedPoints((4, 1.75), (7, 1.75), (7, 3), (0, 3), (0, 0), (7, 0), (7, 1.25), (4, 1.25), (4, 1),
-    //         (3, 1), (3, 2), (4, 2));
-    //     var outer = new PointLoop(outerPts);
-    //     var tool = Contour.Rectangle(5, 1, 1, 1).Reversed();
-    //     
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 1.25),
-    //         (6, 1.25), (6, 1), (5, 1), (5, 1.25), (4, 1.25), (4, 1), (3, 1), (3, 2), (4, 2), (4, 1.75), (5, 1.75),
-    //         (5, 2), (6, 2), (6, 1.75), (7, 1.75),
-    //         (7, 3), (0, 3));
-    //     
-    //     var (a, b) = ShapeOperation.Operate(outer, tool);
-    //     Assert.Equal(ShapeOperation.ResultType.Merged, a);
-    //     Assert.Single(b);
-    //     AssertLoop(expected, b[0]);
-    //
-    // }
+    [Fact]
+    public void CutMergeDoesntProduceTwoResults()
+    {
+        // This test case comes from an example while working on the body operation tests.  The tool is a 1x1 square at
+        // 5,1 and should be intersecting with an outer loop that has a concave portion.  It should produce a single
+        // result, but instead it produced two.
+        
+        var outerPts = ExpectedPoints((4, 1.75), (7, 1.75), (7, 3), (0, 3), (0, 0), (7, 0), (7, 1.25), (4, 1.25), (4, 1),
+            (3, 1), (3, 2), (4, 2));
+        var outer = Loop(outerPts);
+        var tool = Contour.Rectangle(5, 1, 1, 1).Reversed();
+        
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 1.25),
+            (6, 1.25), (6, 1), (5, 1), (5, 1.25), (4, 1.25), (4, 1), (3, 1), (3, 2), (4, 2), (4, 1.75), (5, 1.75),
+            (5, 2), (6, 2), (6, 1.75), (7, 1.75),
+            (7, 3), (0, 3));
+
+        var (a, b) = outer.Mutate(tool);
+        Assert.Equal(MutateResult.Merged, a);
+        Assert.Single(b);
+        AssertLoop(expected, b[0]);
+    }
     
 }
