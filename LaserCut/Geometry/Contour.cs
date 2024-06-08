@@ -285,8 +285,27 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     public (ContourRelation, IntersectionPair[]) RelationTo(Contour other)
     {
         var intersections = IntersectionPairs(other);
-        
-        if (intersections.Length != 0) return (ContourRelation.Intersects, intersections);
+
+        if (intersections.Length != 0)
+        {
+            // We can still have enclosure with intersections if one contour never exits the other. To check for this
+            // we will need to consider the intersections themselves.
+            var firstExits = intersections.Any(i => i.FirstExitsSecond);
+            var firstEnters = intersections.Any(i => i.FirstEntersSecond);
+            
+            if ((other.IsPositive && !firstExits) || (!other.IsPositive && !firstEnters)) 
+                return (ContourRelation.EnclosedBy, intersections);
+
+            var reversed = intersections.Select(i => i.Swapped()).ToArray();
+            var secondExits = reversed.Any(i => i.FirstExitsSecond);
+            var secondEnters = reversed.Any(i => i.FirstEntersSecond);
+            
+            if ((IsPositive && !secondExits) || (!IsPositive && !secondEnters)) 
+                return (ContourRelation.Encloses, intersections);
+
+
+            return (ContourRelation.Intersects, intersections);
+        }
 
         // Is the other loop enclosing this loop?
         if (other.Encloses(Head.Point)) return (ContourRelation.EnclosedBy, []);

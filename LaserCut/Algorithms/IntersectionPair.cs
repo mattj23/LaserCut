@@ -57,4 +57,10 @@ public readonly record struct IntersectionPair(Position First, Position Second)
 
         return elementsMatch && Point.DistanceTo(other.Point) < GeometryConstants.DistEquals;
     }
+    
+    /// <summary>
+    /// Returns a new IntersectionPair with the first and second elements swapped.  
+    /// </summary>
+    /// <returns></returns>
+    public IntersectionPair Swapped() => new(Second, First);
 }
