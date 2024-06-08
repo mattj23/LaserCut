@@ -272,6 +272,10 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// *other contour*. For example, if the result is `EnclosedBy`, interpret it as "this contour is enclosed by the
     /// other contour".  If the result is `Encloses`, interpret it as "this contour encloses the other contour".
     ///
+    /// Enclosure is defined as the relationship where the boundary of one contour never exits the boundary of the other
+    /// contour.  Two identical contours will be mutually enclosing, although this method will only return one or
+    /// the other.
+    ///
     /// Note that enclosure does not imply anything about whether the contours exist on the positive or negative side
     /// of the boundary.  To determine this, you must interpret the `IsPositive` property of each contour against the
     /// specific relationship.
