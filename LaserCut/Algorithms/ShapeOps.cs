@@ -38,6 +38,7 @@ public static class ShapeOps
         };
     }
 
+
     private static (MutateResult, Contour[]) MergeFromPairs(Contour working, Contour tool, IntersectionPair[] pairs)
     {
         var workingPairs = pairs.ToList();
@@ -135,7 +136,8 @@ public static class ShapeOps
         {
             if (merge.PopNext() is { } next)
             {
-                if (start.IsEquivalentTo(next))
+                // Changing this from `start.IsEquivalentTo(next)` was part of fixing ShapeOpsTests.DegenerateMerge
+                if (next.Point.DistanceTo(start.Point) < GeometryConstants.DistEquals)
                 {
                     // We've returned to the starting point, so we can close the loop and return the result
                     break;
@@ -152,6 +154,9 @@ public static class ShapeOps
             }
             
         }
+        
+        // I'm not 100% sure about this, but it was part of fixing ShapeOpsTests.DegenerateMerge
+        pairs.Remove(start);
         
         return merge.Working;
     }
