@@ -281,7 +281,6 @@ public class ShapeOpsTests : ShapeOpTestBase
         Assert.Equal(MutateResult.Merged, a);
     }
 
-
     [Fact]
     public void CutMergeDoesntProduceTwoResults()
     {
@@ -303,6 +302,19 @@ public class ShapeOpsTests : ShapeOpTestBase
         Assert.Equal(MutateResult.Merged, a);
         Assert.Single(b);
         AssertLoop(expected, b[0]);
+    }
+
+    [Fact]
+    public void CircleMerge()
+    {
+        var c0 = Contour.Circle(0, 0, 1, false);
+        var c1 = Contour.Circle(0, 1, 1, false);
+        
+        var (_, b) = c0.Mutate(c1);
+        Assert.Single(b);
+
+        var result = b[0];
+        Assert.Equal(2, result.Count);
     }
     
 }

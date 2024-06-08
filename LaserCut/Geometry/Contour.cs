@@ -3,6 +3,7 @@ using System.Diagnostics.Contracts;
 using LaserCut.Algorithms;
 using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry.Primitives;
+using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
@@ -122,6 +123,23 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     // ==============================================================================================================
     // Geometric operations
     // ==============================================================================================================
+    /// <summary>
+    /// Transform the contour in place by the given transformation matrix.
+    /// </summary>
+    /// <param name="t">A matrix defining the transform to apply</param>
+    public void Transform(Matrix t)
+    {
+        foreach (var node in Nodes)
+        {
+            node.Value.Item = node.Value.Item switch
+            {
+                ContourArc arc => new ContourArc(arc.Point.Transformed(t), arc.Center.Transformed(t), arc.Clockwise),
+                ContourLine line => new ContourLine(line.Point.Transformed(t)),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+        ResetCachedValues();
+    }
 
     /// <summary>
     /// Generate a new contour which is the same as this contour but with the direction of entities reversed. The new
@@ -265,7 +283,6 @@ public class Contour : Loop<ContourPoint>, IHasBounds
             visited.Add(cursor.CurrentId);
             cursor.MoveForward();
         }
-
     }
     
     
