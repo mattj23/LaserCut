@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using LaserCut.Algorithms;
 using LaserCut.Algorithms.Loop;
@@ -218,12 +219,55 @@ public class Contour : Loop<ContourPoint>, IHasBounds
             else
             {
                 // This case should not occur, so throw an error
-                throw new NotImplementedException();
+                throw new UnreachableException();
             }
         }
 
         return newContour;
     }
+
+    /// <summary>
+    /// This method removes (in place) any adjacent redundant elements, such as collinear segments or arcs with the
+    /// same center.
+    /// </summary>
+    public void RemoveAdjacentRedundancies()
+    {
+        var visited = new HashSet<int>();
+        var cursor = GetCursor();
+
+        while (!visited.Contains(cursor.CurrentId))
+        {
+            if (cursor.Current is ContourLine seg && cursor.PeekPrevious() is ContourLine prevSeg)
+            {
+                var p0 = prevSeg.Point;
+                var p1 = seg.Point;
+                var p2 = cursor.PeekNext().Point;
+                var s = new Segment(p0, p2, -1);
+                var error = Math.Abs(s.SignedDistanceTo(p1));
+                if (error < GeometryConstants.DistEquals)
+                {
+                    cursor.Remove();
+                    continue;
+                }
+            }
+            else if (cursor.Current is ContourArc arc && cursor.PeekPrevious() is ContourArc prvArc)
+            {
+                // Look for arcs with the same center and direction
+                if (arc.Center.DistanceTo(prvArc.Center) < GeometryConstants.DistEquals &&
+                    arc.Clockwise == prvArc.Clockwise && 
+                    cursor.CurrentId != cursor.PreviousId)
+                {
+                    cursor.Remove();
+                    continue;
+                }
+            }
+            
+            visited.Add(cursor.CurrentId);
+            cursor.MoveForward();
+        }
+
+    }
+    
     
     // ==============================================================================================================
     // Intersections and distance testing

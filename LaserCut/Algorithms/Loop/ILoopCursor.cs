@@ -5,6 +5,10 @@ public interface ILoopCursor<T>
     T Current { get; }
     int CurrentId { get; }
     
+    int NextId { get; }
+    
+    int PreviousId { get; }
+    
     T PeekNext();
     
     T PeekPrevious();

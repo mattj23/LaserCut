@@ -418,6 +418,10 @@ public class Loop<T>
         
         public int CurrentId => _nodeId;
         
+        public int NextId => Loop.Nodes[_nodeId].NextId;
+        
+        public int PreviousId => Loop.Nodes[_nodeId].PreviousId;
+        
         private LoopNode Node => Loop.Nodes[_nodeId];
         
         private LoopNode NextNode => Loop.Nodes[Node.NextId];

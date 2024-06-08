@@ -157,6 +157,7 @@ public static class ShapeOps
         
         // I'm not 100% sure about this, but it was part of fixing ShapeOpsTests.DegenerateMerge
         pairs.Remove(start);
+        merge.Working.RemoveAdjacentRedundancies();
         
         return merge.Working;
     }

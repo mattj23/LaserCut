@@ -94,10 +94,9 @@ public class Segment : Line2, IContourElement
     public Position[] IntersectionsWithLine(Line2 line)
     {
         var (t0, t1) = IntersectionParams(line);
-        if (double.IsNaN(t0) || double.IsNaN(t1) || t0 < 0 || t0 > Length)
-        {
-            return [];
-        }
+        
+        if (double.IsNaN(t0) || double.IsNaN(t1) || t0 < -GeometryConstants.DistEquals ||
+            t0 > Length + GeometryConstants.DistEquals) return [];
 
         return [new Position(t0, this)];
     }
