@@ -15,8 +15,11 @@ public static class ShapeOps
 
         return relation switch
         {
-            // The working shape completely encloses the tool, so the result is the working shape
-            ContourRelation.Encloses => (MutateResult.ShapeEnclosesTool, [working]),
+            // The working shape completely encloses the tool, so the result is the working shape, unless the two shapes
+            // are opposite positive/negative *and* there are intersections, in which case there is a shared edge
+            ContourRelation.Encloses => intersections.Length == 0 || working.IsPositive == tool.IsPositive
+                ? (MutateResult.ShapeEnclosesTool, [working])
+                : MergeFromPairs(working, tool, intersections),
             
             // The tool completely encloses the working shape, so if the two shapes have the same polarity, the result
             // is that the working shape is subsumed by the tool, or if they have opposite polarities, the result is

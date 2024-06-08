@@ -293,12 +293,12 @@ public class Contour : Loop<ContourPoint>, IHasBounds
             var firstExits = intersections.Any(i => i.FirstExitsSecond);
             var firstEnters = intersections.Any(i => i.FirstEntersSecond);
             
-            if ((other.IsPositive && !firstExits) || (!other.IsPositive && !firstEnters)) 
-                return (ContourRelation.EnclosedBy, intersections);
-
             var reversed = intersections.Select(i => i.Swapped()).ToArray();
             var secondExits = reversed.Any(i => i.FirstExitsSecond);
             var secondEnters = reversed.Any(i => i.FirstEntersSecond);
+            
+            if ((other.IsPositive && !firstExits) || (!other.IsPositive && !firstEnters)) 
+                return (ContourRelation.EnclosedBy, intersections);
             
             if ((IsPositive && !secondExits) || (!IsPositive && !secondEnters)) 
                 return (ContourRelation.Encloses, intersections);

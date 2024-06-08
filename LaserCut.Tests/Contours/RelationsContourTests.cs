@@ -77,7 +77,7 @@ public class RelationsContourTests
     public void SharedSideIntersectingNotEnclosedPosToNeg()
     {
         var c0 = Contour.Rectangle(0, 0, 2, 3);
-        var c1 = Contour.Rectangle(1, 1, 1, 1).Reversed();
+        var c1 = Contour.Rectangle(2, 1, 1, 1).Reversed();
         
         Assert.Equal(ContourRelation.Intersects, c0.RelationTo(c1).Item1);
         Assert.Equal(ContourRelation.Intersects, c1.RelationTo(c0).Item1);
@@ -87,7 +87,7 @@ public class RelationsContourTests
     public void SharedSideIntersectingNotEnclosedPosToPos()
     {
         var c0 = Contour.Rectangle(0, 0, 2, 3);
-        var c1 = Contour.Rectangle(1, 1, 1, 1);
+        var c1 = Contour.Rectangle(2, 1, 1, 1);
         
         Assert.Equal(ContourRelation.Intersects, c0.RelationTo(c1).Item1);
         Assert.Equal(ContourRelation.Intersects, c1.RelationTo(c0).Item1);
@@ -97,7 +97,7 @@ public class RelationsContourTests
     public void SharedSideIntersectingNotEnclosedNegToPos()
     {
         var c0 = Contour.Rectangle(0, 0, 2, 3).Reversed();
-        var c1 = Contour.Rectangle(1, 1, 1, 1);
+        var c1 = Contour.Rectangle(2, 1, 1, 1);
         
         Assert.Equal(ContourRelation.Intersects, c0.RelationTo(c1).Item1);
         Assert.Equal(ContourRelation.Intersects, c1.RelationTo(c0).Item1);
@@ -107,7 +107,7 @@ public class RelationsContourTests
     public void SharedSideIntersectingNotEnclosedNegToNeg()
     {
         var c0 = Contour.Rectangle(0, 0, 2, 3).Reversed();
-        var c1 = Contour.Rectangle(1, 1, 1, 1).Reversed();
+        var c1 = Contour.Rectangle(2, 1, 1, 1).Reversed();
         
         Assert.Equal(ContourRelation.Intersects, c0.RelationTo(c1).Item1);
         Assert.Equal(ContourRelation.Intersects, c1.RelationTo(c0).Item1);
