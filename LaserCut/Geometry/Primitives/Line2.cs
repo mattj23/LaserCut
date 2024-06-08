@@ -17,25 +17,25 @@ public class Line2
         Direction = direction.Normalize();
         Normal = new Vector2D(Direction.Y, -Direction.X);
     }
-    
+
     /// <summary>
     /// Gets a point on the line that is considered the start point.  This is arbitrary, as the line extends infinitely
     /// in both directions, however the start point is associated with t=0.
     /// </summary>
     public Point2D Start { get; }
-    
+
     /// <summary>
     /// Gets the direction of the line, which has been normalized to a unit vector.
     /// </summary>
     public Vector2D Direction { get; }
-    
+
     /// <summary>
     /// Gets the normal direction of the line, which is a vector that is the direction rotated clockwise by 90
     /// degrees. This represents a surface normal for a line in which the counterclockwise direction is considered
     /// to face outward.
     /// </summary>
     public Vector2D Normal { get; }
-    
+
     /// <summary>
     /// Calculate a point on the line at the given parameter t.  Because the direction vector has been normalized,
     /// t will correspond with the length along the line.
@@ -47,11 +47,24 @@ public class Line2
         return Start + Direction * t;
     }
     
+    /// <summary>
+    /// Mirror the given point across the line.  This is equivalent to reflecting the point across the line as if it
+    /// were a mirror.
+    /// </summary>
+    /// <param name="p">The point to mirror</param>
+    /// <returns></returns>
+    public Point2D Mirror(Point2D p)
+    {
+        var v = p - Start;
+        var d = Direction.DotProduct(v);
+        return Start + Direction * d * 2 - v;
+    }
+
     public double Determinant(Line2 other)
     {
         return Direction.X * other.Direction.Y - Direction.Y * other.Direction.X;
     }
-    
+
     public bool IsCollinear(Line2 other)
     {
         return IsParallel(other) && DistanceTo(other.Start) < GeometryConstants.DistEquals;
@@ -79,7 +92,7 @@ public class Line2
         var n = p - Start;
         return Direction.DotProduct(n);
     }
-    
+
     /// <summary>
     /// Returns the point on the line that is closest to the given point p, also known as the projection of p onto the
     /// line.
@@ -90,7 +103,7 @@ public class Line2
     {
         return Start + Direction * ProjectionParam(p);
     }
-    
+
     /// <summary>
     /// Returns the distance from the closest point on the line to the given point p.
     /// </summary>
@@ -100,7 +113,7 @@ public class Line2
     {
         return (p - Projection(p)).Length;
     }
-    
+
     /// <summary>
     /// Returns the signed distance from the line to the point p.  The sign indicates which side of the line the point
     /// on, with the normal vector pointing to the positive side.
@@ -112,7 +125,7 @@ public class Line2
         var v = p - Projection(p);
         return v.DotProduct(Normal);
     }
-    
+
     /// <summary>
     /// Returns true if the two lines are parallel within the tolerance of the numeric zero (by default 1e-6).
     /// </summary>
@@ -122,7 +135,7 @@ public class Line2
     {
         return Math.Abs(Determinant(other)) < GeometryConstants.NumericZero;
     }
-    
+
     /// <summary>
     /// Returns the intersection parameters for this line and the other line.  The parameters are the values of t for
     /// the intersection point.  They will be NaN if the lines are parallel.

@@ -8,11 +8,20 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
 
-public abstract record ContourPoint(Point2D Point);
+public abstract record ContourPoint(Point2D Point)
+{
+    public abstract ContourPoint Copy();
+}
 
-public record ContourLine(Point2D Point) : ContourPoint(Point);
+public record ContourLine(Point2D Point) : ContourPoint(Point)
+{
+    public override ContourPoint Copy() => new ContourLine(Point);
+}
 
-public record ContourArc(Point2D Point, Point2D Center, bool Clockwise) : ContourPoint(Point);
+public record ContourArc(Point2D Point, Point2D Center, bool Clockwise) : ContourPoint(Point)
+{
+    public override ContourPoint Copy() => new ContourArc(Point, Center, Clockwise);
+}
 
 /// <summary>
 /// A `Contour` is a loop of entities which define a closed shape in space, where each entity is either a straight
@@ -142,6 +151,66 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     }
 
     /// <summary>
+    /// Mirror the contour in place across the given line.  
+    /// </summary>
+    /// <param name="cl">The center-line to mirror the contour across</param>
+    public void Mirror(Line2 cl)
+    {
+        foreach (var node in Nodes)
+        {
+            node.Value.Item = node.Value.Item switch
+            {
+                ContourArc arc => new ContourArc(cl.Mirror(arc.Point), cl.Mirror(arc.Center), !arc.Clockwise),
+                ContourLine line => new ContourLine(cl.Mirror(line.Point)),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+        ResetCachedValues();
+    }
+
+    public void MirrorX(double x0 = 0)
+    {
+        var line = new Line2(new Point2D(x0, 0), Vector2D.YAxis);
+        Mirror(line);
+    }
+    
+    public void MirrorY(double y0 = 0)
+    {
+        var line = new Line2(new Point2D(0, y0), Vector2D.XAxis);
+        Mirror(line);
+    }
+
+    /// <summary>
+    /// Reverse the direction of the contour in place
+    /// </summary>
+    public new void Reverse()
+    {
+        var elements = new Dictionary<int, ContourPoint>();
+        
+        // We will iterate through each entity in the contour in forward order and create its replacement.  Because the
+        // entity is actually representing the definition of the border between itself and the next entity, each entity
+        // type will remain the same, but the starting points will be changed. On arcs, the center will remain the same
+        // but the direction will be reversed (clockwise vs counterclockwise).
+        foreach (var (a, b) in IterEdges())
+        {
+            elements[a.Id] = a.Item switch
+            {
+                ContourLine _ => new ContourLine(b.Item.Point),
+                ContourArc arc => new ContourArc(b.Item.Point, arc.Center, !arc.Clockwise),
+                _ => throw new NotImplementedException()
+            };
+        }
+
+        foreach (var node in Nodes)
+        {
+            node.Value.Item = elements[node.Key];
+            node.Value.SwapNextAndPrevious();
+        }
+        
+        ResetCachedValues();
+    }
+
+    /// <summary>
     /// Generate a new contour which is the same as this contour but with the direction of entities reversed. The new
     /// contour will have a new unique identifier and the entity integer IDs will be different from the original. While
     /// the location of the boundary will be the same, the "direction" of the boundary will invert.  Contours which
@@ -151,26 +220,9 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     [Pure]
     public Contour Reversed()
     {
-        var elements = new List<ContourPoint>();
-        
-        // We will iterate through each entity in the contour in forward order and create its replacement.  Because the
-        // entity is actually representing the definition of the border between itself and the next entity, each entity
-        // type will remain the same, but the starting points will be changed. On arcs, the center will remain the same
-        // but the direction will be reversed (clockwise vs counterclockwise).
-        foreach (var (a, b) in IterEdges())
-        {
-            ContourPoint e = a.Item switch
-            {
-                ContourLine _ => new ContourLine(b.Item.Point),
-                ContourArc arc => new ContourArc(b.Item.Point, arc.Center, !arc.Clockwise),
-                _ => throw new NotImplementedException()
-            };
-            elements.Add(e);
-        }
-        
-        // At this point, we only need to reverse the list of elements.
-        elements.Reverse();
-        return new Contour(elements);
+        var working = Copy();
+        working.Reverse();
+        return working;
     }
 
     /// <summary>
@@ -518,7 +570,19 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     // ==============================================================================================================
     // Management methods
     // ==============================================================================================================
-    
+
+    public override Contour Copy()
+    {
+        var contour = new Contour();
+        var cursor = contour.GetCursor();
+        foreach (var item in IterItems())
+        {
+            cursor.InsertAfter(item.Item.Copy());
+        }
+
+        return contour;
+    }
+
     public override IContourCursor GetCursor(int? id = null)
     {
         return new ContourCursor(this, id ?? GetTailId());

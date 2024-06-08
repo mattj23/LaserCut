@@ -293,7 +293,7 @@ public class Loop<T>
     /// <summary>
     /// A `LoopNode` is the internal container for items in the loop.  It holds onto the item itself, as well as the
     /// ids of the next and previous nodes in the loop.  It is not intended to be used directly by client code, and
-    /// so should not be exposed outside of the class.
+    /// so should not be exposed outside the class.
     /// </summary>
     protected class LoopNode
     {
@@ -313,6 +313,11 @@ public class Loop<T>
         public override string ToString()
         {
             return $"[Node {Id} | {Item} | N:{NextId} P:{PreviousId}]";
+        }
+        
+        public void SwapNextAndPrevious()
+        {
+            (NextId, PreviousId) = (PreviousId, NextId);
         }
     }
 
