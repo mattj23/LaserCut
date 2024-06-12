@@ -9,20 +9,19 @@ using LaserCut.Geometry.Primitives;
 
 namespace LaserCut.Avalonia.Sample.ViewModels;
 
-public class Drawable : IDrawable
+public class ExampleDrawable : IDrawable
 {
     private readonly List<IDrawViewModel> _geometries = new();
     private readonly Subject<IDrawViewModel> _added = new();
     private readonly Subject<IDrawViewModel> _removed = new();
     
-    public Drawable()
+    public ExampleDrawable()
     {
         Id = Guid.NewGuid();
-        
-        var box = PointLoop.Rectangle(100, 200);
-        box.Translate(125, 75);
-        
-        Add(box.ToPolygonViewModel(null, new SolidColorBrush(Colors.Black)));
+
+        var circle = Contour.Circle(200, 200, 150);
+
+        Add(new ContourViewModel() { Stroke = Brushes.Black, StrokeThickness = 1 });
     }
     
     public Guid Id { get; }

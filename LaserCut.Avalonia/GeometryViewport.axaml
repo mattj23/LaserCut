@@ -37,6 +37,14 @@
                                   StrokeThickness="{Binding DisplayThickness}"
                                   StrokeDashArray="{Binding DashArray}" />
                         </DataTemplate>
+                        
+                        <DataTemplate DataType="vm:ContourViewModel">
+                            <Path Fill="{Binding Fill}"
+                                  Stroke="{Binding Stroke}"
+                                  StrokeThickness="{Binding DisplayThickness}"
+                                  StrokeDashArray="{Binding DashArray}"
+                                  Data="{Binding Geometry}" />
+                        </DataTemplate>
                     </ItemsControl.DataTemplates>
                     
                     <!-- The presenting panel -->

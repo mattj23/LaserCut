@@ -10,7 +10,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
-        var drawable = new Drawable();
+        var drawable = new ExampleDrawable();
         Entities.Register(drawable);
     }
     
