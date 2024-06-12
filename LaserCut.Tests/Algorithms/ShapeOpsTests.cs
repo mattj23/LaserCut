@@ -316,5 +316,30 @@ public class ShapeOpsTests : ShapeOpTestBase
         var result = b[0];
         Assert.Equal(2, result.Count);
     }
-    
+
+    [Fact]
+    public void ConcaveRejoin()
+    {
+        // Create a C-shaped loop
+        var c0 = Loop((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3));
+        
+        // Create an end cap that turns the C into an O
+        var tool = Loop((2, 0), (3, 0), (3, 3), (2, 3));
+        
+        var (a, b) = c0.Mutate(tool);
+        var results = b.ToList();
+        
+        Assert.Equal(MutateResult.Merged, a);
+        
+        // We should now have two loops, one which is an outer boundary and the other which is the hole leftover
+        var expectedOuter = ExpectedPoints((0, 0), (3, 0), (3, 3), (0, 3));
+        var expectedHole = ExpectedPoints((1, 1), (1, 2), (2, 2), (2, 1));
+        Assert.Equal(2, results.Count);
+
+        var matchOuter = TakeMatch(expectedOuter, results);
+        AssertLoop(expectedOuter, matchOuter);
+        
+        var matchHole = TakeMatch(expectedHole, results);
+        AssertLoop(expectedHole, matchHole);
+    }
 }
