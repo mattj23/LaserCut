@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaserCut.Tests", "LaserCut.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaserCut.Avalonia", "LaserCut.Avalonia\LaserCut.Avalonia.csproj", "{963E2AF8-7E7D-4C41-A824-29841F4B5F6D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaserCut.Avalonia.Sample", "LaserCut.Avalonia.Sample\LaserCut.Avalonia.Sample.csproj", "{C0B4EFAB-521C-46B4-9C93-7B695F259DD8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{963E2AF8-7E7D-4C41-A824-29841F4B5F6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{963E2AF8-7E7D-4C41-A824-29841F4B5F6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{963E2AF8-7E7D-4C41-A824-29841F4B5F6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0B4EFAB-521C-46B4-9C93-7B695F259DD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0B4EFAB-521C-46B4-9C93-7B695F259DD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0B4EFAB-521C-46B4-9C93-7B695F259DD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0B4EFAB-521C-46B4-9C93-7B695F259DD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
