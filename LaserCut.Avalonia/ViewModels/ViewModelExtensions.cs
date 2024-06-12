@@ -50,13 +50,36 @@ public static class ViewModelExtensions
                     figure.Segments.Add(new LineSegment() { Point = segment.End.ToAvalonia() });
                     break;
                 case Arc arc:
-                    figure.Segments.Add(new ArcSegment
+                    var sweep = Math.Abs(arc.Theta);
+                    if (sweep >= Math.PI * 2.0)
                     {
-                        Point = arc.End.ToAvalonia(),
-                        RotationAngle = 0,
-                        IsLargeArc = Math.Abs(arc.Theta) > Math.PI,
-                        Size = new Size(arc.Radius, arc.Radius),
-                    });
+                        // Insert a second arc segment to avoid a bug where a full circle is not drawn
+                        figure.Segments.Add(new ArcSegment
+                        {
+                            Point = arc.AtFraction(0.5).Point.ToAvalonia(),
+                            RotationAngle = 0,
+                            IsLargeArc = false,
+                            Size = new Size(arc.Radius, arc.Radius),
+                        });
+                        
+                        figure.Segments.Add(new ArcSegment
+                        {
+                            Point = arc.End.ToAvalonia(),
+                            RotationAngle = 0,
+                            IsLargeArc = false,
+                            Size = new Size(arc.Radius, arc.Radius),
+                        });
+                    }
+                    else
+                    {
+                        figure.Segments.Add(new ArcSegment
+                        {
+                            Point = arc.End.ToAvalonia(),
+                            RotationAngle = 0,
+                            IsLargeArc = sweep > Math.PI,
+                            Size = new Size(arc.Radius, arc.Radius),
+                        });
+                    }
                     break;
             }
         }

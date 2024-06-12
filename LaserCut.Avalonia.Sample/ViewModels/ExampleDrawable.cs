@@ -19,15 +19,13 @@ public class ExampleDrawable : IDrawable
     {
         Id = Guid.NewGuid();
 
-        // var circle = Contour.Circle(200, 200, 150);
-        var loop = new Contour();
-        var cursor = loop.GetCursor();
-        cursor.SegAbs(100, 100);
-        cursor.ArcAbs(200, 100, 200, 150, false);
-        cursor.SegAbs(200, 200);
-        cursor.SegAbs(100, 200);
+        var circle = Contour.Circle(200, 200, 150);
+        // var loop = new Contour();
+        // var cursor = loop.GetCursor();
+        // cursor.ArcAbs(100, 300, 200, 300, false);
+        // cursor.ArcAbs(300, 300, 200, 300, false);
 
-        Add(loop.ToViewModel(null, Brushes.Black, 2));
+        Add(circle.ToViewModel(null, Brushes.Black, 2));
     }
     
     public Guid Id { get; }
