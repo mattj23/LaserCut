@@ -87,4 +87,15 @@ public static class GeometryExtensions
 
         return bounds;
     }
+    
+    public static Aabb2 CombinedBounds(this IEnumerable<Aabb2> items)
+    {
+        var bounds = Aabb2.Empty;
+        foreach (var item in items)
+        {
+            bounds = bounds.Union(item);
+        }
+
+        return bounds;
+    }
 }

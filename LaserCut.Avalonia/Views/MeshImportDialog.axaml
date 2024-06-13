@@ -1,0 +1,77 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:lc="clr-namespace:LaserCut.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="LaserCut.Avalonia.Views.MeshImportDialog"
+        Title="Import 2D Geometry from Mesh">
+    
+    <DockPanel>
+        <!-- Toolbar -->
+        <Border DockPanel.Dock="Top" BorderBrush="#D1D5DA" BorderThickness="1">
+            <Panel Margin="0" Height="40" Background="#F3F3F3">
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel.Styles>
+                        <Style Selector="Button">
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                            <Setter Property="Height" Value="32" />
+                            <Setter Property="Background" Value="#00FFFFFF" />
+                            <Setter Property="Margin" Value="5,0,5,0" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                        </Style>
+                    </StackPanel.Styles>
+                    
+                    <Button Command="{Binding SetZPlusCommand}">Z+</Button>
+                    <Button Command="{Binding SetZMinusCommand}">Z-</Button>
+                    <Button Command="{Binding SetYPlusCommand}">Y+</Button>
+                    <Button Command="{Binding SetYMinusCommand}">Y-</Button>
+                    <Button Command="{Binding SetXPlusCommand}">X+</Button>
+                    <Button Command="{Binding SetXMinusCommand}">X-</Button>
+                    
+                </StackPanel>
+            </Panel>
+        </Border>
+        
+        <!-- Confirm button -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="#D1D5DA" BorderThickness="1">
+            <Panel Margin="0" Height="40" Background="#F3F3F3">
+                <DockPanel LastChildFill="False">
+                    <DockPanel.Styles>
+                        <Style Selector="Button">
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                            <Setter Property="Height" Value="32" />
+                            <Setter Property="Background" Value="#00FFFFFF" />
+                            <Setter Property="Margin" Value="5,0,5,0" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                        </Style>
+                    </DockPanel.Styles>
+                    <Button DockPanel.Dock="Right"
+                            Command="{Binding ConfirmCommand}">
+                        Confirm Geometry
+                    </Button>
+                </DockPanel>
+            </Panel>
+        </Border>
+        
+        <!-- Viewport -->
+        <Grid>
+            <lc:GeometryViewport Entities="{Binding Entities}"
+                                  x:Name="Viewport"/>
+            
+            <TextBlock VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       IsVisible="{Binding IsNotValid}">
+                Error Loading Geometry
+            </TextBlock>
+            
+            <ProgressBar IsIndeterminate="True"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Center"
+                         MaxWidth="200"
+                         IsVisible="{Binding IsLoading}" />
+        </Grid>
+        
+    </DockPanel>
+    
+</Window>
