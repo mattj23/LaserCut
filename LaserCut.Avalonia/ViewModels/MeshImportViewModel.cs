@@ -80,9 +80,14 @@ public class MeshImportViewModel : ReactiveObject
         try
         {
             var result = await Task.Run(() => LoadMeshData(_filePath, cs));
+            var bounds = result.CombinedBounds();
+            var sx = bounds.Width / 10 - bounds.MinX;
+            var sy = bounds.Height / 10 - bounds.MinY;
+            
             var drawable = new SimpleDrawable();
             foreach (var contour in result)
             {
+                contour.Transform(Isometry2.Translate(sx, sy));
                 drawable.Add(contour.ToViewModel(null, Brushes.Black, 1), contour.Bounds);
             }
             Entities.Register(drawable);

@@ -748,4 +748,23 @@ public class Contour : Loop<ContourPoint>, IHasBounds
         return contour;
     }
 
+    public static Contour Polygon(IEnumerable<Point2D> points)
+    {
+        var contour = new Contour();
+        var cursor = contour.GetCursor();
+        foreach (var p in points)
+        {
+            if (contour.Count == 0 || cursor.Current.Point.DistanceTo(p) > GeometryConstants.DistEquals)
+                cursor.SegAbs(p.X, p.Y);
+        }
+        
+        // Check if the last point is the same as the first point, and if so, remove it
+        if (contour.Head.Point.DistanceTo(contour.Tail.Point) < GeometryConstants.DistEquals)
+        {
+            cursor.Remove();
+        }
+        
+        return contour;
+    }
+
 }

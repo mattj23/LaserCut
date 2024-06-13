@@ -227,7 +227,7 @@ public class Mesh3
     /// Patches are determined by adjacency.  Triangles which share a common edge are considered adjacent.
     /// </summary>
     /// <returns></returns>
-    public List<int[]> GetPatchIndices()
+    public List<int[]> GetPatchIndicesDep()
     {
         
         var edgeMap = new Dictionary<ulong, List<int>>();
@@ -285,42 +285,59 @@ public class Mesh3
     
     public Contour[] ExtractSilhouetteContours(CoordinateSystem view)
     {
-        var workingMesh = FromFacesWhere((_, n) => n.DotProduct(view.ZAxis) > 0);
+        var results = new List<Contour>();
+        
+        var workingMesh = FromFacesWhere((_, n) => n.DotProduct(view.ZAxis) > 1e-6);
         workingMesh.Transform(view);
-        
-        // TODO: Separate into patch bodies first
-        
-        
-        // Flatten everything to the XY plane
-        workingMesh.MutateVertices(p => new Point3D(p.X, p.Y, 0));
         workingMesh.MergeVertices();
         
-        var chains = workingMesh
-            .ExtractEdgeChains()
-            .Select(c => new PointLoop(c.ToPoint2Ds(true).SkipLast(1)))
-            .ToArray();
+        // First we need to separate the mesh into patches of connected triangles. This requires us to compute the
+        // adjacency of the faces.  Face adjacency is determined by whether two faces share an edge, so by computing a
+        // mapping of edges to faces, we can construct an adjacency map of faces.
+        var edgeMap = EdgeFaceMap.FromFaces(workingMesh._faces);
+        var patches = edgeMap.GetPatchIndices();
+        var singleFaceEdgeKeys = edgeMap.EdgeKeysWithSingleFace();
         
-        // Separate inside and outside chains
-        var insideChains = chains.Where(c => c.Area < 0).ToList();
-        var outsideChains = chains.Where(c => c.Area > 0).ToList();
-
-        // if (outsideChains.Count > 1)
-        // {
-        //     throw new NotImplementedException("Doesn't yet handle multiple outside chains");
-        // }
-        
-        var results = new List<Body>();
-        foreach (var outside in outsideChains)
+        // Now we'll go through each patch and find the edges that are on the boundary of the patch.  These are the 
+        // edges that are only shared by a single face.
+        foreach (var patch in patches)
         {
-            // Find all inside chains which are contained within the outside chain
-            var insides = insideChains
-                .Where(inside => inside.RelationTo(outside) == ContourRelation.EnclosedBy)
-                .ToList();
+            // For each face index in the patch we check all three edges.  If the edge map reports that the edge only is
+            // attached to a single face, then we add it to the boundary edges.
+            var boundaryVertices = new Dictionary<int, int>();
+            foreach (var i in patch)
+            {
+                foreach (var edge in workingMesh._faces[i].Edges())
+                {
+                    if (singleFaceEdgeKeys.Contains(edge.Key))
+                    {
+                        boundaryVertices[(int)edge.A] = (int)edge.B;
+                    }
+                }
+            }
             
-            results.Add(new Body(outside, insides));
-        }
+            // Now we can extract the patch chains
+            var patchChains = new List<Contour>();
+            while (boundaryVertices.Count > 0)
+            {
+                var start = boundaryVertices.First().Key;
+                var chain = new List<Point2D> { workingMesh._vertices[start].ToPoint2D() };
+                var current = start;
+                while (boundaryVertices.ContainsKey(current))
+                {
+                    var next = boundaryVertices[current];
+                    chain.Add(workingMesh._vertices[next].ToPoint2D());
+                    boundaryVertices.Remove(current);
+                    current = next;
+                }
+                
+                patchChains.Add(Contour.Polygon(chain));
+            }
 
-        throw new NotImplementedException();
+            results.AddRange(patchChains);
+        }
+        
+        return results.ToArray();
     }
 
     public Body[] ExtractSilhouetteBodies(CoordinateSystem view)
