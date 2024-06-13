@@ -33,7 +33,7 @@ public class Body : IHasBounds
     
     public Aabb2 Bounds => Outer.Bounds;
     
-    public double Area => Outer.Area - Inners.Sum(i => i.Area);
+    public double Area => Outer.Area + Inners.Sum(i => i.Area);
     
     public void Transform(Matrix t)
     {

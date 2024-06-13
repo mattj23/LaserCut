@@ -137,9 +137,11 @@ public class BodyOperationTests : ShapeOpTestBase
         var tool = Contour.Rectangle(2.5, 0.5, 2, 2).Reversed();
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
         
-        fixture.Body.Operate(tool);
-        AssertLoop(expected, fixture.Body.Outer);
-        AssertBodyInner(fixture.Body, fixture.A, tool, fixture.C);
+        var result = fixture.Body.Operate(tool);
+        Assert.Single(result);
+        
+        AssertLoop(expected, result[0].Outer);
+        AssertBodyInner(result[0], fixture.A, tool, fixture.C);
     }
     
     [Fact]
@@ -149,9 +151,9 @@ public class BodyOperationTests : ShapeOpTestBase
         var tool = Contour.Rectangle(3, 1, 1, 1.5).Reversed();
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
         
-        fixture.Body.Operate(tool);
-        AssertLoop(expected, fixture.Body.Outer);
-        AssertBodyInner(fixture.Body, fixture.A, tool, fixture.C);
+        var result = fixture.Body.Operate(tool);
+        AssertLoop(expected, result[0].Outer);
+        AssertBodyInner(result[0], fixture.A, tool, fixture.C);
     }
 
     [Fact]
@@ -166,10 +168,10 @@ public class BodyOperationTests : ShapeOpTestBase
         // plot.Add(tool, "Tool");
         // plot.Plot();
         
-        fixture.Body.Operate(tool);
-        AssertLoop(expected, fixture.Body.Outer);
+        var result = fixture.Body.Operate(tool);
+        AssertLoop(expected, result[0].Outer);
         
-        AssertBodyInner(fixture.Body, fixture.A, fixture.C);
+        AssertBodyInner(result[0], fixture.A, fixture.C);
     }
 
     [Fact]
@@ -182,10 +184,10 @@ public class BodyOperationTests : ShapeOpTestBase
             (5, 2), (6, 2), (6, 1.75), (7, 1.75),
             (7, 3), (0, 3));
         
-        fixture.Body.Operate(tool);
-        AssertLoop(expected, fixture.Body.Outer);
+        var result = fixture.Body.Operate(tool);
+        AssertLoop(expected, result[0].Outer);
         
-        AssertBodyInner(fixture.Body, fixture.A);
+        AssertBodyInner(result[0], fixture.A);
     }
 
     [Fact]
@@ -197,9 +199,9 @@ public class BodyOperationTests : ShapeOpTestBase
         var inside = Loop((3, 1), (4, 1), (4, 1.25), (5, 1.25), (5, 1), (6, 1), (6, 2), (5, 2), (5, 1.75),
             (4, 1.75), (4, 2), (3, 2)).Reversed();
         
-        fixture.Body.Operate(tool);
-        AssertLoop(outside, fixture.Body.Outer);
-        AssertBodyInner(fixture.Body, fixture.A, inside);
+        var result = fixture.Body.Operate(tool);
+        AssertLoop(outside, result[0].Outer);
+        AssertBodyInner(result[0], fixture.A, inside);
     }
 
     [Fact]
@@ -212,9 +214,9 @@ public class BodyOperationTests : ShapeOpTestBase
             (4, 1.75), (4, 2), (3, 2), (3, 1.75), (2, 1.75), (2, 2), (1, 2), (1, 1),
             (2, 1), (2, 1.25), (3, 1.25)).Reversed();
         
-        fixture.Body.Operate(tool);
-        AssertLoop(outside, fixture.Body.Outer);
-        AssertBodyInner(fixture.Body, inside);
+        var result = fixture.Body.Operate(tool);
+        AssertLoop(outside, result[0].Outer);
+        AssertBodyInner(result[0], inside);
     }
 
     // [Fact]
