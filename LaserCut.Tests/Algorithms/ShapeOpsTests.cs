@@ -1,6 +1,7 @@
 using LaserCut.Algorithms;
 using LaserCut.Geometry;
 using LaserCut.Tests.Helpers;
+using LaserCut.Tests.Plotting;
 
 namespace LaserCut.Tests.Algorithms;
 
@@ -341,5 +342,22 @@ public class ShapeOpsTests : ShapeOpTestBase
         
         var matchHole = TakeMatch(expectedHole, results);
         AssertLoop(expectedHole, matchHole);
+    }
+
+    [Fact]
+    public void NonTerminatingMerge()
+    {
+        // This test case was a real-world example where the merge operation was not terminating
+        var working = Loop((2, 1.25), (2, 1), (1, 1), (1, 2), (2, 2), (2, 1.75), (5.5, 1.75), (5.5, 1.25));
+        var tool = Loop((3, 1.75), (3, 2), (4, 2), (4, 1.75), (5.5, 1.75), (5.5, 1.25), (4, 1.25), (4, 1), (3, 1),
+            (3, 1.25), (1.5, 1.25), (1.5, 1.75));
+        
+        var dbg = new DebugPlot("NonTerminatingMerge");
+        dbg.Add(working, "Working");
+        dbg.Add(tool, "Tool");
+        dbg.Plot();
+        
+        var (a, b) = working.Mutate(tool);
+        Assert.Equal(MutateResult.Merged, a);
     }
 }
