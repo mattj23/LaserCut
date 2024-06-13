@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using LaserCut.Algorithms;
 using LaserCut.Geometry;
 using MathNet.Spatial.Euclidean;
@@ -10,6 +11,7 @@ public class Mesh3
     private readonly List<Point3D> _vertices;
     private readonly List<Face> _faces;
     private readonly List<Vector3D> _normals;
+    private EdgeFaceMap? _edgeFaceMap;
     
     public Mesh3(List<Point3D> vertices, List<Face> faces, List<Vector3D> normals)
     {
@@ -25,11 +27,38 @@ public class Mesh3
         _faces = new List<Face>();
     }
     
+    // ==============================================================================================================
+    // Public Properties
+    // ==============================================================================================================
+    
+    /// <summary>
+    /// Gets a read-only list of the vertices in the mesh.  The index of each vertex in the list is the index referred
+    /// to in the faces of the mesh.
+    /// </summary>
     public IReadOnlyList<Point3D> Vertices => _vertices;
     
+    /// <summary>
+    /// Gets a read-only list of the faces in the mesh.  Faces contain three indices that refer to the vertices in the
+    /// Vertices list.  Faces are typically referred to by their index in this list.
+    /// </summary>
     public IReadOnlyList<Face> Faces => _faces;
     
+    /// <summary>
+    /// Gets a read-only list of the normals of the faces in the mesh.  The element at index `i` in this list
+    /// corresponds with the face at index `i` in the Faces list.
+    /// </summary>
     public IReadOnlyList<Vector3D> Normals => _normals;
+    
+    /// <summary>
+    /// Gets a mapping of edges to the faces that contain them.  This is a cached structure that is built on demand
+    /// and cleared whenever the structure of the mesh changes.  The EdgeFaceMap is useful for determining adjacency
+    /// and other operations that require edge information.
+    /// </summary>
+    public EdgeFaceMap EdgeMap => _edgeFaceMap ??= EdgeFaceMap.FromFaces(_faces);
+    
+    // ==============================================================================================================
+    // Utility Methods
+    // ==============================================================================================================
     
     public Mesh3 Clone()
     {
@@ -48,6 +77,7 @@ public class Mesh3
     /// </summary>
     /// <param name="face"></param>
     /// <returns></returns>
+    [Pure]
     public double FaceArea(Face face)
     {
         var a = _vertices[(int)face.A];
@@ -65,6 +95,7 @@ public class Mesh3
     /// </summary>
     /// <param name="face"></param>
     /// <returns></returns>
+    [Pure]
     public Point3D[] FaceVertices(Face face)
     {
         return new[] { _vertices[(int)face.A], _vertices[(int)face.B], _vertices[(int)face.C] };
@@ -93,9 +124,18 @@ public class Mesh3
                 _faces.RemoveAt(i);
                 _normals.RemoveAt(i);
             }
+            ClearCachedStructureData();
         }
     }
 
+    /// <summary>
+    /// Return the indices of the faces in the mesh that satisfy a predicate.  The predicate is a function that takes
+    /// the face and its normal and returns a boolean.  The indices of the faces that return true will be returned in
+    /// the result.
+    /// </summary>
+    /// <param name="predicate"></param>
+    /// <returns></returns>
+    [Pure]
     public int[] FaceIndices(Func<Face, Vector3D, bool> predicate)
     {
         var indices = new List<int>();
@@ -116,6 +156,13 @@ public class Mesh3
         return FromFaceIndices(indices);
     }
     
+    /// <summary>
+    /// Create a new mesh from a subset of the faces in this mesh, identified by their indices.  The current mesh
+    /// will not be modified.
+    /// </summary>
+    /// <param name="indices"></param>
+    /// <returns></returns>
+    [Pure]
     public Mesh3 FromFaceIndices(IEnumerable<int> indices)
     {
         var vertexMap = new Dictionary<uint, uint>();
@@ -379,6 +426,11 @@ public class Mesh3
         return results.ToArray();
     }
 
+    /// <summary>
+    /// Transform the mesh in place using a coordinate system.  This will transform all the vertices and normals in the
+    /// mesh but leave the structure of the mesh (faces, edges) unchanged.
+    /// </summary>
+    /// <param name="cs">The coordinate system/transform to apply to the mesh</param>
     public void Transform(CoordinateSystem cs)
     {
         for (var i = 0; i < _vertices.Count; i++)
@@ -393,14 +445,21 @@ public class Mesh3
     }
 
     /// <summary>
-    /// Merge vertices that are within a certain tolerance distance of each other.
+    /// Merge vertices that are within a certain tolerance distance of each other.  The tolerance is the maximum
+    /// distance at which two vertices will be considered the same.  The default tolerance (or any non-finite double
+    /// value) will result in `GeometryConstants.DistEquals` being used.
     /// </summary>
-    /// <param name="tolerance"></param>
-    public void MergeVertices(double tolerance = 1e-6)
+    /// <param name="tolerance">The maximum distance at which two verticies will be considered the same.</param>
+    public void MergeVertices(double tolerance = double.NaN)
     {
+        if (!double.IsFinite(tolerance))
+        {
+            tolerance = GeometryConstants.DistEquals;
+        }
+        
         var tree = new KdTree3D(_vertices);
         
-        // First we're going to go through all vertices and find all of the neighbors that are within the tolerance
+        // First we're going to go through all vertices and find all the neighbors that are within the tolerance
         // for each vertex.  Of these, we'll keep the one with the lowest index.  The first vertex map is an array
         // the same length as the number of vertices that maps each vertex to the vertex with the lowest index that is
         // at the same position.
@@ -432,8 +491,17 @@ public class Mesh3
         _vertices.AddRange(newVertices);
         _faces.Clear();
         _faces.AddRange(newFaces);
+        ClearCachedStructureData();
     }
 
+    /// <summary>
+    /// Read an STL file from disk and return a mesh.  The mergeVertices parameter will merge vertices that are within
+    /// the `GeometryConstants.DistEquals` tolerance distance of each other. If you want to use a different tolerance,
+    /// call `MergeVertices` on the mesh after reading it.
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="mergeVertices"></param>
+    /// <returns></returns>
     public static Mesh3 ReadStl(string path, bool mergeVertices = false)
     {
         // Open file with binary stream reader
@@ -481,9 +549,20 @@ public class Mesh3
         var mesh = new Mesh3(vertices, faces, normals);
         if (mergeVertices)
         {
-            mesh.MergeVertices();
+            mesh.MergeVertices(GeometryConstants.DistEquals);
         }
 
         return mesh;
     }
+    
+    /// <summary>
+    /// Clear any cached data structures that are specific to the mesh structure.  This method should be called whenever
+    /// anything related to the faces or edges of the mesh is modified, but NOT if the locations of the verticies
+    /// change without changing the connectivity of the mesh.
+    /// </summary>
+    private void ClearCachedStructureData()
+    {
+        _edgeFaceMap = null;
+    }
+    
 }

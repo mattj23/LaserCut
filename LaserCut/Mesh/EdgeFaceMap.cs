@@ -1,6 +1,6 @@
-﻿using LaserCut.Mesh;
+﻿using LaserCut.Algorithms;
 
-namespace LaserCut.Algorithms;
+namespace LaserCut.Mesh;
 
 public class EdgeFaceMap
 {
