@@ -62,26 +62,16 @@ public class ShapeOpTestBase
         Assert.Equal(expected, values);
     }
     
-    // protected void AssertBodyInner(Body body, params Contour[] expected)
-    // {
-    //     var inners = body.Inners.ToList();
-    //     Assert.Equal(expected.Length, inners.Count);
-    //     foreach (var loop in expected)
-    //     {
-    //         var match = TakeMatch(loop.ToItemArray(), inners);
-    //         AssertLoop(loop.ToItemArray(), match);
-    //     }
-    // }
-    //
-    // protected PointLoop Rect(double x0, double y0, double width, double height)
-    // {
-    //     var loop = new PointLoop();
-    //     var cursor = loop.GetCursor();
-    //     cursor.InsertAbs(x0, y0);
-    //     cursor.InsertRelX(width);
-    //     cursor.InsertRelY(height);
-    //     cursor.InsertRelX(-width);
-    //     return loop;
-    // }
+    protected void AssertBodyInner(Body body, params Contour[] expected)
+    {
+        var inners = body.Inners.ToList();
+        Assert.Equal(expected.Length, inners.Count);
+        foreach (var loop in expected)
+        {
+            var loopPnts = loop.ToItemArray().Select(x => x.Point).ToArray();
+            var match = TakeMatch(loopPnts, inners);
+            AssertLoop(loopPnts, match);
+        }
+    }
     
 }

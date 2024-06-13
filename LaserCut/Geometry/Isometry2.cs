@@ -6,6 +6,11 @@ using MathNet.Spatial.Euclidean;
 namespace LaserCut.Geometry;
 public static class Isometry2
 {
+    public static Matrix Translate(Vector2D vector)
+    {
+        return Translate(vector.X, vector.Y);
+    }
+    
     public static Matrix Translate(double x, double y)
     {
         return DenseMatrix.OfArray(new double[,]

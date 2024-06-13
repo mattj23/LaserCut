@@ -25,6 +25,23 @@ public class DebugPlot
             Add(body.Inners[i], $"{label} Inner {i}");
         }
     }
+    
+    public void Add(Contour loop, string label)
+    {
+        // TODO: Fix this
+        var points = loop.ToItemArray();
+        var x = points.Select(p => p.Point.X).ToList();
+        var y = points.Select(p => p.Point.Y).ToList();
+        x.Add(x.First());
+        y.Add(y.First());
+
+        var trace = new Trace("scatter");
+        trace.SetValue("x", x);
+        trace.SetValue("y", y);
+        trace.SetValue("mode", "lines+markers");
+        trace.SetValue("name", label);
+        _traces.Add(trace);
+    }
 
     public void Add(PointLoop loop, string label)
     {

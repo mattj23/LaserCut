@@ -419,8 +419,9 @@ public class Mesh3
             var insides = insideChains
                 .Where(inside => inside.RelationTo(outside) == ContourRelation.EnclosedBy)
                 .ToList();
-            
-            results.Add(new Body(outside, insides));
+
+            throw new NotImplementedException();
+            // results.Add(new Body(outside, insides));
         }
 
         return results.ToArray();

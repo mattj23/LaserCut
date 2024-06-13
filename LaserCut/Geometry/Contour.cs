@@ -149,6 +149,25 @@ public class Contour : Loop<ContourPoint>, IHasBounds
         }
         ResetCachedValues();
     }
+    
+    /// <summary>
+    /// Translate the contour in place by the given vector.
+    /// </summary>
+    /// <param name="v"></param>
+    public void Translate(Vector2D v)
+    {
+        Transform(Isometry2.Translate(v));
+    }
+
+    /// <summary>
+    /// Translate the contour in place by the given x and y values.
+    /// </summary>
+    /// <param name="tx"></param>
+    /// <param name="ty"></param>
+    public void Translate(double tx, double ty)
+    {
+        Transform(Isometry2.Translate(tx, ty));
+    }
 
     /// <summary>
     /// Mirror the contour in place across the given line.  
@@ -294,6 +313,21 @@ public class Contour : Loop<ContourPoint>, IHasBounds
         }
 
         return newContour;
+    }
+    
+    /// <summary>
+    /// Return a new contour which is the result of offsetting the contour by a specified distance and then repairing
+    /// any self intersections.  This method will split the contour into non-self-intersecting loops and return the
+    /// one which has the closest area to the original contour.  This will function correctly for both positive and
+    /// negative area contours when small offsets are used and the contour does not split into multiple loops.
+    /// </summary>
+    /// <param name="distance">The distance to offset</param>
+    /// <returns></returns>
+    public Contour OffsetAndRepaired(double distance)
+    {
+        var offset = Offset(distance);
+        var loops = offset.NonSelfIntersectingLoops();
+        return loops.OrderBy(l => Math.Abs(l.Area - Area)).First();
     }
 
     /// <summary>

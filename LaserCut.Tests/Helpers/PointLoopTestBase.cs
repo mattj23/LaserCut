@@ -35,17 +35,17 @@ public class PointLoopTestBase
         Assert.Equal(expected, values);
     }
     
-    protected void AssertBodyInner(Body body, params PointLoop[] expected)
-    {
-        var inners = body.Inners.ToList();
-        Assert.Equal(expected.Length, inners.Count);
-        foreach (var loop in expected)
-        {
-            var match = TakeMatch(loop.ToItemArray(), inners);
-            AssertLoop(loop.ToItemArray(), match);
-        }
-    }
-    
+    // protected void AssertBodyInner(Body body, params PointLoop[] expected)
+    // {
+    //     var inners = body.Inners.ToList();
+    //     Assert.Equal(expected.Length, inners.Count);
+    //     foreach (var loop in expected)
+    //     {
+    //         var match = TakeMatch(loop.ToItemArray(), inners);
+    //         AssertLoop(loop.ToItemArray(), match);
+    //     }
+    // }
+
     protected PointLoop Rect(double x0, double y0, double width, double height)
     {
         var loop = new PointLoop();
