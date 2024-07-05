@@ -155,15 +155,15 @@ public class Body : IHasBounds
     /// result will be a new set of bodies which are the result of the operation.
     /// </summary>
     /// <param name="tool"></param>
-    public Body[] Operate(BoundaryLoop tool)
-    {
-        if (tool.IsPositive)
-        {
-            return this.OperatePositive(tool);
-        }
-        else
-        {
-            return this.OperateNegative(tool);
-        }
-    }
+    // public Body[] Operate(BoundaryLoop tool)
+    // {
+    //     if (tool.IsPositive)
+    //     {
+    //         return this.OperatePositive(tool);
+    //     }
+    //     else
+    //     {
+    //         return this.OperateNegative(tool);
+    //     }
+    // }
 }

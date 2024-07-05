@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using LaserCut.Geometry;
 using MathNet.Spatial.Euclidean;
 
@@ -53,14 +54,22 @@ public static class BoundaryOps
             
             // The two shapes have intersection, so we need to compute the result
             ShapeRelation.Intersects => (BoundaryOpResult.Merged,
-                OperateFromPairs(l0, l1, intersections, OpType.Intersection)),
+                OperateFromPairs(l0, l1, intersections, OpType.Union)),
             _ => throw new ArgumentOutOfRangeException(nameof(relation), relation, null)
         };
     }
     
     private static BoundaryLoop[] OperateFromPairs(BoundaryLoop l0, BoundaryLoop l1, IntersectionPair[] pairs, OpType opType)
     {
-        var workingPairs = pairs.ToList();
+        // Filter out any pairs which are not valid for the operation type
+        var workingPairs = opType switch {
+            OpType.Union => pairs.Where(i => i.FirstExitsSecond || i.SecondExitsFirst).ToList(),
+            OpType.Intersection => pairs.Where(i => i.FirstEntersSecond || i.SecondEntersFirst).ToList(),
+            _ => throw new ArgumentOutOfRangeException(nameof(opType), opType, null)
+        };
+        if (workingPairs.Count == 0)
+            throw new UnreachableException();
+        
         var results = new List<BoundaryLoop>();
         while (ExtractOneLoop(l0, l1, workingPairs, opType) is { } loop)
         {
@@ -70,17 +79,23 @@ public static class BoundaryOps
         return results.ToArray();
     }
     
+    private static OpStart GetStart(List<IntersectionPair> filteredPairs, OpType opType)
+    {
+        var startPair = filteredPairs[0];
+        var onL0 = opType switch {
+            OpType.Union => startPair.FirstExitsSecond,
+            OpType.Intersection => startPair.FirstEntersSecond,
+            _ => throw new ArgumentOutOfRangeException(nameof(opType), opType, null)
+        };
+        return new OpStart(onL0, startPair);
+    }
+    
     private static BoundaryLoop? ExtractOneLoop(BoundaryLoop l0, BoundaryLoop l1, List<IntersectionPair> pairs, OpType opType)
     {
+        // The pairs should already be filtered to only include valid pairs for the operation type
         if (pairs.Count == 0) return null;
-        
-        // First we want to find a starting intersection pair, which is a location where we know we're starting on a
-        // valid section of the final boundary.
-        var start = FindStart(pairs, opType);
-        
-        // If no such intersection exists, there are no portions of either boundary that will remain after the merge
-        // with an intersection still in the working list of pairs
-        if (start is null) return null;
+
+        var start = GetStart(pairs, opType);
 
         // We have a starting intersection, so we can begin the merge process.  We'll create a new contour to hold the
         // merged result, and we'll maintain a write cursor pointing at its tail.  We'll begin by adding the starting
@@ -198,18 +213,9 @@ public static class BoundaryOps
         {
             // We want to check if there are any more valid intersections on the current entity that are further along
             // than the last inserted length.  The `more` list will contain all such intersections.
-            var more = (IsOnL0 switch
-            {
-                true when _opType is OpType.Union => WorkingPairs
-                    .Where(i => i.First.Element.Index == Read.CurrentId && i.First.L > LastL && i.FirstExitsSecond),
-                true when _opType is OpType.Intersection => WorkingPairs
-                    .Where(i => i.First.Element.Index == Read.CurrentId && i.First.L > LastL && i.FirstEntersSecond),
-                false when _opType is OpType.Union => WorkingPairs
-                    .Where(i => i.Second.Element.Index == Read.CurrentId && i.Second.L > LastL && i.SecondExitsFirst),
-                false when _opType is OpType.Intersection => WorkingPairs
-                    .Where(i => i.Second.Element.Index == Read.CurrentId && i.Second.L > LastL && i.SecondEntersFirst),
-                _ => throw new InvalidOperationException("Invalid operation type")
-            }).ToList();
+            var more = IsOnL0 
+                ? WorkingPairs.Where(i => i.First.Element.Index == Read.CurrentId && i.First.L > LastL).ToList()
+                : WorkingPairs.Where(i => i.Second.Element.Index == Read.CurrentId && i.Second.L > LastL).ToList();
             
             // If the `more` list is empty, there's nothing for us to do, and we can return null to indicate that this
             // entity is clear of further intersections.
@@ -231,27 +237,6 @@ public static class BoundaryOps
         }
     }
 
-    private static OpStart? FindStart(IReadOnlyList<IntersectionPair> pairs, OpType opType)
-    {
-        var start = opType switch
-        {
-            OpType.Union => pairs.FirstOrDefault(i => i.FirstExitsSecond || i.SecondExitsFirst),
-            OpType.Intersection => pairs.FirstOrDefault(i => i.FirstEntersSecond || i.SecondEntersFirst),
-            _ => throw new ArgumentOutOfRangeException(nameof(opType), opType, null)
-        };
-        
-        if (start.Empty) return null;
-        
-        var isL0 = opType switch
-        {
-            OpType.Union => start.FirstExitsSecond,
-            OpType.Intersection => start.FirstEntersSecond,
-            _ => throw new ArgumentOutOfRangeException(nameof(opType), opType, null)
-        };
-        
-        return new OpStart(isL0, start);
-    }
-    
     // public static (MutateResult, BoundaryLoop[]) Mutate(this BoundaryLoop working, BoundaryLoop tool)
     // {
     //
