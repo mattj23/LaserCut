@@ -26,7 +26,7 @@ public class IntersectionContourTests
         var c0 = BoundaryLoop.Circle(0, 0, 1);
         var c1 = BoundaryLoop.Circle(1, 0, 1);
         
-        Assert.Equal(ContourRelation.Intersects, c0.RelationTo(c1).Item1);
+        Assert.Equal(BoundaryRelation.Intersects, c0.LoopRelationTo(c1).Item1);
     }
     
     [Fact]
@@ -35,8 +35,8 @@ public class IntersectionContourTests
         var c0 = BoundaryLoop.Circle(0, 0, 2);
         var c1 = BoundaryLoop.Circle(0, 0, 1);
         
-        Assert.Equal(ContourRelation.Encloses, c0.RelationTo(c1).Item1);
-        Assert.Equal(ContourRelation.EnclosedBy, c1.RelationTo(c0).Item1);
+        Assert.Equal(BoundaryRelation.Encloses, c0.LoopRelationTo(c1).Item1);
+        Assert.Equal(BoundaryRelation.EnclosedBy, c1.LoopRelationTo(c0).Item1);
     }
     
     [Fact]
@@ -45,7 +45,7 @@ public class IntersectionContourTests
         var c0 = BoundaryLoop.Circle(0, 0, 1);
         var c1 = BoundaryLoop.Circle(3, 0, 1);
         
-        Assert.Equal(ContourRelation.DisjointTo, c0.RelationTo(c1).Item1);
+        Assert.Equal(BoundaryRelation.DisjointTo, c0.LoopRelationTo(c1).Item1);
     }
 
     [Fact]

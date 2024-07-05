@@ -1,6 +1,6 @@
 ﻿namespace LaserCut.Geometry;
 
-public enum ContourRelation
+public enum BoundaryRelation
 {
     /// <summary>
     /// Disjoint means that the first contour and the second contour do not share any of the same space.  They do not

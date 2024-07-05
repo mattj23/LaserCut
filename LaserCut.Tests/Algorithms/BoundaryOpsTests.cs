@@ -5,7 +5,7 @@ using LaserCut.Tests.Plotting;
 
 namespace LaserCut.Tests.Algorithms;
 
-public class ShapeOpsTests : ShapeOpTestBase
+public class BoundaryOpsTests : ShapeOpTestBase
 {
     [Fact]
     public void MergeOverlappingPositiveSimple()

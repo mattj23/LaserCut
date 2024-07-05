@@ -397,6 +397,18 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         var positions = Bvh.Intersections(ray);
         return EnclosesPoint.Check(ray, positions);
     }
+    
+    /// <summary>
+    /// Determines whether the boundary loop *includes* the specified point.  This is similar to `Encloses`, but
+    /// accounts for the direction of the loop.  A point is included if it is enclosed and the loop is positive, or if
+    /// it is not enclosed and the loop is negative.
+    /// </summary>
+    /// <param name="p"></param>
+    /// <returns></returns>
+    public bool Includes(Point2D p)
+    {
+        return Encloses(p) && IsPositive || !Encloses(p) && !IsPositive;
+    }
 
     /// <summary>
     /// Calculates all intersections between this contour and another contour, returning the results as an array of
@@ -411,25 +423,25 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     }
     
     /// <summary>
-    /// Determines the intersection/spatial relationship between this contour and another contour. The relationship
-    /// will be either that the contours are disjoint, one is enclosed by the other, one encloses the other, or they
+    /// Determines the loop intersection/spatial relationship between this loop and another. The relationship
+    /// will be either that the loops are disjoint, one is enclosed by the other, one encloses the other, or they
     /// intersect in some way.
     ///
-    /// The resulting enum value can be interpreted as a verb describing the relation of *this contour* to the
-    /// *other contour*. For example, if the result is `EnclosedBy`, interpret it as "this contour is enclosed by the
-    /// other contour".  If the result is `Encloses`, interpret it as "this contour encloses the other contour".
+    /// The resulting enum value can be interpreted as a verb describing the relation of *this loop* to the
+    /// *other loop*. For example, if the result is `EnclosedBy`, interpret it as "this loop is enclosed by the
+    /// other loop".  If the result is `Encloses`, interpret it as "this loop encloses the other loop".
     ///
-    /// Enclosure is defined as the relationship where the boundary of one contour never exits the boundary of the other
-    /// contour.  Two identical contours will be mutually enclosing, although this method will only return one or
+    /// Enclosure is defined as the relationship where the path of one loop never exits the space enclosed by the other
+    /// loop.  Two identical loops will be mutually enclosing, although this method will only return one or
     /// the other.
     ///
-    /// Note that enclosure does not imply anything about whether the contours exist on the positive or negative side
+    /// Note that enclosure does not imply anything about whether the loops exist on the positive or negative side
     /// of the boundary.  To determine this, you must interpret the `IsPositive` property of each contour against the
-    /// specific relationship.
+    /// specific relationship, or use the `ShapeRelationTo` method.
     /// </summary>
     /// <param name="other">The other contour to test the relationship to</param>
     /// <returns>The relation of *this contour* to the *other contour* and a list of any intersections.</returns>
-    public (ContourRelation, IntersectionPair[]) RelationTo(BoundaryLoop other)
+    public (BoundaryRelation, IntersectionPair[]) LoopRelationTo(BoundaryLoop other)
     {
         var intersections = IntersectionPairs(other);
 
@@ -445,22 +457,82 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             var secondEnters = reversed.Any(i => i.FirstEntersSecond);
             
             if ((other.IsPositive && !firstExits) || (!other.IsPositive && !firstEnters)) 
-                return (ContourRelation.EnclosedBy, intersections);
+                return (BoundaryRelation.EnclosedBy, intersections);
             
             if ((IsPositive && !secondExits) || (!IsPositive && !secondEnters)) 
-                return (ContourRelation.Encloses, intersections);
+                return (BoundaryRelation.Encloses, intersections);
 
 
-            return (ContourRelation.Intersects, intersections);
+            return (BoundaryRelation.Intersects, intersections);
         }
 
         // Is the other loop enclosing this loop?
-        if (other.Encloses(Head.Point)) return (ContourRelation.EnclosedBy, []);
+        if (other.Encloses(Head.Point)) return (BoundaryRelation.EnclosedBy, []);
         
         // Is this loop enclosing the other loop?
-        if (Encloses(other.Head.Point)) return (ContourRelation.Encloses, []);
+        if (Encloses(other.Head.Point)) return (BoundaryRelation.Encloses, []);
 
-        return (ContourRelation.DisjointTo, []);
+        return (BoundaryRelation.DisjointTo, []);
+    }
+
+    /// <summary>
+    /// Determine the relation between the two simple shapes defined by this loop and another loop.  This will return
+    /// a verb describing the relationship between the two shapes, and a list of any intersections between the two
+    /// boundaries.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public (ShapeRelation, IntersectionPair[]) ShapeRelationTo(BoundaryLoop other)
+    {
+        var (relation, intersections) = LoopRelationTo(other);
+        bool hasIntersections = intersections.Length > 0;
+        
+        var label = relation switch
+        {
+            // If the two loops are disjoint, the result will be according to the following table:
+            //  * this (positive) other (positive) => DisjointTo
+            //  * this (positive) other (negative) => IsSubsetOf
+            //  * this (negative) other (positive) => IsSupersetOf
+            //  * this (negative) other (negative) => Intersects
+            BoundaryRelation.DisjointTo => (IsPositive, other.IsPositive) switch
+            {
+                (true, true) => ShapeRelation.DisjointTo,
+                (true, false) => ShapeRelation.IsSubsetOf,
+                (false, true) => ShapeRelation.IsSupersetOf,
+                (false, false) => ShapeRelation.Intersects,
+            },
+            
+            // If this loop encloses the other loop, the result will be according to the following table:
+            //  * this (positive) other (positive) => IsSupersetOf
+            //  * this (positive) other (negative) => Intersects
+            //  * this (negative) other (positive) => DisjointTo (but may have intersections?)
+            //  * this (negative) other (negative) => IsSubsetOf
+            BoundaryRelation.Encloses => (IsPositive, other.IsPositive) switch
+            {
+                (true, true) => ShapeRelation.IsSupersetOf,
+                (true, false) => ShapeRelation.Intersects,
+                (false, true) => hasIntersections ? ShapeRelation.Intersects : ShapeRelation.DisjointTo,
+                (false, false) => ShapeRelation.IsSubsetOf,
+            },
+            
+            // If the other loop encloses this loop, the result will be according to the following table:
+            //  * this (positive) other (positive) => IsSubsetOf 
+            //  * this (positive) other (negative) => DisjointTo (but may have intersections?)
+            //  * this (negative) other (positive) => Intersects
+            //  * this (negative) other (negative) => IsSupersetOf
+            BoundaryRelation.EnclosedBy => (IsPositive, other.IsPositive) switch
+            {
+                (true, true) => ShapeRelation.IsSubsetOf,
+                (true, false) => hasIntersections ? ShapeRelation.Intersects : ShapeRelation.DisjointTo,
+                (false, true) => ShapeRelation.Intersects,
+                (false, false) => ShapeRelation.IsSupersetOf,
+            },
+            
+            BoundaryRelation.Intersects => ShapeRelation.Intersects,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        
+        return (label, intersections);
     }
 
     /// <summary>

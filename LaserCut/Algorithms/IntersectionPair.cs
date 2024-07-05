@@ -38,10 +38,19 @@ public readonly record struct IntersectionPair(Position First, Position Second)
     /// </summary>
     public bool FirstEntersSecond => FirstDirDotSecondNorm < 0 && First.L < First.Element.Length;
     
+    public bool SecondExitsFirst => SecondDirDotFirstNorm > 0 && Second.L < Second.Element.Length;
+    
+    public bool SecondEntersFirst => SecondDirDotFirstNorm < 0 && Second.L < Second.Element.Length;
+    
     /// <summary>
     /// Shortcut for the dot product of the direction of the first surface and the normal of the second surface.
     /// </summary>
     private double FirstDirDotSecondNorm => First.Surface.Direction.DotProduct(Second.Surface.Normal);
+    
+    /// <summary>
+    /// Shortcut for the dot product of the direction of the second surface and the normal of the first surface.
+    /// </summary>
+    private double SecondDirDotFirstNorm => Second.Surface.Direction.DotProduct(First.Surface.Normal);
 
     /// <summary>
     /// Checks if the two intersection pairs are equivalent, meaning that the elements are the same and the point of
