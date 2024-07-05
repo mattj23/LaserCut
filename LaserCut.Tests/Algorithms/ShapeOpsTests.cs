@@ -10,8 +10,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void MergeOverlappingPositiveSimple()
     {
-        var loop0 = Contour.Rectangle(-2, -2, 4, 4);
-        var loop1 = Contour.Rectangle(-3, -1, 6, 2);
+        var loop0 = BoundaryLoop.Rectangle(-2, -2, 4, 4);
+        var loop1 = BoundaryLoop.Rectangle(-3, -1, 6, 2);
         var expected = ExpectedPoints((-2, -2), (2, -2), (2, -1), (3, -1), (3, 1), (2, 1), (2, 2), (-2, 2), (-2, 1),
             (-3, 1), (-3, -1), (-2, -1));
 
@@ -27,8 +27,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void MergeOverlappingNegativeSimple()
     {
-        var loop0 = Contour.Rectangle(-2, -2, 4, 4).Reversed();
-        var loop1 = Contour.Rectangle(-3, -1, 6, 2).Reversed();
+        var loop0 = BoundaryLoop.Rectangle(-2, -2, 4, 4).Reversed();
+        var loop1 = BoundaryLoop.Rectangle(-3, -1, 6, 2).Reversed();
         var expected = ExpectedPoints((-2, -2), (2, -2), (2, -1), (3, -1), (3, 1), (2, 1), (2, 2), (-2, 2), (-2, 1),
             (-3, 1), (-3, -1), (-2, -1)).Reverse().ToArray();
     
@@ -43,8 +43,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void MergeCutoutPositiveSimple()
     {
-        var loop0 = Contour.Rectangle(0, 0, 2, 3);
-        var loop1 = Contour.Rectangle(1, 1, 2, 1).Reversed();
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3);
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 2, 1).Reversed();
         var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3));
         
         var (kind, result) = loop0.Mutate(loop1);
@@ -58,8 +58,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void MergeCutoutNegativeSimple()
     {
-        var loop0 = Contour.Rectangle(0, 0, 2, 3).Reversed();
-        var loop1 = Contour.Rectangle(1, 1, 2, 1);
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3).Reversed();
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 2, 1);
         
         var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3))
             .Reverse()
@@ -76,8 +76,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void MergePositiveSharedSide()
     {
-        var loop0 = Contour.Rectangle(0, 0, 1, 3);
-        var loop1 = Contour.Rectangle(1, 1, 1, 1);
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 3);
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1);
         var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (1, 2), (1, 3), (0, 3));
         
         var (kind, result) = loop0.Mutate(loop1);
@@ -91,8 +91,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void MergeNegativeSharedSide()
     {
-        var loop0 = Contour.Rectangle(0, 0, 1, 3).Reversed();
-        var loop1 = Contour.Rectangle(1, 1, 1, 1).Reversed();
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 3).Reversed();
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
     
         var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (1, 2), (1, 3), (0, 3))
             .Reverse()
@@ -109,8 +109,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void CutoutPositiveSharedSide()
     {
-        var loop0 = Contour.Rectangle(0, 0, 2, 3);
-        var loop1 = Contour.Rectangle(1, 1, 1, 1).Reversed();
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3);
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
         
         var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3));
         
@@ -125,8 +125,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void CutoutNegativeSharedSide()
     {
-        var loop0 = Contour.Rectangle(0, 0, 2, 3).Reversed();
-        var loop1 = Contour.Rectangle(1, 1, 1, 1);
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3).Reversed();
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1);
         
         var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3))
             .Reverse()
@@ -143,8 +143,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void CutoutPositiveSharedCorner()
     {
-        var loop0 = Contour.Rectangle(0, 0, 2, 2);
-        var loop1 = Contour.Rectangle(1, 0, 1, 1).Reversed();
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 2);
+        var loop1 = BoundaryLoop.Rectangle(1, 0, 1, 1).Reversed();
     
         var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (0, 2));
         
@@ -159,8 +159,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void CutSplit()
     {
-        var loop0 = Contour.Rectangle(-2, -2, 4, 4);
-        var loop1 = Contour.Rectangle(-3, -1, 6, 2).Reversed();
+        var loop0 = BoundaryLoop.Rectangle(-2, -2, 4, 4);
+        var loop1 = BoundaryLoop.Rectangle(-3, -1, 6, 2).Reversed();
         var expected = new[]
         {
             ExpectedPoints((-2, -2), (2, -2), (2, -1), (-2, -1)),
@@ -185,8 +185,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void OperationDisjoint()
     {
-        var loop0 = Contour.Rectangle(0, 0, 1, 1);
-        var loop1 = Contour.Rectangle(2, 2, 1, 1);
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
+        var loop1 = BoundaryLoop.Rectangle(2, 2, 1, 1);
 
         var (a, b) = loop0.Mutate(loop1);
         Assert.Equal(MutateResult.Disjoint, a);
@@ -197,8 +197,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void OperationSubsumedWithoutIntersections()
     {
-        var loop0 = Contour.Rectangle(0, 0, 1, 1);
-        var loop1 = Contour.Rectangle(-1, -1, 3, 3);
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
+        var loop1 = BoundaryLoop.Rectangle(-1, -1, 3, 3);
 
         var (a, b) = loop0.Mutate(loop1);
         Assert.Equal(MutateResult.Subsumed, a);
@@ -209,8 +209,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void OperationSubsumedWithIntersections()
     {
-        var loop0 = Contour.Rectangle(0, 0, 1, 1);
-        var loop1 = Contour.Rectangle(0, 0, 1, 2);
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
+        var loop1 = BoundaryLoop.Rectangle(0, 0, 1, 2);
         
         var (a, b) = loop0.Mutate(loop1);
         Assert.Equal(MutateResult.Subsumed, a);
@@ -221,8 +221,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void OperationDestroyedNoIntersections()
     {
-        var loop0 = Contour.Rectangle(0, 0, 1, 1);
-        var loop1 = Contour.Rectangle(-1, -1, 3, 3).Reversed();
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
+        var loop1 = BoundaryLoop.Rectangle(-1, -1, 3, 3).Reversed();
 
         var (a, b) = loop0.Mutate(loop1);
         Assert.Equal(MutateResult.Destroyed, a);
@@ -232,8 +232,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void OperationDestroyedWithIntersections()
     {
-        var loop0 = Contour.Rectangle(0, 0, 1, 1);
-        var loop1 = Contour.Rectangle(0, 0, 1, 2).Reversed();
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
+        var loop1 = BoundaryLoop.Rectangle(0, 0, 1, 2).Reversed();
         
         var (a, b) = loop0.Mutate(loop1);
         Assert.Equal(MutateResult.Destroyed, a);
@@ -243,8 +243,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void OperationShapeEnclosesTool()
     {
-        var loop0 = Contour.Rectangle(-1, -1, 3, 3);
-        var loop1 = Contour.Rectangle(0, 0, 1, 1);
+        var loop0 = BoundaryLoop.Rectangle(-1, -1, 3, 3);
+        var loop1 = BoundaryLoop.Rectangle(0, 0, 1, 1);
         
         var (a, b) = loop0.Mutate(loop1);
         Assert.Equal(MutateResult.ShapeEnclosesTool, a);
@@ -255,8 +255,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void DegenerateMerge()
     {
-        var loop0 = Contour.Rectangle(1, 1, 1, 1).Reversed();
-        var loop1 = Contour.Rectangle(2, 1, 1, 1.5).Reversed();
+        var loop0 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
+        var loop1 = BoundaryLoop.Rectangle(2, 1, 1, 1.5).Reversed();
         var (_, b) = loop0.Mutate(loop1);
         Assert.Single(b);
         var result = b[0];
@@ -292,7 +292,7 @@ public class ShapeOpsTests : ShapeOpTestBase
         var outerPts = ExpectedPoints((4, 1.75), (7, 1.75), (7, 3), (0, 3), (0, 0), (7, 0), (7, 1.25), (4, 1.25), (4, 1),
             (3, 1), (3, 2), (4, 2));
         var outer = Loop(outerPts);
-        var tool = Contour.Rectangle(5, 1, 1, 1).Reversed();
+        var tool = BoundaryLoop.Rectangle(5, 1, 1, 1).Reversed();
         
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 1.25),
             (6, 1.25), (6, 1), (5, 1), (5, 1.25), (4, 1.25), (4, 1), (3, 1), (3, 2), (4, 2), (4, 1.75), (5, 1.75),
@@ -308,8 +308,8 @@ public class ShapeOpsTests : ShapeOpTestBase
     [Fact]
     public void CircleMerge()
     {
-        var c0 = Contour.Circle(0, 0, 1, false);
-        var c1 = Contour.Circle(0, 1, 1, false);
+        var c0 = BoundaryLoop.Circle(0, 0, 1, false);
+        var c1 = BoundaryLoop.Circle(0, 1, 1, false);
         
         var (_, b) = c0.Mutate(c1);
         Assert.Single(b);

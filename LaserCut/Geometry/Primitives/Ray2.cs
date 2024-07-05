@@ -18,7 +18,7 @@ public class Ray2 : Line2, IBvhIntersect
         return Intersects(box);
     }
 
-    public Position[] Intersections(IContourElement element)
+    public Position[] Intersections(IBoundaryElement element)
     {
         var results = new List<Position>();
         foreach (var position in element.IntersectionsWithLine(this))

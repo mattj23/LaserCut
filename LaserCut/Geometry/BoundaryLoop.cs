@@ -8,19 +8,19 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
 
-public abstract record ContourPoint(Point2D Point)
+public abstract record BoundaryPoint(Point2D Point)
 {
-    public abstract ContourPoint Copy();
+    public abstract BoundaryPoint Copy();
 }
 
-public record ContourLine(Point2D Point) : ContourPoint(Point)
+public record BoundaryLine(Point2D Point) : BoundaryPoint(Point)
 {
-    public override ContourPoint Copy() => new ContourLine(Point);
+    public override BoundaryPoint Copy() => new BoundaryLine(Point);
 }
 
-public record ContourArc(Point2D Point, Point2D Center, bool Clockwise) : ContourPoint(Point)
+public record BoundaryArc(Point2D Point, Point2D Center, bool Clockwise) : BoundaryPoint(Point)
 {
-    public override ContourPoint Copy() => new ContourArc(Point, Center, Clockwise);
+    public override BoundaryPoint Copy() => new BoundaryArc(Point, Center, Clockwise);
 }
 
 /// <summary>
@@ -49,29 +49,29 @@ public record ContourArc(Point2D Point, Point2D Center, bool Clockwise) : Contou
 /// ending point, the arc will be considered a full circle.
 /// 
 /// </summary>
-public class Contour : Loop<ContourPoint>, IHasBounds
+public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
 {
     private Bvh? _bvh = null;
-    private List<IContourElement>? _elements = null;
+    private List<IBoundaryElement>? _elements = null;
     private double _area = double.NaN;
     
     /// <summary>
     /// Create a new contour with a unique identifier.
     /// </summary>
     /// <param name="id"></param>
-    public Contour(Guid id) { Id = id; }
+    public BoundaryLoop(Guid id) { Id = id; }
     
     /// <summary>
     /// Create a new contour. A unique identifier will be generated automatically.
     /// </summary>
-    public Contour() : this(Guid.NewGuid()) { }
+    public BoundaryLoop() : this(Guid.NewGuid()) { }
 
     /// <summary>
     /// Create a new contour with a unique identifier and a list of initial entities.
     /// </summary>
     /// <param name="id">The uuid to assign to this contour</param>
     /// <param name="entities">A list of initial entities which will be added to the contour at creation</param>
-    public Contour(Guid id, IEnumerable<ContourPoint> entities)
+    public BoundaryLoop(Guid id, IEnumerable<BoundaryPoint> entities)
     {
         Id = id;
         var cursor = GetCursor();
@@ -85,7 +85,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// Create a new contour with a list of initial entities.  A unique identifier will be generated automatically.
     /// </summary>
     /// <param name="entities">A list of initial entities which will be added to the contour at creation</param>
-    public Contour(IEnumerable<ContourPoint> entities) : this(Guid.NewGuid(), entities) { }
+    public BoundaryLoop(IEnumerable<BoundaryPoint> entities) : this(Guid.NewGuid(), entities) { }
         
     // ==============================================================================================================
     // Properties
@@ -101,7 +101,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// Gets the list of geometric elements that define the contour.  This will trigger the construction of the
     /// geometric elements. If the contour is in an invalid state, an exception will be thrown.
     /// </summary>
-    public IReadOnlyList<IContourElement> Elements => _elements ??= BuildElements();
+    public IReadOnlyList<IBoundaryElement> Elements => _elements ??= BuildElements();
     
     /// <summary>
     /// Gets the bounding volume hierarchy for the contour for accelerated geometric operations.  This will trigger
@@ -142,8 +142,8 @@ public class Contour : Loop<ContourPoint>, IHasBounds
         {
             node.Value.Item = node.Value.Item switch
             {
-                ContourArc arc => new ContourArc(arc.Point.Transformed(t), arc.Center.Transformed(t), arc.Clockwise),
-                ContourLine line => new ContourLine(line.Point.Transformed(t)),
+                BoundaryArc arc => new BoundaryArc(arc.Point.Transformed(t), arc.Center.Transformed(t), arc.Clockwise),
+                BoundaryLine line => new BoundaryLine(line.Point.Transformed(t)),
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
@@ -179,8 +179,8 @@ public class Contour : Loop<ContourPoint>, IHasBounds
         {
             node.Value.Item = node.Value.Item switch
             {
-                ContourArc arc => new ContourArc(cl.Mirror(arc.Point), cl.Mirror(arc.Center), !arc.Clockwise),
-                ContourLine line => new ContourLine(cl.Mirror(line.Point)),
+                BoundaryArc arc => new BoundaryArc(cl.Mirror(arc.Point), cl.Mirror(arc.Center), !arc.Clockwise),
+                BoundaryLine line => new BoundaryLine(cl.Mirror(line.Point)),
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
@@ -204,7 +204,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// </summary>
     public new void Reverse()
     {
-        var elements = new Dictionary<int, ContourPoint>();
+        var elements = new Dictionary<int, BoundaryPoint>();
         
         // We will iterate through each entity in the contour in forward order and create its replacement.  Because the
         // entity is actually representing the definition of the border between itself and the next entity, each entity
@@ -214,8 +214,8 @@ public class Contour : Loop<ContourPoint>, IHasBounds
         {
             elements[a.Id] = a.Item switch
             {
-                ContourLine _ => new ContourLine(b.Item.Point),
-                ContourArc arc => new ContourArc(b.Item.Point, arc.Center, !arc.Clockwise),
+                BoundaryLine _ => new BoundaryLine(b.Item.Point),
+                BoundaryArc arc => new BoundaryArc(b.Item.Point, arc.Center, !arc.Clockwise),
                 _ => throw new NotImplementedException()
             };
         }
@@ -237,7 +237,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// </summary>
     /// <returns>A new `Contour` entity with a new id.</returns>
     [Pure]
-    public Contour Reversed()
+    public BoundaryLoop Reversed()
     {
         var working = Copy();
         working.Reverse();
@@ -256,7 +256,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// </summary>
     /// <param name="distance">The distance to offset the surface by</param>
     /// <returns>A new contour, which may have self-intersections</returns>
-    public Contour Offset(double distance)
+    public BoundaryLoop Offset(double distance)
     {
         /* Offsetting a contour is more complicated than offsetting a polyline, because the arc and segment boundaries
          * behave different. Instead of moving the vertices directly, we will have to perform the geometric offset
@@ -271,7 +271,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
         // previous neighbor to determine what its new start point is.  We will take advantage of the fact that 
         // arc element endpoints offset correctly, so we only need to compute the new start point for segments 
         // preceded by another segment.
-        var newContour = new Contour();
+        var newContour = new BoundaryLoop();
         var write = newContour.GetCursor();
 
         foreach (var item in IterItems())
@@ -323,7 +323,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// </summary>
     /// <param name="distance">The distance to offset</param>
     /// <returns></returns>
-    public Contour OffsetAndRepaired(double distance)
+    public BoundaryLoop OffsetAndRepaired(double distance)
     {
         var offset = Offset(distance);
         var loops = offset.NonSelfIntersectingLoops();
@@ -341,7 +341,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
 
         while (!visited.Contains(cursor.CurrentId))
         {
-            if (cursor.Current is ContourLine seg && cursor.PeekPrevious() is ContourLine prevSeg)
+            if (cursor.Current is BoundaryLine seg && cursor.PeekPrevious() is BoundaryLine prevSeg)
             {
                 var p0 = prevSeg.Point;
                 var p1 = seg.Point;
@@ -354,7 +354,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
                     continue;
                 }
             }
-            else if (cursor.Current is ContourArc arc && cursor.PeekPrevious() is ContourArc prvArc)
+            else if (cursor.Current is BoundaryArc arc && cursor.PeekPrevious() is BoundaryArc prvArc)
             {
                 // Look for arcs with the same center and direction
                 if (arc.Center.DistanceTo(prvArc.Center) < GeometryConstants.DistEquals &&
@@ -405,7 +405,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// </summary>
     /// <param name="other">The contour to test for intersections with</param>
     /// <returns>An array of intersection pairs where the first element is from *this* contour.</returns>
-    public IntersectionPair[] IntersectionPairs(Contour other)
+    public IntersectionPair[] IntersectionPairs(BoundaryLoop other)
     {
         return Bvh.Intersections(other.Bvh);
     }
@@ -429,7 +429,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// </summary>
     /// <param name="other">The other contour to test the relationship to</param>
     /// <returns>The relation of *this contour* to the *other contour* and a list of any intersections.</returns>
-    public (ContourRelation, IntersectionPair[]) RelationTo(Contour other)
+    public (ContourRelation, IntersectionPair[]) RelationTo(BoundaryLoop other)
     {
         var intersections = IntersectionPairs(other);
 
@@ -518,7 +518,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// <param name="split"></param>
     /// <returns></returns>
     [Pure]
-    public (Contour, Contour) SplitAtSelfIntersection(IntersectionPair split)
+    public (BoundaryLoop, BoundaryLoop) SplitAtSelfIntersection(IntersectionPair split)
     {
         /* Splitting at self-intersection
          * 
@@ -542,10 +542,10 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// </summary>
     /// <returns></returns>
     [Pure]
-    public Contour[] NonSelfIntersectingLoops()
+    public BoundaryLoop[] NonSelfIntersectingLoops()
     {
-        var final = new List<Contour>();
-        var working = new List<Contour> {this};
+        var final = new List<BoundaryLoop>();
+        var working = new List<BoundaryLoop> {this};
         
         while (working.Count > 0)
         {
@@ -578,9 +578,9 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// <param name="l1">THe distance at which to end on the end element</param>
     /// <returns>A new contour</returns>
     [Pure]
-    private Contour ExtractLoopFromTo(IContourElement e0, double l0, IContourElement e1, double l1)
+    private BoundaryLoop ExtractLoopFromTo(IBoundaryElement e0, double l0, IBoundaryElement e1, double l1)
     {
-        var contour = new Contour();
+        var contour = new BoundaryLoop();
         var write = contour.GetCursor();
         var read = GetCursor(e0.Index);
         
@@ -605,9 +605,9 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     // Management methods
     // ==============================================================================================================
 
-    public override Contour Copy()
+    public override BoundaryLoop Copy()
     {
-        var contour = new Contour();
+        var contour = new BoundaryLoop();
         var cursor = contour.GetCursor();
         foreach (var item in IterItems())
         {
@@ -617,12 +617,12 @@ public class Contour : Loop<ContourPoint>, IHasBounds
         return contour;
     }
 
-    public override IContourCursor GetCursor(int? id = null)
+    public override IBoundaryLoopCursor GetCursor(int? id = null)
     {
-        return new ContourCursor(this, id ?? GetTailId());
+        return new BoundaryLoopCursor(this, id ?? GetTailId());
     }
 
-    public override void OnItemChanged(ContourPoint item)
+    public override void OnItemChanged(BoundaryPoint item)
     {
         ResetCachedValues();
         base.OnItemChanged(item);
@@ -655,15 +655,15 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// </summary>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    private List<IContourElement> BuildElements()
+    private List<IBoundaryElement> BuildElements()
     {
-        var elements = new List<IContourElement>();
+        var elements = new List<IBoundaryElement>();
         foreach (var (a, b) in IterEdges())
         {
-            IContourElement e = a.Item switch
+            IBoundaryElement e = a.Item switch
             {
-                ContourLine line => new Segment(line.Point, b.Item.Point, a.Id),
-                ContourArc arc => Arc.FromEnds(arc.Point, b.Item.Point, arc.Center, arc.Clockwise, a.Id),
+                BoundaryLine line => new Segment(line.Point, b.Item.Point, a.Id),
+                BoundaryArc arc => Arc.FromEnds(arc.Point, b.Item.Point, arc.Center, arc.Clockwise, a.Id),
                 _ => throw new NotImplementedException()
             };
             elements.Add(e);
@@ -676,23 +676,23 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     // Contour Cursor
     // ==============================================================================================================
     
-    private class ContourCursor : LoopCursor, IContourCursor
+    private class BoundaryLoopCursor : LoopCursor, IBoundaryLoopCursor
     {
-        public ContourCursor(Loop<ContourPoint> loop, int nodeId) : base(loop, nodeId) { }
+        public BoundaryLoopCursor(Loop<BoundaryPoint> loop, int nodeId) : base(loop, nodeId) { }
 
-        protected override void OnItemAdded(ContourPoint item, int id)
+        protected override void OnItemAdded(BoundaryPoint item, int id)
         {
             base.OnItemAdded(item, id);
         }
 
         public int SegAbs(double x, double y)
         {
-            return InsertAfter(new ContourLine(new Point2D(x, y)));
+            return InsertAfter(new BoundaryLine(new Point2D(x, y)));
         }
         
         public int ArcAbs(double x, double y, double cx, double cy, bool cw)
         {
-            return InsertAfter(new ContourArc(new Point2D(x, y), new Point2D(cx, cy), cw));
+            return InsertAfter(new BoundaryArc(new Point2D(x, y), new Point2D(cx, cy), cw));
         }
         
         public int SegRel(double x, double y)
@@ -710,7 +710,7 @@ public class Contour : Loop<ContourPoint>, IHasBounds
             return ArcAbs(pv.X, pv.Y, cv.X, cv.Y, cw);
         }
 
-        public int? InsertFromElement(IContourElement? element)
+        public int? InsertFromElement(IBoundaryElement? element)
         {
             if (element == null) return null;
             return element switch
@@ -736,9 +736,9 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// <param name="radius">The radius of the circle to create</param>
     /// <param name="cw">True for a clockwise (negative) circle, false for a counter-clockwise (positive) circle</param>
     /// <returns>A newly created `Contour` object</returns>
-    public static Contour Circle(double cx, double cy, double radius, bool cw = false)
+    public static BoundaryLoop Circle(double cx, double cy, double radius, bool cw = false)
     {
-        var contour = new Contour();
+        var contour = new BoundaryLoop();
         var cursor = contour.GetCursor();
         cursor.ArcAbs(cx + radius, cy, cx, cy, cw);
         return contour;
@@ -752,9 +752,9 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// <param name="w">The width of the rectangle</param>
     /// <param name="h">The height of the rectangle</param>
     /// <returns>A newly created `Contour` object</returns>
-    public static Contour Rectangle(double x, double y, double w, double h)
+    public static BoundaryLoop Rectangle(double x, double y, double w, double h)
     {
-        var contour = new Contour();
+        var contour = new BoundaryLoop();
         var cursor = contour.GetCursor();
         cursor.SegAbs(x, y);
         cursor.SegRel(w, 0);
@@ -771,9 +771,9 @@ public class Contour : Loop<ContourPoint>, IHasBounds
     /// <param name="w">The width of the rectangle</param>
     /// <param name="h">The height of the rectangle</param>
     /// <returns>A newly created `Contour` object</returns>
-    public static Contour CenteredRectangle(double cx, double cy, double w, double h)
+    public static BoundaryLoop CenteredRectangle(double cx, double cy, double w, double h)
     {
-        var contour = new Contour();
+        var contour = new BoundaryLoop();
         var cursor = contour.GetCursor();
         cursor.SegAbs(cx - w / 2, cy - h / 2);
         cursor.SegRel(w, 0);
@@ -782,9 +782,9 @@ public class Contour : Loop<ContourPoint>, IHasBounds
         return contour;
     }
 
-    public static Contour Polygon(IEnumerable<Point2D> points)
+    public static BoundaryLoop Polygon(IEnumerable<Point2D> points)
     {
-        var contour = new Contour();
+        var contour = new BoundaryLoop();
         var cursor = contour.GetCursor();
         foreach (var p in points)
         {

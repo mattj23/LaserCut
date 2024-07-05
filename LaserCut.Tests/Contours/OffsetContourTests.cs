@@ -7,7 +7,7 @@ public class OffsetContourTests
     [Fact]
     public void SimpleOffsetCircle()
     {
-        var c = Contour.Circle(0, 0, 1);
+        var c = BoundaryLoop.Circle(0, 0, 1);
         var o = c.Offset(0.5);
 
         Assert.Equal(1.5 * 1.5 * Math.PI, o.Area, 1e-5);
@@ -20,7 +20,7 @@ public class OffsetContourTests
     [Fact]
     public void SimpleOffsetRectangle()
     {
-        var c = Contour.Rectangle(0, 0, 1, 1);
+        var c = BoundaryLoop.Rectangle(0, 0, 1, 1);
         var o = c.Offset(0.5);
 
         Assert.Equal(2 * 2, o.Area, 1e-5);
@@ -33,7 +33,7 @@ public class OffsetContourTests
     [Fact]
     public void SimpleOffsetHalfCircle()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
         cursor.ArcAbs(0, 0, 0, 1, false);
         cursor.SegAbs(0, 2);

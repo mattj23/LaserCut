@@ -4,7 +4,7 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry.Primitives;
 
-public class Segment : Line2, IContourElement
+public class Segment : Line2, IBoundaryElement
 {
     public Segment(double x0, double y0, double x1, double y1, int index) 
         : this(new Point2D(x0, y0), new Point2D(x1, y1), index) { }
@@ -43,7 +43,7 @@ public class Segment : Line2, IContourElement
         return Bounds.Intersects(box);
     }
 
-    public Position[] Intersections(IContourElement element)
+    public Position[] Intersections(IBoundaryElement element)
     {
         var results = new List<Position>();
         foreach (var position in element.IntersectionsWithLine(this))
@@ -137,7 +137,7 @@ public class Segment : Line2, IContourElement
         return results.ToArray();
     }
 
-    public IContourElement? SplitAfter(double length)
+    public IBoundaryElement? SplitAfter(double length)
     {
         if (length >= Length - GeometryConstants.DistEquals)
         {
@@ -147,7 +147,7 @@ public class Segment : Line2, IContourElement
         return new Segment(PointAt(length), End, -1);
     }
 
-    public IContourElement? SplitBefore(double length)
+    public IBoundaryElement? SplitBefore(double length)
     {
         if (length <= GeometryConstants.DistEquals)
         {
@@ -157,7 +157,7 @@ public class Segment : Line2, IContourElement
         return new Segment(Start, PointAt(length), -1);
     }
 
-    public IContourElement OffsetBy(double distance)
+    public IBoundaryElement OffsetBy(double distance)
     {
         var offset = Normal * distance;
         return new Segment(Start + offset, End + offset, -1);

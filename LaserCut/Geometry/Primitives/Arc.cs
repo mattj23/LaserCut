@@ -4,7 +4,7 @@ using MathNet.Spatial.Units;
 
 namespace LaserCut.Geometry.Primitives;
 
-public class Arc : IContourElement
+public class Arc : IBoundaryElement
 {
     public Arc(Circle2 circle, double theta0, double theta, int index = 0)
     {
@@ -221,7 +221,7 @@ public class Arc : IContourElement
         return results.ToArray();
     }
 
-    public IContourElement? SplitAfter(double length)
+    public IBoundaryElement? SplitAfter(double length)
     {
         if (length >= Length - GeometryConstants.DistEquals)
         {
@@ -232,7 +232,7 @@ public class Arc : IContourElement
         return FromEnds(start, End, Center, !IsCcW, -1);
     }
 
-    public IContourElement? SplitBefore(double length)
+    public IBoundaryElement? SplitBefore(double length)
     {
         if (length <= GeometryConstants.DistEquals)
         {
@@ -243,7 +243,7 @@ public class Arc : IContourElement
         return FromEnds(Start, end, Center, !IsCcW, -1);
     }
 
-    public IContourElement OffsetBy(double distance)
+    public IBoundaryElement OffsetBy(double distance)
     {
         // If the arc is ccw, the offset is added to the radius, if it is cw, the offset is subtracted
         var radiusChange = IsCcW ? distance : -distance;
@@ -308,7 +308,7 @@ public class Arc : IContourElement
         return Bounds.Intersects(box);
     }
 
-    public Position[] Intersections(IContourElement element)
+    public Position[] Intersections(IBoundaryElement element)
     {
         var results = new List<Position>();
         foreach (var position in element.IntersectionsWithCircle(Circle))

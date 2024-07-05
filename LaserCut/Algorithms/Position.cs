@@ -8,7 +8,7 @@ namespace LaserCut.Algorithms;
 /// </summary>
 /// <param name="L">The length (in world units) along the associated element referenced by the position.</param>
 /// <param name="Element">The element of the manifold on which the position exists.</param>
-public readonly record struct Position(double L, IContourElement Element)
+public readonly record struct Position(double L, IBoundaryElement Element)
 {
     /// <summary>
     /// Gets the surface triplet (point, direction, normal) at the position on the element.

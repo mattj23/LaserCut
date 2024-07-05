@@ -26,7 +26,7 @@ public class DebugPlot
         }
     }
     
-    public void Add(Contour loop, string label)
+    public void Add(BoundaryLoop loop, string label)
     {
         // TODO: Fix this
         var points = loop.ToItemArray();

@@ -11,5 +11,5 @@ public interface IBvhIntersect
 {
     bool RoughIntersects(Aabb2 box);
 
-    Position[] Intersections(IContourElement element);
+    Position[] Intersections(IBoundaryElement element);
 }

@@ -19,7 +19,7 @@ public class ExampleDrawable : IDrawable
     {
         Id = Guid.NewGuid();
 
-        var circle = Contour.Circle(200, 200, 150);
+        var circle = BoundaryLoop.Circle(200, 200, 150);
         // var loop = new Contour();
         // var cursor = loop.GetCursor();
         // cursor.ArcAbs(100, 300, 200, 300, false);

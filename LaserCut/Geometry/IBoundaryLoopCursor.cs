@@ -8,7 +8,7 @@ namespace LaserCut.Geometry;
 /// can be advanced or moved backwards, and entities can be removed.  The cursor can also be used to peek at neighboring
 /// entities without moving.
 /// </summary>
-public interface IContourCursor : ILoopCursor<ContourPoint>
+public interface IBoundaryLoopCursor : ILoopCursor<BoundaryPoint>
 {
     /// <summary>
     /// Insert a segment entity that starts at the absolute position (x, y) into the contour.  It will be added *after*
@@ -76,5 +76,5 @@ public interface IContourCursor : ILoopCursor<ContourPoint>
     /// </summary>
     /// <param name="element">The `IContourElement` whose properties will be copied</param>
     /// <returns>The integer ID of the entity created by this operation, or a null value if nothing occured</returns>
-    int? InsertFromElement(IContourElement? element);
+    int? InsertFromElement(IBoundaryElement? element);
 }

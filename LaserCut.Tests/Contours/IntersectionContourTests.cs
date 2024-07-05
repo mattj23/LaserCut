@@ -10,8 +10,8 @@ public class IntersectionContourTests
     public void IntersectionPairOrderCorrect()
     {
         // Verifies that the values in the intersection pairs are returned as the documentation reports
-        var c0 = Contour.Rectangle(0, 0, 2, 2);
-        var c1 = Contour.Circle(0, 0, 1);
+        var c0 = BoundaryLoop.Rectangle(0, 0, 2, 2);
+        var c1 = BoundaryLoop.Circle(0, 0, 1);
 
         var pairs = c0.IntersectionPairs(c1);
         
@@ -23,8 +23,8 @@ public class IntersectionContourTests
     [Fact]
     public void RelationIntersects()
     {
-        var c0 = Contour.Circle(0, 0, 1);
-        var c1 = Contour.Circle(1, 0, 1);
+        var c0 = BoundaryLoop.Circle(0, 0, 1);
+        var c1 = BoundaryLoop.Circle(1, 0, 1);
         
         Assert.Equal(ContourRelation.Intersects, c0.RelationTo(c1).Item1);
     }
@@ -32,8 +32,8 @@ public class IntersectionContourTests
     [Fact]
     public void RelationEncloses()
     {
-        var c0 = Contour.Circle(0, 0, 2);
-        var c1 = Contour.Circle(0, 0, 1);
+        var c0 = BoundaryLoop.Circle(0, 0, 2);
+        var c1 = BoundaryLoop.Circle(0, 0, 1);
         
         Assert.Equal(ContourRelation.Encloses, c0.RelationTo(c1).Item1);
         Assert.Equal(ContourRelation.EnclosedBy, c1.RelationTo(c0).Item1);
@@ -42,8 +42,8 @@ public class IntersectionContourTests
     [Fact]
     public void RelationDisjoint()
     {
-        var c0 = Contour.Circle(0, 0, 1);
-        var c1 = Contour.Circle(3, 0, 1);
+        var c0 = BoundaryLoop.Circle(0, 0, 1);
+        var c1 = BoundaryLoop.Circle(3, 0, 1);
         
         Assert.Equal(ContourRelation.DisjointTo, c0.RelationTo(c1).Item1);
     }
@@ -51,7 +51,7 @@ public class IntersectionContourTests
     [Fact]
     public void CircleNoSelfIntersection()
     {
-        var c = Contour.Circle(10, 10, 1);
+        var c = BoundaryLoop.Circle(10, 10, 1);
         var i = c.SelfIntersections();
         
         Assert.Empty(i);
@@ -60,7 +60,7 @@ public class IntersectionContourTests
     [Fact]
     public void HalfCircleNoSelfIntersection()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
 
         cursor.SegAbs(0, 0);
@@ -73,7 +73,7 @@ public class IntersectionContourTests
     [Fact]
     public void HalfCircleSelfIntersection()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
 
         var arc1 = cursor.ArcAbs(2, 0, 1, 0, false);
@@ -95,7 +95,7 @@ public class IntersectionContourTests
     [Fact]
     public void HalfCircleTwoSelfIntersections()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
 
         var arc1 = cursor.ArcAbs(2, 0, 1, 0, false);
@@ -118,7 +118,7 @@ public class IntersectionContourTests
     [Fact]
     public void HalfCircleMiddleSelfIntersection()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
 
         cursor.ArcAbs(2, 0, 1, 0, false);
@@ -134,7 +134,7 @@ public class IntersectionContourTests
     [Fact]
     public void SplitAtSelfIntersection()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
         cursor.ArcAbs(2, 0, 1, 0, false);
         cursor.SegAbs(0, 0);
@@ -154,7 +154,7 @@ public class IntersectionContourTests
     [Fact]
     public void NonSelfIntersectingReturnsOriginalContour()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
 
         cursor.SegAbs(0, 0);
@@ -168,7 +168,7 @@ public class IntersectionContourTests
     [Fact]
     public void SingleSelfIntersectionReturnsTwoContours()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
         cursor.ArcAbs(2, 0, 1, 0, false);
         cursor.SegAbs(0, 0);
@@ -182,7 +182,7 @@ public class IntersectionContourTests
     [Fact]
     public void MiddleSelfIntersectionReturnsTwoContours()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
         cursor.ArcAbs(2, 0, 1, 0, false);
         cursor.SegAbs(0, 0);
@@ -196,7 +196,7 @@ public class IntersectionContourTests
     [Fact]
     public void DoubleSelfIntersectionReturnsThreeContours()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
         cursor.ArcAbs(2, 0, 1, 0, false);
         cursor.SegAbs(0, 0);

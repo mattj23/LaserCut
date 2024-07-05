@@ -8,11 +8,11 @@ namespace LaserCut.Algorithms;
 /// </summary>
 public class Bvh
 {
-    private readonly List<IContourElement> _elements;
+    private readonly List<IBoundaryElement> _elements;
     
-    public Bvh(IEnumerable<IContourElement> elements) : this(elements, true) { }
+    public Bvh(IEnumerable<IBoundaryElement> elements) : this(elements, true) { }
     
-    private Bvh(IEnumerable<IContourElement> elements, bool horizontal)
+    private Bvh(IEnumerable<IBoundaryElement> elements, bool horizontal)
     {
         _elements = elements.ToList();
         

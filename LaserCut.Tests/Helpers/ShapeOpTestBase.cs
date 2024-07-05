@@ -11,9 +11,9 @@ public class ShapeOpTestBase
         return points.Select(p => new Point2D(p.Item1, p.Item2)).ToArray();
     }
     
-    protected Contour Loop(Point2D[] points)
+    protected BoundaryLoop Loop(Point2D[] points)
     {
-        var contour = new Contour();
+        var contour = new BoundaryLoop();
         var cursor = contour.GetCursor();
         foreach (var p in points)
         {
@@ -23,9 +23,9 @@ public class ShapeOpTestBase
         return contour;
     }
 
-    protected Contour Loop(params ValueTuple<double, double>[] points)
+    protected BoundaryLoop Loop(params ValueTuple<double, double>[] points)
     {
-        var contour = new Contour();
+        var contour = new BoundaryLoop();
         var cursor = contour.GetCursor();
         foreach (var (x, y) in points)
         {
@@ -39,7 +39,7 @@ public class ShapeOpTestBase
     /// Given an array of expected points, find the first match in the list of contour results where the first expected
     /// point is within 1e-10 of any point in the contour. Remove the match from the list of results and return it.
     /// </summary>
-    protected Contour TakeMatch(Point2D[] expected, List<Contour> results)
+    protected BoundaryLoop TakeMatch(Point2D[] expected, List<BoundaryLoop> results)
     {
         var match = results.First(r => r.ToItemArray().Any(p => expected[0].DistanceTo(p.Point) < 1e-10));
         results.Remove(match);
@@ -50,19 +50,19 @@ public class ShapeOpTestBase
     /// Given a result contour and an array of expected points, find the vertex in the contour that is closest to the
     /// first expected point and return the contour as an array of points starting at that vertex.
     /// </summary>
-    protected Point2D[] OrientedPoints(Contour result, Point2D[] expected)
+    protected Point2D[] OrientedPoints(BoundaryLoop result, Point2D[] expected)
     {
         var closest = result.FirstId(p => p.Point.DistanceTo(expected[0]) < 1e-10);
         return result.ToItemArray(closest).Select(x => x.Point).ToArray();
     }
 
-    protected void AssertLoop(Point2D[] expected, Contour loop)
+    protected void AssertLoop(Point2D[] expected, BoundaryLoop loop)
     {
         var values = OrientedPoints(loop, expected);
         Assert.Equal(expected, values);
     }
     
-    protected void AssertBodyInner(Body body, params Contour[] expected)
+    protected void AssertBodyInner(Body body, params BoundaryLoop[] expected)
     {
         var inners = body.Inners.ToList();
         Assert.Equal(expected.Length, inners.Count);

@@ -8,7 +8,7 @@ namespace LaserCut.Algorithms;
 /// </summary>
 public static class ShapeOps
 {
-    public static (MutateResult, Contour[]) Mutate(this Contour working, Contour tool)
+    public static (MutateResult, BoundaryLoop[]) Mutate(this BoundaryLoop working, BoundaryLoop tool)
     {
 
         var (relation, intersections) = working.RelationTo(tool);
@@ -39,10 +39,10 @@ public static class ShapeOps
     }
 
 
-    private static (MutateResult, Contour[]) MergeFromPairs(Contour working, Contour tool, IntersectionPair[] pairs)
+    private static (MutateResult, BoundaryLoop[]) MergeFromPairs(BoundaryLoop working, BoundaryLoop tool, IntersectionPair[] pairs)
     {
         var workingPairs = pairs.ToList();
-        var results = new List<Contour>();
+        var results = new List<BoundaryLoop>();
         while (AttemptOneMerge(working, tool, workingPairs) is { } merged)
         {
             results.Add(merged);
@@ -51,7 +51,7 @@ public static class ShapeOps
         return (MutateResult.Merged, results.ToArray());
     }
 
-    private static Contour? AttemptOneMerge(Contour working, Contour tool, List<IntersectionPair> pairs)
+    private static BoundaryLoop? AttemptOneMerge(BoundaryLoop working, BoundaryLoop tool, List<IntersectionPair> pairs)
     {
         /* This single attempt merge algorithm attempts to assemble out one complete contour which starts on the working
          * contour and hops between the working and tool contours at each intersection as it traces its way through,
@@ -164,28 +164,28 @@ public static class ShapeOps
 
     private class SingleMergeState
     {
-        private readonly Contour _c0;
-        private readonly Contour _c1;
+        private readonly BoundaryLoop _c0;
+        private readonly BoundaryLoop _c1;
         private readonly int _initialPairs;
         private int _iterCount;
 
-        public SingleMergeState(Contour c0, Contour c1, List<IntersectionPair> workingPairs)
+        public SingleMergeState(BoundaryLoop c0, BoundaryLoop c1, List<IntersectionPair> workingPairs)
         {
             _c0 = c0;
             _c1 = c1;
             WorkingPairs = workingPairs;
             _initialPairs = workingPairs.Count;
             
-            Working = new Contour();
+            Working = new BoundaryLoop();
             Write = Working.GetCursor();
 
             IsOnC0 = true;
         }
         
         public List<IntersectionPair> WorkingPairs { get; }
-        public Contour Working { get; }
-        public IContourCursor Write { get; }
-        public IContourCursor Read { get; private set; }
+        public BoundaryLoop Working { get; }
+        public IBoundaryLoopCursor Write { get; }
+        public IBoundaryLoopCursor Read { get; private set; }
         public double LastL { get; private set; }
         public bool IsOnC0 { get; private set; }
 
@@ -222,7 +222,7 @@ public static class ShapeOps
             Write.InsertFromElement(position.Element.SplitAfter(LastL));
         }
 
-        public void WriteFullEntity(ContourPoint p)
+        public void WriteFullEntity(BoundaryPoint p)
         {
             LastL = 0;
             Write.InsertAfter(p);
@@ -261,7 +261,7 @@ public static class ShapeOps
         }
     }
     
-    private static IntersectionPair FindStart(Contour c1, IReadOnlyList<IntersectionPair> pairs)
+    private static IntersectionPair FindStart(BoundaryLoop c1, IReadOnlyList<IntersectionPair> pairs)
     {
         return c1.IsPositive
             ? pairs.FirstOrDefault(i => i.FirstExitsSecond)

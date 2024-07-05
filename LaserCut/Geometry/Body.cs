@@ -11,25 +11,25 @@ namespace LaserCut.Geometry;
 public class Body : IHasBounds
 {
     
-    public Body(Guid id, Contour outer, List<Contour> inners)
+    public Body(Guid id, BoundaryLoop outer, List<BoundaryLoop> inners)
     {
         Outer = outer;
         Inners = inners;
         Id = id;
     }
     
-    public Body(Guid id) : this(id, new Contour(), new List<Contour>()) { }
+    public Body(Guid id) : this(id, new BoundaryLoop(), new List<BoundaryLoop>()) { }
 
-    public Body(Contour outer) : this(Guid.NewGuid(), outer, new List<Contour>()) {}
+    public Body(BoundaryLoop outer) : this(Guid.NewGuid(), outer, new List<BoundaryLoop>()) {}
     
-    public Body(Contour outer, List<Contour> inners) : this(Guid.NewGuid(), outer, inners) { }
+    public Body(BoundaryLoop outer, List<BoundaryLoop> inners) : this(Guid.NewGuid(), outer, inners) { }
     
-    public Body() : this(new Contour(), new List<Contour>()) { }
+    public Body() : this(new BoundaryLoop(), new List<BoundaryLoop>()) { }
     
     public Guid Id { get; } 
     
-    public Contour Outer { get; private set; }
-    public List<Contour> Inners { get; }
+    public BoundaryLoop Outer { get; private set; }
+    public List<BoundaryLoop> Inners { get; }
     
     public Aabb2 Bounds => Outer.Bounds;
     
@@ -155,7 +155,7 @@ public class Body : IHasBounds
     /// result will be a new set of bodies which are the result of the operation.
     /// </summary>
     /// <param name="tool"></param>
-    public Body[] Operate(Contour tool)
+    public Body[] Operate(BoundaryLoop tool)
     {
         if (tool.IsPositive)
         {

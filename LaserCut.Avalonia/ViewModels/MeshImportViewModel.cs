@@ -105,7 +105,7 @@ public class MeshImportViewModel : ReactiveObject
         }
     }
     
-    private Contour[] LoadMeshData(string filePath, CoordinateSystem cs)
+    private BoundaryLoop[] LoadMeshData(string filePath, CoordinateSystem cs)
     {
         var m = Mesh3.ReadStl(filePath, true);
         return m.ExtractSilhouetteContours(cs);

@@ -90,7 +90,7 @@ public class EnclosesPointTests
 
     private class SimpleGeometry
     {
-        private readonly List<IContourElement> _elements = new();
+        private readonly List<IBoundaryElement> _elements = new();
         
         public SimpleGeometry()
         {

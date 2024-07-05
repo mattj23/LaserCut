@@ -32,17 +32,17 @@ public static class ViewModelExtensions
         return loop.ToItemArray().Select(x => x.ToAvalonia()).ToList();
     }
     
-    public static ContourViewModel ToViewModel(this Contour contour, IBrush? fill = null, IBrush? stroke = null,
+    public static ContourViewModel ToViewModel(this BoundaryLoop boundaryLoop, IBrush? fill = null, IBrush? stroke = null,
         double strokeThickness = 1)
     {
         var figure = new PathFigure()
         {
             IsClosed = true,
-            StartPoint = contour.Head.Point.ToAvalonia(),
+            StartPoint = boundaryLoop.Head.Point.ToAvalonia(),
             Segments = new PathSegments()
         };
 
-        foreach (var e in contour.Elements)
+        foreach (var e in boundaryLoop.Elements)
         {
             switch (e)
             {

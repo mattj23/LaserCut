@@ -20,7 +20,7 @@ public class RedundancyContourTests : ShapeOpTestBase
     [Fact]
     public void RemoveAdjacentArcs()
     {
-        var c = new Contour();
+        var c = new BoundaryLoop();
         var cursor = c.GetCursor();
         cursor.ArcAbs(1, 0, 0, 0, false);
         cursor.ArcAbs(0, 1, 0, 0, false);

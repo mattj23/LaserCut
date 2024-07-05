@@ -5,7 +5,7 @@ namespace LaserCut.Algorithms;
 
 public static class BodyOps
 {
-    public static Body[] OperatePositive(this Body body, Contour tool)
+    public static Body[] OperatePositive(this Body body, BoundaryLoop tool)
     {
         if (!tool.IsPositive)
             throw new InvalidOperationException("Cannot perform a positive operation with a negative tool");
@@ -67,7 +67,7 @@ public static class BodyOps
             throw new InvalidOperationException($"Expected a single positive loop, got {positive.Count}");
         var workingBody = new Body(positive[0]);
 
-        var workingInners = new Queue<Contour>(body.Inners.Select(x => x.Copy()));
+        var workingInners = new Queue<BoundaryLoop>(body.Inners.Select(x => x.Copy()));
         foreach (var outerLoop in outerLoops)
             if (!outerLoop.IsPositive)
                 workingInners.Enqueue(outerLoop);
@@ -105,7 +105,7 @@ public static class BodyOps
         return [workingBody];
     }
 
-    public static Body[] OperateNegative(this Body body, Contour tool)
+    public static Body[] OperateNegative(this Body body, BoundaryLoop tool)
     {
         if (tool.IsPositive)
             throw new InvalidOperationException("Cannot perform a negative operation with a positive tool");
@@ -136,7 +136,7 @@ public static class BodyOps
         var outer = body.Outer.Copy();
         var (outerResult, outerLoops) = outer.Mutate(tool);
 
-        var workingInners = new List<Contour>(body.Inners.Select(x => x.Copy()));
+        var workingInners = new List<BoundaryLoop>(body.Inners.Select(x => x.Copy()));
 
         switch (outerResult)
         {
@@ -240,8 +240,8 @@ public static class BodyOps
         return final.ToArray();
     }
 
-    public static BodyContourSet[] ResolveInsidesToOutsides(IReadOnlyList<Contour> outsides,
-        IReadOnlyList<Contour> insides)
+    public static BodyContourSet[] ResolveInsidesToOutsides(IReadOnlyList<BoundaryLoop> outsides,
+        IReadOnlyList<BoundaryLoop> insides)
     {
         var validated = new List<BodyContourSet>();
 
@@ -251,7 +251,7 @@ public static class BodyOps
         while (unvalidated.Count != 0)
         {
             var current = unvalidated.Dequeue();
-            var uncheckedHoles = new Queue<Contour>();
+            var uncheckedHoles = new Queue<BoundaryLoop>();
             current.Holes.TransferTo(uncheckedHoles);
 
             var hadMerge = false;
@@ -319,13 +319,13 @@ public static class BodyOps
 
     public class BodyContourSet
     {
-        public BodyContourSet(Contour outer, IEnumerable<Contour> holes)
+        public BodyContourSet(BoundaryLoop outer, IEnumerable<BoundaryLoop> holes)
         {
             Outer = outer;
-            Holes = new Queue<Contour>(holes);
+            Holes = new Queue<BoundaryLoop>(holes);
         }
 
-        public Contour Outer { get; set; }
-        public Queue<Contour> Holes { get; }
+        public BoundaryLoop Outer { get; set; }
+        public Queue<BoundaryLoop> Holes { get; }
     }
 }

@@ -4,7 +4,7 @@ using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
 
-public interface IContourElement : IBvhIntersect
+public interface IBoundaryElement : IBvhIntersect
 {
     int Index { get; }
     
@@ -65,7 +65,7 @@ public interface IContourElement : IBvhIntersect
     /// <param name="tol">The max allowable between the end of this element and the start of the next. If no value
     /// is specified, the `GeometryConstants.DistEquals` is used.</param>
     /// <returns></returns>
-    bool FollowedBy(IContourElement other, double? tol = null)
+    bool FollowedBy(IBoundaryElement other, double? tol = null)
     {
         return End.DistanceTo(other.Start) <= (tol ?? GeometryConstants.DistEquals);
     }
@@ -78,7 +78,7 @@ public interface IContourElement : IBvhIntersect
     /// <param name="tol">The max allowable between the start of this element and the end of the next. If no value
     /// is specified, the `GeometryConstants.DistEquals` is used.</param>
     /// <returns></returns>
-    bool PrecededBy(IContourElement other, double? tol = null)
+    bool PrecededBy(IBoundaryElement other, double? tol = null)
     {
         return Start.DistanceTo(other.End) <= (tol ?? GeometryConstants.DistEquals);
     }
@@ -90,14 +90,14 @@ public interface IContourElement : IBvhIntersect
     /// </summary>
     /// <param name="length"></param>
     /// <returns></returns>
-    IContourElement? SplitAfter(double length);
+    IBoundaryElement? SplitAfter(double length);
     
     /// <summary>
     /// Returns a new element that consists of the portion of this element starting at the beginning and continuing
     /// to the given length.  The original element is unmodified.  If the length is within tolerance of the start of the
     /// element (or shorter), a null value is returned.
     /// </summary>
-    IContourElement? SplitBefore(double length);
+    IBoundaryElement? SplitBefore(double length);
 
     /// <summary>
     /// Returns a new element that has the same properties as this element but has its surface offset in its normal
@@ -107,5 +107,5 @@ public interface IContourElement : IBvhIntersect
     /// </summary>
     /// <param name="distance">The distance to offset the element by</param>
     /// <returns>A new element of the same type as this element</returns>
-    IContourElement OffsetBy(double distance);
+    IBoundaryElement OffsetBy(double distance);
 }

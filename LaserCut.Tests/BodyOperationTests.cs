@@ -13,7 +13,7 @@ public class BodyOperationTests : ShapeOpTestBase
     public void PositiveMergeSimple()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(7, 1, 1, 1);
+        var tool = BoundaryLoop.Rectangle(7, 1, 1, 1);
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (8, 1), (8, 2), (7, 2), (7, 3), (0, 3));
         
         var results = fixture.Body.Operate(tool);
@@ -26,7 +26,7 @@ public class BodyOperationTests : ShapeOpTestBase
     public void PositiveMergeRemovesInner()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(5, 1, 3, 1);
+        var tool = BoundaryLoop.Rectangle(5, 1, 3, 1);
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (8, 1), (8, 2), (7, 2), (7, 3), (0, 3));
         
         var results = fixture.Body.Operate(tool);
@@ -39,9 +39,9 @@ public class BodyOperationTests : ShapeOpTestBase
     public void PositiveMergeChangesInner()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(5.5, 1, 2.5, 1);
+        var tool = BoundaryLoop.Rectangle(5.5, 1, 2.5, 1);
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (8, 1), (8, 2), (7, 2), (7, 3), (0, 3));
-        var c = Contour.Rectangle(5, 1, 0.5, 1).Reversed();
+        var c = BoundaryLoop.Rectangle(5, 1, 0.5, 1).Reversed();
         
         var results = fixture.Body.Operate(tool);
         Assert.Single(results);
@@ -54,7 +54,7 @@ public class BodyOperationTests : ShapeOpTestBase
     public void PositiveMergeRemovesInnerOnly()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(2.5, 0.5, 2, 2);
+        var tool = BoundaryLoop.Rectangle(2.5, 0.5, 2, 2);
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
         
         var results = fixture.Body.Operate(tool);
@@ -68,10 +68,10 @@ public class BodyOperationTests : ShapeOpTestBase
     public void PositiveMergeSplitsInner()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(2.5, 1.25, 2, 0.5);
+        var tool = BoundaryLoop.Rectangle(2.5, 1.25, 2, 0.5);
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
-        var b1 = Contour.Rectangle(3, 1, 1, 0.25).Reversed();
-        var b2 = Contour.Rectangle(3, 1.75, 1, 0.25).Reversed();
+        var b1 = BoundaryLoop.Rectangle(3, 1, 1, 0.25).Reversed();
+        var b2 = BoundaryLoop.Rectangle(3, 1.75, 1, 0.25).Reversed();
         
         var results = fixture.Body.Operate(tool);
         Assert.Single(results);
@@ -84,7 +84,7 @@ public class BodyOperationTests : ShapeOpTestBase
     public void NegativeMergeSimple()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(6.5, 1, 1, 1).Reversed();
+        var tool = BoundaryLoop.Rectangle(6.5, 1, 1, 1).Reversed();
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (6.5, 1), (6.5, 2), (7, 2), (7, 3), (0, 3));
         
         var results = fixture.Body.Operate(tool);
@@ -97,9 +97,9 @@ public class BodyOperationTests : ShapeOpTestBase
     [Fact]
     public void NegativeMergeAddsBoundary()
     {
-        var outer = Contour.Rectangle(0, 0, 3, 3);
+        var outer = BoundaryLoop.Rectangle(0, 0, 3, 3);
         var body = new Body(outer);
-        var tool = Contour.Rectangle(1, 1, 1, 1).Reversed();
+        var tool = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
         
         var results = body.Operate(tool);
         Assert.Single(results);
@@ -113,10 +113,10 @@ public class BodyOperationTests : ShapeOpTestBase
     [Fact]
     public void NegativeMergeAddsSecondBoundary()
     {
-        var outer = Contour.Rectangle(0, 0, 5, 3);
+        var outer = BoundaryLoop.Rectangle(0, 0, 5, 3);
         var body = new Body(outer);
-        var tool0 = Contour.Rectangle(1, 1, 1, 1).Reversed();
-        var tool1 = Contour.Rectangle(3, 1, 1, 1).Reversed();
+        var tool0 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
+        var tool1 = BoundaryLoop.Rectangle(3, 1, 1, 1).Reversed();
         
         var result0 = body.Operate(tool0);
         Assert.Single(result0);
@@ -134,7 +134,7 @@ public class BodyOperationTests : ShapeOpTestBase
     public void NegativeMergeSubsumesInnerSimple()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(2.5, 0.5, 2, 2).Reversed();
+        var tool = BoundaryLoop.Rectangle(2.5, 0.5, 2, 2).Reversed();
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
         
         var result = fixture.Body.Operate(tool);
@@ -148,7 +148,7 @@ public class BodyOperationTests : ShapeOpTestBase
     public void NegativeMergeSubsumesInnerWithIntersections()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(3, 1, 1, 1.5).Reversed();
+        var tool = BoundaryLoop.Rectangle(3, 1, 1, 1.5).Reversed();
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
         
         var result = fixture.Body.Operate(tool);
@@ -160,7 +160,7 @@ public class BodyOperationTests : ShapeOpTestBase
     public void NegativeMergeIntersectsBoundaryOnce()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(3.25, 1.5, 0.5, 2).Reversed();
+        var tool = BoundaryLoop.Rectangle(3.25, 1.5, 0.5, 2).Reversed();
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (3.75, 3), (3.75, 2), (4, 2), (4, 1), (3, 1), (3, 2), (3.25, 2), (3.25, 3), (0, 3));
         
         // var plot = new DebugPlot("NegativeMergeIntersectsBoundaryOnce");
@@ -178,7 +178,7 @@ public class BodyOperationTests : ShapeOpTestBase
     public void NegativeMergeIntersectsBoundaryTwice()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(3.5, 1.25, 5, 0.5).Reversed();
+        var tool = BoundaryLoop.Rectangle(3.5, 1.25, 5, 0.5).Reversed();
         var expected = ExpectedPoints((0, 0), (7, 0), (7, 1.25),
             (6, 1.25), (6, 1), (5, 1), (5, 1.25), (4, 1.25), (4, 1), (3, 1), (3, 2), (4, 2), (4, 1.75), (5, 1.75),
             (5, 2), (6, 2), (6, 1.75), (7, 1.75),
@@ -194,7 +194,7 @@ public class BodyOperationTests : ShapeOpTestBase
     public void NegativeMergeJoinsTwoInners()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(3.5, 1.25, 2, 0.5).Reversed();
+        var tool = BoundaryLoop.Rectangle(3.5, 1.25, 2, 0.5).Reversed();
         var outside = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
         var inside = Loop((3, 1), (4, 1), (4, 1.25), (5, 1.25), (5, 1), (6, 1), (6, 2), (5, 2), (5, 1.75),
             (4, 1.75), (4, 2), (3, 2)).Reversed();
@@ -208,7 +208,7 @@ public class BodyOperationTests : ShapeOpTestBase
     public void NegativeMergeJoinsThreeInners()
     {
         var fixture = TestBody();
-        var tool = Contour.Rectangle(1.5, 1.25, 4, 0.5).Reversed();
+        var tool = BoundaryLoop.Rectangle(1.5, 1.25, 4, 0.5).Reversed();
         var outside = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
         var inside = Loop((3, 1), (4, 1), (4, 1.25), (5, 1.25), (5, 1), (6, 1), (6, 2), (5, 2), (5, 1.75),
             (4, 1.75), (4, 2), (3, 2), (3, 1.75), (2, 1.75), (2, 2), (1, 2), (1, 1),
@@ -294,16 +294,16 @@ public class BodyOperationTests : ShapeOpTestBase
 
     private TestFixture TestBody()
     {
-        var a = Contour.Rectangle(1, 1, 1, 1).Reversed();
-        var b = Contour.Rectangle(3, 1, 1, 1).Reversed();
-        var c = Contour.Rectangle(5, 1, 1, 1).Reversed();
+        var a = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
+        var b = BoundaryLoop.Rectangle(3, 1, 1, 1).Reversed();
+        var c = BoundaryLoop.Rectangle(5, 1, 1, 1).Reversed();
         
-        var outer = Contour.Rectangle(0, 0, 7, 3);
-        var inners = new List<Contour> { a, b, c };
+        var outer = BoundaryLoop.Rectangle(0, 0, 7, 3);
+        var inners = new List<BoundaryLoop> { a, b, c };
 
         return new TestFixture(new Body(outer, inners), a, b, c);
     }
 
-    private record TestFixture(Body Body, Contour A, Contour B, Contour C);
+    private record TestFixture(Body Body, BoundaryLoop A, BoundaryLoop B, BoundaryLoop C);
 
 }

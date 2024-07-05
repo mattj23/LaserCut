@@ -330,9 +330,9 @@ public class Mesh3
         return patches;
     }
     
-    public Contour[] ExtractSilhouetteContours(CoordinateSystem view)
+    public BoundaryLoop[] ExtractSilhouetteContours(CoordinateSystem view)
     {
-        var results = new List<Contour>();
+        var results = new List<BoundaryLoop>();
         
         var workingMesh = FromFacesWhere((_, n) => n.DotProduct(view.ZAxis) > 1e-6);
         workingMesh.Transform(view);
@@ -364,7 +364,7 @@ public class Mesh3
             }
             
             // Now we can extract the patch chains
-            var patchChains = new List<Contour>();
+            var patchChains = new List<BoundaryLoop>();
             while (boundaryVertices.Count > 0)
             {
                 var start = boundaryVertices.First().Key;
@@ -378,7 +378,7 @@ public class Mesh3
                     current = next;
                 }
                 
-                patchChains.Add(Contour.Polygon(chain));
+                patchChains.Add(BoundaryLoop.Polygon(chain));
             }
 
             results.AddRange(patchChains);
