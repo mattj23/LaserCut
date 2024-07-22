@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using LaserCut.Geometry;
+using LaserCut.Helpers;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Algorithms;
@@ -15,9 +16,11 @@ public static class BoundaryOps
         Intersection
     }
     
-    public static (BoundaryOpResult, BoundaryLoop[]) Intersection(this BoundaryLoop l0, BoundaryLoop l1)
+    public static (BoundaryOpResult, BoundaryLoop[]) Intersection(this BoundaryLoop l0, BoundaryLoop l1, ILoopOpHelper? helper=null)
     {
         var (relation, intersections) = l0.ShapeRelationTo(l1);
+        
+        helper?.Data(l0, l1, relation, intersections);
 
         return relation switch
         {
@@ -37,9 +40,10 @@ public static class BoundaryOps
         };
     }
     
-    public static (BoundaryOpResult, BoundaryLoop[]) Union(this BoundaryLoop l0, BoundaryLoop l1)
+    public static (BoundaryOpResult, BoundaryLoop[]) Union(this BoundaryLoop l0, BoundaryLoop l1, ILoopOpHelper? helper=null)
     {
         var (relation, intersections) = l0.ShapeRelationTo(l1);
+        helper?.Data(l0, l1, relation, intersections);
 
         return relation switch
         {

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using System.Text;
 using LaserCut.Algorithms;
 using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry.Primitives;
@@ -11,16 +12,22 @@ namespace LaserCut.Geometry;
 public abstract record BoundaryPoint(Point2D Point)
 {
     public abstract BoundaryPoint Copy();
+    
+    public abstract string Serialize();
 }
 
 public record BoundaryLine(Point2D Point) : BoundaryPoint(Point)
 {
     public override BoundaryPoint Copy() => new BoundaryLine(Point);
+    
+    public override string Serialize() => $"L[{Point.X:F6},{Point.Y:F6}]";
 }
 
 public record BoundaryArc(Point2D Point, Point2D Center, bool Clockwise) : BoundaryPoint(Point)
 {
     public override BoundaryPoint Copy() => new BoundaryArc(Point, Center, Clockwise);
+    
+    public override string Serialize() => $"A[{Point.X:F6},{Point.Y:F6},{Center.X:F6},{Center.Y:F6},{Clockwise}]";
 }
 
 /// <summary>
@@ -443,8 +450,31 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// <returns>The relation of *this contour* to the *other contour* and a list of any intersections.</returns>
     public (BoundaryRelation, IntersectionPair[]) LoopRelationTo(BoundaryLoop other)
     {
-        var intersections = IntersectionPairs(other);
+        // Intersections that are on portions of the paths that are identical to each other are not intersections that
+        // we need to be concerned about.  Because the only place this can happen(?) is at a vertex, we can look for
+        // intersections that are at a point that is a vertex on both boundaries.  Then, we look and see if the paths
+        // on both sides of the vertex 
+        var filtered = new List<IntersectionPair>();
+        foreach (var pair in IntersectionPairs(other))
+        {
+            if (pair.First.IsAtVertex && pair.Second.IsAtVertex)
+            {
+                var (f0, f1) = ElementsAtVertex(pair.Point);
+                var (s0, s1) = other.ElementsAtVertex(pair.Point);
+                
+                // Now, if one of two configurations is true, we can ignore this intersection:
+                // * f0 == s0 and f1 == s1 => The elements are the same type with the same geometry start/end
+                // * f0 == s1 and f1 == s0 => The elements are the same type with the reverse geometry start/end
+                // We already know the vertices match
 
+            }
+            else
+            {
+                filtered.Add(pair);
+            }
+        }
+
+        var intersections = filtered.ToArray();
         if (intersections.Length != 0)
         {
             // We can still have enclosure with intersections if one contour never exits the other. To check for this
@@ -744,6 +774,27 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         return elements;
     }
 
+    public string Serialize()
+    {
+        return string.Join(";", IterItems().Select(i => i.Item.Serialize()));
+    }
+
+    protected (IBoundaryElement, IBoundaryElement) ElementsAtVertex(Point2D vertex)
+    {
+        // TODO: this can me made way more efficient
+        foreach (var e in Elements)
+        {
+            if (e.End.DistanceTo(vertex) < GeometryConstants.DistEquals)
+            {
+                var next = Elements.First(x => x.Index == NextId(e.Index));
+                return (e, next);
+            }
+        }
+        
+        throw new ArgumentException("Vertex not found in contour");
+    }
+    
+    
     // ==============================================================================================================
     // Contour Cursor
     // ==============================================================================================================

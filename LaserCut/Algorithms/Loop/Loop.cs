@@ -136,6 +136,26 @@ public class Loop<T>
         }
     }
     
+    public int NextId(int id)
+    {
+        return Nodes[id].NextId;
+    }
+    
+    public int PreviousId(int id)
+    {
+        return Nodes[id].PreviousId;
+    }
+    
+    public T Next(int id)
+    {
+        return Nodes[NextId(id)].Item;
+    }
+    
+    public T Previous(int id)
+    {
+        return Nodes[PreviousId(id)].Item;
+    }
+    
     /// <summary>
     /// Finds the first item in the loop that satisfies the given predicate.  If a startId is provided, the search will
     /// begin at that id, otherwise the search will begin at the head. If no item is found, the method will return null.

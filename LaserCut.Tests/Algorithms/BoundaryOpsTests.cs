@@ -1,5 +1,6 @@
 using LaserCut.Algorithms;
 using LaserCut.Geometry;
+using LaserCut.Helpers;
 using LaserCut.Tests.Helpers;
 using LaserCut.Tests.Plotting;
 
@@ -40,122 +41,122 @@ public class BoundaryOpsTests : ShapeOpTestBase
         Assert.Equal(expected, values);
     }
 
-    // [Fact]
-    // public void MergeCutoutPositiveSimple()
-    // {
-    //     var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3);
-    //     var loop1 = BoundaryLoop.Rectangle(1, 1, 2, 1).Reversed();
-    //     var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3));
-    //     
-    //     var (kind, result) = loop0.Mutate(loop1);
-    //     Assert.Equal(MutateResult.Merged, kind);
-    //     Assert.Single(result);
-    //     
-    //     var values = OrientedPoints(result[0], expected);
-    //     Assert.Equal(expected, values);
-    // }
-    //
-    // [Fact]
-    // public void MergeCutoutNegativeSimple()
-    // {
-    //     var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3).Reversed();
-    //     var loop1 = BoundaryLoop.Rectangle(1, 1, 2, 1);
-    //     
-    //     var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3))
-    //         .Reverse()
-    //         .ToArray();
-    //     
-    //     var (kind, result) = loop0.Mutate(loop1);
-    //     Assert.Equal(MutateResult.Merged, kind);
-    //     Assert.Single(result);
-    //     
-    //     var values = OrientedPoints(result[0], expected);
-    //     Assert.Equal(expected, values);
-    // }
-    //
-    // [Fact]
-    // public void MergePositiveSharedSide()
-    // {
-    //     var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 3);
-    //     var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1);
-    //     var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (1, 2), (1, 3), (0, 3));
-    //     
-    //     var (kind, result) = loop0.Mutate(loop1);
-    //     Assert.Equal(MutateResult.Merged, kind);
-    //     Assert.Single(result);
-    //     
-    //     var values = OrientedPoints(result[0], expected);
-    //     Assert.Equal(expected, values);
-    // }
-    //
-    // [Fact]
-    // public void MergeNegativeSharedSide()
-    // {
-    //     var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 3).Reversed();
-    //     var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
-    //
-    //     var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (1, 2), (1, 3), (0, 3))
-    //         .Reverse()
-    //         .ToArray();
-    //     
-    //     var (kind, result) = loop0.Mutate(loop1);
-    //     Assert.Equal(MutateResult.Merged, kind);
-    //     Assert.Single(result);
-    //     
-    //     var values = OrientedPoints(result[0], expected);
-    //     Assert.Equal(expected, values);
-    // }
-    //
-    // [Fact]
-    // public void CutoutPositiveSharedSide()
-    // {
-    //     var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3);
-    //     var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
-    //     
-    //     var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3));
-    //     
-    //     var (kind, result) = loop0.Mutate(loop1);
-    //     Assert.Equal(MutateResult.Merged, kind);
-    //     Assert.Single(result);
-    //     
-    //     var values = OrientedPoints(result[0], expected);
-    //     Assert.Equal(expected, values);
-    // }
-    //
-    // [Fact]
-    // public void CutoutNegativeSharedSide()
-    // {
-    //     var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3).Reversed();
-    //     var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1);
-    //     
-    //     var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3))
-    //         .Reverse()
-    //         .ToArray();
-    //     
-    //     var (kind, result) = loop0.Mutate(loop1);
-    //     Assert.Equal(MutateResult.Merged, kind);
-    //     Assert.Single(result);
-    //     
-    //     var values = OrientedPoints(result[0], expected);
-    //     Assert.Equal(expected, values);
-    // }
-    //
-    // [Fact]
-    // public void CutoutPositiveSharedCorner()
-    // {
-    //     var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 2);
-    //     var loop1 = BoundaryLoop.Rectangle(1, 0, 1, 1).Reversed();
-    //
-    //     var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (0, 2));
-    //     
-    //     var (kind, result) = loop0.Mutate(loop1);
-    //     Assert.Equal(MutateResult.Merged, kind);
-    //     Assert.Single(result);
-    //     
-    //     var values = OrientedPoints(result[0], expected);
-    //     Assert.Equal(expected, values);
-    // }
-    //
+    [Fact]
+    public void MergeCutoutPositiveSimple()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3);
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 2, 1).Reversed();
+        var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3));
+        
+        var (kind, result) = loop0.Intersection(loop1);
+        Assert.Equal(BoundaryOpResult.Merged, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void MergeCutoutNegativeSimple()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3).Reversed();
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 2, 1);
+        
+        var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3))
+            .Reverse()
+            .ToArray();
+        
+        var (kind, result) = loop0.Union(loop1);
+        Assert.Equal(BoundaryOpResult.Merged, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void MergePositiveSharedSide()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 3);
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1);
+        var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (1, 2), (1, 3), (0, 3));
+        
+        var (kind, result) = loop0.Union(loop1);
+        Assert.Equal(BoundaryOpResult.Merged, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void MergeNegativeSharedSide()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 3).Reversed();
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
+    
+        var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (1, 2), (1, 3), (0, 3))
+            .Reverse()
+            .ToArray();
+        
+        var (kind, result) = loop0.Intersection(loop1);
+        Assert.Equal(BoundaryOpResult.Merged, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void CutoutPositiveSharedSide()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3);
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
+        
+        var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3));
+        
+        var (kind, result) = loop0.Intersection(loop1);
+        Assert.Equal(BoundaryOpResult.Merged, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void CutoutNegativeSharedSide()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 3).Reversed();
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1);
+        
+        var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (2, 2), (2, 3), (0, 3))
+            .Reverse()
+            .ToArray();
+        
+        var (kind, result) = loop0.Union(loop1);
+        Assert.Equal(BoundaryOpResult.Merged, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void CutoutPositiveSharedCorner()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 2, 2);
+        var loop1 = BoundaryLoop.Rectangle(1, 0, 1, 1).Reversed();
+    
+        var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (0, 2));
+        
+        var (kind, result) = loop0.Intersection(loop1, new OpDebugWriter(@"D:\temp\test.dbg"));
+        Assert.Equal(BoundaryOpResult.Merged, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
+
     // [Fact]
     // public void CutSplit()
     // {

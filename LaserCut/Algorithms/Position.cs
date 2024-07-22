@@ -21,6 +21,12 @@ public readonly record struct Position(double L, IBoundaryElement Element)
     /// `FirstOrDefault`).
     /// </summary>
     public bool Empty => Element == null;
+    
+    public bool IsAtStart => L <= GeometryConstants.DistEquals;
+    
+    public bool IsAtEnd => L >= Element.Length - GeometryConstants.DistEquals;
+    
+    public bool IsAtVertex => IsAtStart || IsAtEnd;
 
     public override string ToString()
     {

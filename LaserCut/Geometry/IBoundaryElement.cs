@@ -108,4 +108,5 @@ public interface IBoundaryElement : IBvhIntersect
     /// <param name="distance">The distance to offset the element by</param>
     /// <returns>A new element of the same type as this element</returns>
     IBoundaryElement OffsetBy(double distance);
+    
 }
