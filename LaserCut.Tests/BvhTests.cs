@@ -108,6 +108,30 @@ public class BvhTests
         }
     }
 
+    [Fact]
+    public void StressTestClosest()
+    {
+        var b0 = new Aabb2(-20, -20, 20, 200);
+        var t0 = b0.Clone();
+        t0.Expand(10);
+        var r = new RandomValues();
+        
+        for (int i = 0; i < 100; i++)
+        {
+            var segments0 = r.Segments(b0, r.Int(20, 50));
+            var bvh = new Bvh(segments0);
+            
+            for (int j = 0; j < 100; j++)
+            {
+                var test = r.Point(t0);
+                var expected = segments0.Select(x => x.Closest(test).Surface.Point.DistanceTo(test)).Min();
+                var (d, p) = bvh.Closest(test);
+                
+                Assert.Equal(expected, d, 1e-10);
+            }
+        }
+    }
+
     private (int, int, double, double)[] Prepare(IEnumerable<IntersectionPair> pairs)
     {
         return pairs

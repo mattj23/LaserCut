@@ -130,4 +130,36 @@ public struct Aabb2
             Math.Max(MaxY, other.MaxY)
         );
     }
+    
+    /// <summary>
+    /// Finds the closest distance between this bounding box and a point.
+    /// </summary>
+    /// <param name="point">The point to test the distance from.</param>
+    /// <returns>A finite double value between greater or equal to zero</returns>
+    public double ClosestDistance(Point2D point)
+    {
+        // The closest point on the bounding box is either the point itself if it is inside the box, or the test point
+        // clamped to the box bounds.
+        if (Contains(point))
+            return 0;
+        
+        var dx = point.X - point.X.Clamp(MinX, MaxX);
+        var dy = point.Y - point.Y.Clamp(MinY, MaxY);
+        return Math.Sqrt(dx * dx + dy * dy);
+    }
+    
+    /// <summary>
+    /// Finds the farthest distance between this bounding box and a point.
+    /// </summary>
+    /// <param name="point">The point to test the distance from.</param>
+    /// <returns>A double value which will be at least zero</returns>
+    public double FarthestDistance(Point2D point)
+    {
+        // The farthest point on the box will be one of the corners.
+        
+        // TODO: replace this with clamping once you have time to verify it
+        var distances = new []{ point.DistanceTo(new Point2D(MinX, MinY)), point.DistanceTo(new Point2D(MinX, MaxY)),
+            point.DistanceTo(new Point2D(MaxX, MinY)), point.DistanceTo(new Point2D(MaxX, MaxY)) };
+        return distances.Max();
+    }
 }

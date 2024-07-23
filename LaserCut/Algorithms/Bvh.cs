@@ -1,5 +1,6 @@
 using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
+using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Algorithms;
 
@@ -49,7 +50,77 @@ public class Bvh
     public Bvh? Right { get; private set; }
     
     public bool IsLeaf => Left == null && Right == null;
-    
+
+    /// <summary>
+    /// Find the closest distance and corresponding position between the test point and any element in this subtree.
+    /// </summary>
+    /// <param name="point">The point to compare the distance to</param>
+    /// <returns></returns>
+    public (double, Position) Closest(Point2D point)
+    {
+        // The potential closest distance is pruned by using the observation that (1) the elements are entirely 
+        // enclosed in their bounding boxes, (2) the distance between the test point and the elements in any bounding
+        // box will always be less than or equal to the distance between the test point and the farthest corner of the
+        // bounding box, and (3) any bounding box with the shortest distance to the bounding box larger than the
+        // smallest farthest distance can be ignored.
+        
+        // We will want to visit the nodes in breadth first order, so we will use a queue to store the nodes to visit
+        var queue = new Queue<Bvh>();
+        queue.Enqueue(this);
+
+        var leaves = new Queue<Bvh>();
+        
+        double minFarthest = double.MaxValue;
+        while (queue.TryDequeue(out var node))
+        {
+            // If the closest distance to the bounding box is greater than the smallest farthest distance, we can skip
+            // this node entirely, as none of its children will be closer.
+            var closest = node.Bounds.ClosestDistance(point);
+            if (closest > minFarthest) continue;
+            
+            // Now let's check if this node has a farthest distance that is less than the current minimum we've found.
+            // If it does, we can update the minimum.
+            var farthest = node.Bounds.FarthestDistance(point);
+            if (farthest < minFarthest)
+            {
+                minFarthest = farthest;
+            }
+            
+            // If this node is a leaf and we've made it this far, we can add it to the list of leaves to check.
+            // Otherwise, we will add the children to the end of the queue.
+            if (node.IsLeaf)
+            {
+                leaves.Enqueue(node);
+            }
+            else
+            {
+                queue.Enqueue(node.Left!);
+                queue.Enqueue(node.Right!);
+            }
+        }
+        
+        // Now that we have the list of leaves, we can check the distance to each element in the leaves.
+        var minDistance = double.MaxValue;
+        var position = default(Position);
+        foreach (var leaf in leaves)
+        {
+            var closest = leaf.Bounds.ClosestDistance(point);
+            if (closest > minFarthest || closest > minDistance) continue;
+            
+            foreach (var e in leaf._elements)
+            {
+                var p = e.Closest(point);
+                var d = point.DistanceTo(p.Surface.Point);
+                if (d < minDistance)
+                {
+                    minDistance = d;
+                    position = p;
+                }
+            }
+        }
+        
+        return (minDistance, position);
+    }
     
     /// <summary>
     /// Find all intersections between items in this subtree and the specified entity, using the BVH structure to
