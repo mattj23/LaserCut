@@ -28,19 +28,19 @@ public readonly record struct IntersectionPair(Position First, Position Second)
     /// of the intersection to be less than the length of the first element. Essentially, there must be *some* amount
     /// of the first element beyond the intersection point.
     /// </summary>
-    public bool FirstExitsSecond => FirstDirDotSecondNorm > 0 && First.L < First.Element.Length;
-
+    public bool FirstExitsSecond => FirstDirDotSecondNorm > 0 && First.L < First.Element.Length - GeometryConstants.DistEquals;
+    
     /// <summary>
     /// Returns true if the first element 'enters' the second element at the intersection. This requires the direction
     /// of the first surface to be pointing in the opposite direction as the normal of the second surface, and the
     /// position of the intersection to be less than the length of the first element. Essentially, there must be *some*
     /// of the first element beyond the intersection point.
     /// </summary>
-    public bool FirstEntersSecond => FirstDirDotSecondNorm < 0 && First.L < First.Element.Length;
+    public bool FirstEntersSecond => FirstDirDotSecondNorm < 0 && First.L < First.Element.Length - GeometryConstants.DistEquals;
     
-    public bool SecondExitsFirst => SecondDirDotFirstNorm > 0 && Second.L < Second.Element.Length;
+    public bool SecondExitsFirst => SecondDirDotFirstNorm > 0 && Second.L < Second.Element.Length - GeometryConstants.DistEquals;
     
-    public bool SecondEntersFirst => SecondDirDotFirstNorm < 0 && Second.L < Second.Element.Length;
+    public bool SecondEntersFirst => SecondDirDotFirstNorm < 0 && Second.L < Second.Element.Length - GeometryConstants.DistEquals;
     
     /// <summary>
     /// Shortcut for the dot product of the direction of the first surface and the normal of the second surface.
@@ -72,4 +72,21 @@ public readonly record struct IntersectionPair(Position First, Position Second)
     /// </summary>
     /// <returns></returns>
     public IntersectionPair Swapped() => new(Second, First);
+}
+
+public readonly record struct OperationPair(IntersectionPosition First, IntersectionPosition Second)
+{
+    public bool Empty => First.Empty || Second.Empty;
+    
+    public Point2D Point => First.Surface.Point;
+    
+    public bool IsEquivalentTo(OperationPair other)
+    {
+        var elementsMatch = (First.Element == other.First.Element && Second.Element == other.Second.Element) ||
+                            (First.Element == other.Second.Element && Second.Element == other.First.Element);
+
+        return elementsMatch && Point.DistanceTo(other.Point) < GeometryConstants.DistEquals;
+    }
+    
+    public OperationPair Swapped() => new(Second, First);
 }

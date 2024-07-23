@@ -33,3 +33,18 @@ public readonly record struct Position(double L, IBoundaryElement Element)
         return Empty ? "Empty" : $"{Element}@{L:F4}";
     }
 }
+
+public readonly record struct IntersectionPosition(double L, IBoundaryElement Element, bool Enters, bool Exits)
+{
+    /// <summary>
+    /// Gets the surface triplet (point, direction, normal) at the position on the element.
+    /// </summary>
+    public SurfacePoint Surface => Element.AtLength(L);
+
+    /// <summary>
+    /// Gets whether this position is empty, meaning that the element is null. Because this is a value type, it is not
+    /// possible to have a null Position, so use this property to check for emptiness (as might be returned by
+    /// `FirstOrDefault`).
+    /// </summary>
+    public bool Empty => Element == null;
+}

@@ -256,6 +256,11 @@ public class Arc : IBoundaryElement
         return new Arc(Circle.Center, Math.Abs(newRadius), newTheta0, Theta, -1);
     }
 
+    public IBoundaryElement Reversed()
+    {
+        return FromEnds(End, Start, Center, IsCcW, -1);
+    }
+
     private Position[] ValidPositionsFromPoints(IEnumerable<Point2D> points)
     {
         var results = new List<Position>();

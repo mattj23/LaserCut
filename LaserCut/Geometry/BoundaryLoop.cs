@@ -428,6 +428,27 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     {
         return Bvh.Intersections(other.Bvh);
     }
+
+    /// <summary>
+    /// An operation pair is an intersection pair where we know that at least one of the elements either enters or exits
+    /// the other element at the intersection.  This exists to handle intersections that get created at places where
+    /// two boundaries have a shared section of their paths.  We tighten down the definitions and check to see if we
+    /// are sure that one of the elements enters or exits the other.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public OperationPair[] OperationPairs(BoundaryLoop other)
+    {
+        var results = new List<OperationPair>();
+        foreach (var pair in IntersectionPairs(other))
+        {
+            // Does the first element definitely exit the second?  To know, we 
+        }
+
+        throw new NotImplementedException();
+
+        return results.ToArray();
+    }
     
     /// <summary>
     /// Determines the loop intersection/spatial relationship between this loop and another. The relationship
@@ -466,7 +487,12 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
                 // * f0 == s0 and f1 == s1 => The elements are the same type with the same geometry start/end
                 // * f0 == s1 and f1 == s0 => The elements are the same type with the reverse geometry start/end
                 // We already know the vertices match
-
+                var matchFwd = f0.Matches(s0) && f1.Matches(s1);
+                var matchRev = f0.Matches(s1.Reversed()) && f1.Matches(s0.Reversed());
+                if (!matchFwd && !matchRev)
+                {
+                    filtered.Add(pair);
+                }
             }
             else
             {

@@ -109,4 +109,6 @@ public interface IBoundaryElement : IBvhIntersect
     /// <returns>A new element of the same type as this element</returns>
     IBoundaryElement OffsetBy(double distance);
     
+    IBoundaryElement Reversed();
+    
 }

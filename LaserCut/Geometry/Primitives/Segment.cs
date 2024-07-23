@@ -163,6 +163,11 @@ public class Segment : Line2, IBoundaryElement
         return new Segment(Start + offset, End + offset, -1);
     }
 
+    public IBoundaryElement Reversed()
+    {
+        return new Segment(End, Start, -1);
+    }
+
     private Aabb2 GetAabb()
     {
         var xMin = Math.Min(Start.X, End.X);
