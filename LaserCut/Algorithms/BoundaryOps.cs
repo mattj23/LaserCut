@@ -180,7 +180,7 @@ public static class BoundaryOps
 
             Read = MakeRead(start.Start);
             WriteSplitAfter(start.Start);
-            LastL += GeometryConstants.DistEquals + double.Epsilon;
+            LastL += GeometryConstants.DistEquals * 1.5;
         }
         
         public List<IntersectionPair> WorkingPairs { get; }

@@ -430,27 +430,6 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     }
 
     /// <summary>
-    /// An operation pair is an intersection pair where we know that at least one of the elements either enters or exits
-    /// the other element at the intersection.  This exists to handle intersections that get created at places where
-    /// two boundaries have a shared section of their paths.  We tighten down the definitions and check to see if we
-    /// are sure that one of the elements enters or exits the other.
-    /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
-    public OperationPair[] OperationPairs(BoundaryLoop other)
-    {
-        var results = new List<OperationPair>();
-        foreach (var pair in IntersectionPairs(other))
-        {
-            // Does the first element definitely exit the second?  To know, we 
-        }
-
-        throw new NotImplementedException();
-
-        return results.ToArray();
-    }
-    
-    /// <summary>
     /// Determines the loop intersection/spatial relationship between this loop and another. The relationship
     /// will be either that the loops are disjoint, one is enclosed by the other, one encloses the other, or they
     /// intersect in some way.

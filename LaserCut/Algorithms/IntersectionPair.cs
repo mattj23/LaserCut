@@ -73,20 +73,3 @@ public readonly record struct IntersectionPair(Position First, Position Second)
     /// <returns></returns>
     public IntersectionPair Swapped() => new(Second, First);
 }
-
-public readonly record struct OperationPair(IntersectionPosition First, IntersectionPosition Second)
-{
-    public bool Empty => First.Empty || Second.Empty;
-    
-    public Point2D Point => First.Surface.Point;
-    
-    public bool IsEquivalentTo(OperationPair other)
-    {
-        var elementsMatch = (First.Element == other.First.Element && Second.Element == other.Second.Element) ||
-                            (First.Element == other.Second.Element && Second.Element == other.First.Element);
-
-        return elementsMatch && Point.DistanceTo(other.Point) < GeometryConstants.DistEquals;
-    }
-    
-    public OperationPair Swapped() => new(Second, First);
-}
