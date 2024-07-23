@@ -328,7 +328,7 @@ public class BoundaryOpsTests : ShapeOpTestBase
         // Create an end cap that turns the C into an O
         var tool = Loop((2, 0), (3, 0), (3, 3), (2, 3));
         
-        var (a, b) = c0.Union(tool);
+        var (a, b) = c0.Union(tool, new OpDebugWriter(@"D:\temp\test2.dbg"));
         var results = b.ToList();
         
         Assert.Equal(BoundaryOpResult.Merged, a);
@@ -353,7 +353,7 @@ public class BoundaryOpsTests : ShapeOpTestBase
         var tool = Loop((3, 1.75), (3, 2), (4, 2), (4, 1.75), (5.5, 1.75), (5.5, 1.25), (4, 1.25), (4, 1), (3, 1),
             (3, 1.25), (1.5, 1.25), (1.5, 1.75));
         
-        var (a, b) = working.Intersection(tool, new OpDebugWriter(@"D:\temp\test.dbg"));
+        var (a, b) = working.Intersection(tool);
         Assert.Equal(BoundaryOpResult.Merged, a);
     }
 }
