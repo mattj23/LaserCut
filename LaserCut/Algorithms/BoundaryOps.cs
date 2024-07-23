@@ -151,6 +151,8 @@ public static class BoundaryOps
         
         // I'm not 100% sure about this, but it was part of fixing ShapeOpsTests.DegenerateMerge
         pairs.Remove(start.Start);
+        
+        merge.Working.RemoveZeroLengthElements();
         merge.Working.RemoveAdjacentRedundancies();
         
         return merge.Working;

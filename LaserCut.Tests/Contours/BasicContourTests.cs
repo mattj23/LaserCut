@@ -1,10 +1,11 @@
 using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
+using LaserCut.Tests.Helpers;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Tests.Contours;
 
-public class BasicContourTests
+public class BasicContourTests : ShapeOpTestBase
 {
     [Fact]
     public void ContourStartsEmpty()
@@ -84,6 +85,43 @@ public class BasicContourTests
         var contour = PillContour();
         var r = contour.Reversed();
         Assert.Equal(-(Math.PI + 2), r.Area, 1e-5);
+    }
+
+    [Fact]
+    public void RemoveThinSectionsReduceToUnitBox()
+    {
+        var loop = Loop((0, 0), (2, 0), (1, 0), (1, 1), (0, 1));
+        var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (0, 1));
+        loop.RemoveThinSections();
+
+        AssertLoop(expected, loop);
+    }
+    
+    [Fact]
+    public void RemoveThinSectionsReduceToNullSet()
+    {
+        var loop = Loop((0, 0), (1, 0), (1, 1), (1, 0));
+        loop.RemoveThinSections();
+
+        Assert.True(loop.IsNullSet);
+    }
+    
+    [Fact]
+    public void RemoveThinArcSectionsReduceToNullSet()
+    {
+        var loop = new BoundaryLoop();
+        var cursor = loop.GetCursor();
+        var c = new Point2D(0, 1);
+        cursor.InsertAfter(new BoundaryArc(new Point2D(0, 0), c, false));
+        cursor.InsertAfter(new BoundaryArc(new Point2D(1, 1), c, false));
+        cursor.InsertAfter(new BoundaryArc(new Point2D(0, 2), c, true));
+        cursor.InsertAfter(new BoundaryArc(new Point2D(1, 1), c, true));
+        loop.RemoveThinSections();
+        
+        // In this case, because of the nature of the arc, it will become a full circle.  We need to think of a way
+        // to prevent that.
+
+        Assert.True(loop.IsNullSet);
     }
 
     /// <summary>

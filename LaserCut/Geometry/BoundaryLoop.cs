@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Text;
@@ -135,6 +136,13 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// in an invalid state, an exception will be thrown.
     /// </summary>
     public bool IsPositive => Area > 0;
+    
+    /// <summary>
+    /// Gets whether the boundary represents a null set.  This is true if the contour has no elements, or if it has
+    /// a single element which is a line segment.  This does not trigger the construction of geometric elements, and
+    /// will only work if RemoveThinSections has been called.
+    /// </summary>
+    public bool IsNullSet => Count == 0 || Count == 1 && Nodes.First().Value.Item is BoundaryLine;
 
     // ==============================================================================================================
     // Geometric operations
@@ -338,6 +346,101 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     }
 
     /// <summary>
+    /// This method recursively removes (in place) any adjacent zero-length elements.  This is useful for cleaning up
+    /// a boundary loop before elements are generated, as any zero-length elements at that time will cause an error.
+    /// </summary>
+    public void RemoveZeroLengthElements()
+    {
+        var cursor = GetCursor();
+        var lastChecked = -1;
+        
+        while (Count > 1 && lastChecked != cursor.CurrentId)
+        {
+            // TODO: Think through...do we need a special method for arcs?
+            if (cursor.Current.Point.DistanceTo(cursor.PeekNext().Point) < GeometryConstants.DistEquals)
+            {
+                cursor.Remove();
+            }
+            else
+            {
+                if (lastChecked == -1) lastChecked = cursor.CurrentId;
+                cursor.MoveForward();
+            }
+        }
+    }
+
+    /// <summary>
+    /// This method removes (in place) any infinitesimally thin portions of the boundary formed by the boundary
+    /// doubling back on itself.
+    /// </summary>
+    public void RemoveThinSections()
+    {
+        // To find portions of the boundary that double back on themselves, we can examine every boundary point in the
+        // loop and its previous and next neighbor.  If the element from p -> c is the same type of element as c -> n
+        // (and if they have the same center if they're both arcs), and the direction at start of c -> n is the exact
+        // opposite of the direction at the end of p -> c, then we have an infinitely thin portion of the boundary 
+        // where c is the turning point.
+        //
+        // To remove it, we will remove the element c, and move the cursor back to p.  We then repeat this process
+        // until we have made it all the way around the loop.
+        
+        var cursor = GetCursor();
+        var visited = new HashSet<int>();
+
+        while (Count > 1 && !visited.Contains(cursor.CurrentId))
+        {
+            var curr = cursor.Current;
+            var prev = cursor.PeekPrevious();
+            var next = cursor.PeekNext();
+            
+            // Remove any zero-length elements between the current and previous elements
+            if (curr.Point.DistanceTo(prev.Point) < GeometryConstants.DistEquals)
+            {
+                visited.Remove(cursor.CurrentId);
+                cursor.MoveBackward();
+                visited.Remove(cursor.CurrentId);
+                cursor.Remove();
+                continue;
+            }
+            
+            // Remove any zero-length elements between the current and next elements
+            if (curr.Point.DistanceTo(next.Point) < GeometryConstants.DistEquals)
+            {
+                visited.Remove(cursor.CurrentId);
+                cursor.Remove();
+                continue;
+            }
+
+            if (curr is BoundaryLine cl && prev is BoundaryLine pl)
+            {
+                var pd = (cl.Point - pl.Point).Normalize();
+                var cd = (next.Point - cl.Point).Normalize();
+                if (pd.DotProduct(cd) < -1.0 + GeometryConstants.DistEquals)
+                {
+                    // Remove the element from the completed list (will no-op if it hasn't been added) just in case
+                    // we're moving backwards, since this may have been a node we already checked that was fine before
+                    // we started deleting its followers.
+                    visited.Remove(cursor.CurrentId);
+                    cursor.Remove();
+                    continue;
+                }
+            }
+            else if (curr is BoundaryArc ca && prev is BoundaryArc pa)
+            {
+                if (pa.Center.DistanceTo(ca.Center) < GeometryConstants.DistEquals && pa.Clockwise != ca.Clockwise)
+                {
+                    visited.Remove(cursor.CurrentId);
+                    cursor.Remove();
+                    continue;
+                }
+            }
+            
+            visited.Add(cursor.CurrentId);
+            cursor.MoveForward();
+        }
+    }
+
+    /// <summary>
     /// This method removes (in place) any adjacent redundant elements, such as collinear segments or arcs with the
     /// same center.
     /// </summary>
@@ -482,6 +585,14 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         var intersections = filtered.ToArray();
         if (intersections.Length != 0)
         {
+            // The presence of intersections alone isn't enough to determine that the boundaries are not enclosing one
+            // another.  Instead, we need to look to see if there are any places where one of the boundaries actually
+            // leaves the space enclosed by the other.
+            //
+            // This can be difficult in the case of boundaries with overlapping regions.  However, if one enters the
+            // other but the reverse is not true, 
+            // 
+            
             // We can still have enclosure with intersections if one contour never exits the other. To check for this
             // we will need to consider the intersections themselves.
             var firstExits = intersections.Any(i => i.FirstExitsSecond);

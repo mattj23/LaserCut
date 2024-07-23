@@ -90,6 +90,51 @@ public class BoundaryOpsTests : ShapeOpTestBase
     }
 
     [Fact]
+    public void MergePositiveSharedSquareEdges()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
+        var loop1 = BoundaryLoop.Rectangle(1, 0, 1, 1);
+        var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (0, 1));
+        
+        var (kind, result) = loop0.Union(loop1);
+        Assert.Equal(BoundaryOpResult.Merged, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
+    
+    [Fact]
+    public void UnionPositiveEnclosedSquare()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
+        var loop1 = BoundaryLoop.Rectangle(0, 0, 2, 1);
+        var expected = ExpectedPoints((0, 0), (2, 0), (2, 1), (0, 1));
+        
+        var (kind, result) = loop0.Union(loop1);
+        Assert.Equal(BoundaryOpResult.Replaced, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
+    
+    [Fact]
+    public void IntersectionPositiveEnclosedSquare()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
+        var loop1 = BoundaryLoop.Rectangle(0, 0, 2, 1);
+        var expected = ExpectedPoints((0, 0), (1, 0), (1, 1), (0, 1));
+        
+        var (kind, result) = loop0.Intersection(loop1);
+        Assert.Equal(BoundaryOpResult.Unchanged, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
+
+    [Fact]
     public void MergeNegativeSharedSide()
     {
         var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 3).Reversed();
@@ -231,7 +276,7 @@ public class BoundaryOpsTests : ShapeOpTestBase
     }
     
     [Fact]
-    public void OperationDestroyedWithIntersections()
+    public void OperationDestroyedWithIntersectionsEnclosed()
     {
         var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
         var loop1 = BoundaryLoop.Rectangle(0, 0, 1, 2).Reversed();
@@ -240,6 +285,18 @@ public class BoundaryOpsTests : ShapeOpTestBase
         Assert.Equal(BoundaryOpResult.Destroyed, a);
         Assert.Empty(b);
     }
+    
+    [Fact]
+    public void OperationDestroyedWithIntersectionsDisjoint()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
+        var loop1 = BoundaryLoop.Rectangle(1, 0, 1, 1);
+        
+        var (a, b) = loop0.Intersection(loop1, new OpDebugWriter(@"D:\temp\test1.dbg"));
+        Assert.Equal(BoundaryOpResult.Destroyed, a);
+        Assert.Empty(b);
+    }
+    
     
     [Fact]
     public void OperationShapeEnclosesTool()
@@ -328,7 +385,7 @@ public class BoundaryOpsTests : ShapeOpTestBase
         // Create an end cap that turns the C into an O
         var tool = Loop((2, 0), (3, 0), (3, 3), (2, 3));
         
-        var (a, b) = c0.Union(tool, new OpDebugWriter(@"D:\temp\test2.dbg"));
+        var (a, b) = c0.Union(tool);
         var results = b.ToList();
         
         Assert.Equal(BoundaryOpResult.Merged, a);
