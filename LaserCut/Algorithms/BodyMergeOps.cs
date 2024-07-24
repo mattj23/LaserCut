@@ -7,6 +7,7 @@ public static class BodyMergeOps
 {
     private static Body? ReduceMergeOne(List<Body> remaining)
     {
+        remaining.Sort((b0, b1) => b1.Area.CompareTo(b0.Area));
         var queue = new Queue<Body>(remaining);
         remaining.Clear();
         var finished = new Queue<Body>();
@@ -16,10 +17,10 @@ public static class BodyMergeOps
         var c = 0;
         while (queue.TryDequeue(out var body))
         {
-            if (c++ == 5)
-            {
-                Console.WriteLine("Problem");
-            }
+            // if (c++ == 5)
+            // {
+            //     Console.WriteLine("Problem");
+            // }
             
             var a0 = working.Area;
             var (relation, _) = working.Outer.ShapeRelationTo(body.Outer);
@@ -29,7 +30,11 @@ public static class BodyMergeOps
                     finished.Enqueue(body);
                     break;
                 case ShapeRelation.IsSubsetOf:
-                    throw new NotImplementedException();
+                    // Uno reverso
+                    queue.Enqueue(working);
+                    working = body;
+                    finished.TransferTo(queue);
+                    break;
                 case ShapeRelation.IsSupersetOf or ShapeRelation.Intersects:
                     working = working.OperateAssertSingle(body.Outer);
                     foreach (var hole in body.Inners)
