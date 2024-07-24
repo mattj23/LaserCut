@@ -3,9 +3,9 @@ using LaserCut.Geometry.Primitives;
 using LaserCut.Tests.Helpers;
 using MathNet.Spatial.Euclidean;
 
-namespace LaserCut.Tests.Contours;
+namespace LaserCut.Tests.BoundaryLoops;
 
-public class BasicContourTests : ShapeOpTestBase
+public class BasicTests : ShapeOpTestBase
 {
     [Fact]
     public void ContourStartsEmpty()

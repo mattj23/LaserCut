@@ -1,8 +1,8 @@
 using LaserCut.Geometry;
 
-namespace LaserCut.Tests.Contours;
+namespace LaserCut.Tests.BoundaryLoops;
 
-public class RelationsContourTests
+public class RelationsTest
 {
     [Fact]
     public void DisjointContours()

@@ -2,9 +2,9 @@ using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
 using LaserCut.Tests.Helpers;
 
-namespace LaserCut.Tests.Contours;
+namespace LaserCut.Tests.BoundaryLoops;
 
-public class RedundancyContourTests : ShapeOpTestBase
+public class RedundancyTests : ShapeOpTestBase
 {
     [Fact]
     public void RemoveCollinearPoints()

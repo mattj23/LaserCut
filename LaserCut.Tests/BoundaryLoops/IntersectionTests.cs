@@ -2,9 +2,9 @@
 using LaserCut.Geometry.Primitives;
 using LaserCut.Tests.Helpers;
 
-namespace LaserCut.Tests.Contours;
+namespace LaserCut.Tests.BoundaryLoops;
 
-public class IntersectionContourTests
+public class IntersectionTests
 {
     [Fact]
     public void IntersectionPairOrderCorrect()

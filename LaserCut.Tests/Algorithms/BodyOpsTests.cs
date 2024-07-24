@@ -1,12 +1,9 @@
-﻿using LaserCut.Algorithms;
-using LaserCut.Algorithms.Loop;
-using LaserCut.Geometry;
+﻿using LaserCut.Geometry;
 using LaserCut.Tests.Helpers;
-using LaserCut.Tests.Plotting;
 
-namespace LaserCut.Tests;
+namespace LaserCut.Tests.Algorithms;
 
-public class BodyOperationTests : ShapeOpTestBase
+public class BodyOpsTests : ShapeOpTestBase
 {
 
     // [Fact]
@@ -21,7 +18,7 @@ public class BodyOperationTests : ShapeOpTestBase
     //     AssertLoop(expected, results[0].Outer);
     //     AssertBodyInner(results[0], fixture.A, fixture.B, fixture.C);
     // }
-    //
+    
     // [Fact]
     // public void PositiveMergeRemovesInner()
     // {

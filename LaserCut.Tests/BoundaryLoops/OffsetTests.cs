@@ -1,8 +1,8 @@
 ﻿using LaserCut.Geometry;
 
-namespace LaserCut.Tests.Contours;
+namespace LaserCut.Tests.BoundaryLoops;
 
-public class OffsetContourTests
+public class OffsetTests
 {
     [Fact]
     public void SimpleOffsetCircle()
