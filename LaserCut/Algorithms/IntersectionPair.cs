@@ -36,11 +36,11 @@ public readonly record struct IntersectionPair(Position First, Position Second)
     /// position of the intersection to be less than the length of the first element. Essentially, there must be *some*
     /// of the first element beyond the intersection point.
     /// </summary>
-    public bool FirstEntersSecond => FirstDirDotSecondNorm < 0 && First.L < First.Element.Length - GeometryConstants.DistEquals;
+    public bool FirstEntersSecond => FirstDirDotSecondNorm < 0 && First.L < First.Element.Length + GeometryConstants.DistEquals;
     
     public bool SecondExitsFirst => SecondDirDotFirstNorm > 0 && Second.L < Second.Element.Length - GeometryConstants.DistEquals;
     
-    public bool SecondEntersFirst => SecondDirDotFirstNorm < 0 && Second.L < Second.Element.Length - GeometryConstants.DistEquals;
+    public bool SecondEntersFirst => SecondDirDotFirstNorm < 0 && Second.L < Second.Element.Length + GeometryConstants.DistEquals;
     
     /// <summary>
     /// Shortcut for the dot product of the direction of the first surface and the normal of the second surface.

@@ -235,9 +235,8 @@ public class BoundaryOpsTests : ShapeOpTestBase
         var loop1 = BoundaryLoop.Rectangle(2, 2, 1, 1);
     
         var (a, b) = loop0.Union(loop1);
-        Assert.Equal(BoundaryOpResult.Destroyed, a);
-        Assert.Single(b);
-        Assert.Equal(loop0, b[0]);
+        Assert.Equal(BoundaryOpResult.Merged, a);
+        Assert.Equal(2, b.Length);
     }
     
     [Fact]

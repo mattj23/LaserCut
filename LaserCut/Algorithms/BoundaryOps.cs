@@ -34,10 +34,15 @@ public static class BoundaryOps
             ShapeRelation.IsSupersetOf => (BoundaryOpResult.Replaced, [l1]),
             
             // The two shapes have intersection, so we need to compute the result
-            ShapeRelation.Intersects => (BoundaryOpResult.Merged,
-                OperateFromPairs(l0, l1, intersections, OpType.Intersection)),
+            ShapeRelation.Intersects => IntersectionResult(l0, l1, intersections),
             _ => throw new ArgumentOutOfRangeException(nameof(relation), relation, null)
         };
+    }
+    
+    private static (BoundaryOpResult, BoundaryLoop[]) IntersectionResult(BoundaryLoop l0, BoundaryLoop l1, IntersectionPair[] pairs)
+    {
+        var result = OperateFromPairs(l0, l1, pairs, OpType.Intersection);
+        return result.Length == 0 ? (BoundaryOpResult.Destroyed, result) : (BoundaryOpResult.Merged, result);
     }
     
     public static (BoundaryOpResult, BoundaryLoop[]) Union(this BoundaryLoop l0, BoundaryLoop l1, ILoopOpHelper? helper=null)
@@ -91,7 +96,7 @@ public static class BoundaryOps
         var results = new List<BoundaryLoop>();
         while (ExtractOneLoop(l0, l1, workingPairs, opType) is { } loop)
         {
-            results.Add(loop);
+            if (!loop.IsNullSet) results.Add(loop);
         }
 
         return results.ToArray();
@@ -124,8 +129,7 @@ public static class BoundaryOps
         {
             if (merge.PopNext() is { } next)
             {
-                // Changing this from `start.IsEquivalentTo(next)` was part of fixing ShapeOpsTests.DegenerateMerge
-                if (next.Point.DistanceTo(start.Start.Point) < GeometryConstants.DistEquals)
+                if (start.Start.IsEquivalentTo(next))
                 {
                     // We've returned to the starting point, so we can close the loop and return the result
                     break;
@@ -137,22 +141,13 @@ public static class BoundaryOps
             }
             else
             {
-                // To deal with the non-terminating merge cases, such as NonTerminatingMerge(), we have to handle the
-                // case where something that happened earlier that put us on the entity which had a valid intersection,
-                // and we advance past it without removing it from the list of pairs. When we get to the end of 
-                // extracting this loop, it will trigger the start of another loop that doesn't terminate.
-                //
-                // To fix this, we have to see if somewhere between where we 
                 merge.Read.MoveForward();
                 merge.WriteFullEntity(merge.Read.Current);
             }
             
         }
         
-        // I'm not 100% sure about this, but it was part of fixing ShapeOpsTests.DegenerateMerge
-        pairs.Remove(start.Start);
-        
-        merge.Working.RemoveZeroLengthElements();
+        merge.Working.RemoveThinSections();
         merge.Working.RemoveAdjacentRedundancies();
         
         return merge.Working;
@@ -229,6 +224,12 @@ public static class BoundaryOps
             var position = PairPosition(p);
             LastL = position.L;
             Write.InsertFromElement(position.Element.SplitAfter(LastL));
+            
+            // If this is the first entity we've written, we need to pad the LastL to avoid picking up the start again
+            if (Working.Count == 1)
+            {
+                 LastL += GeometryConstants.DistEquals * 2;
+            }
         }
 
         public void WriteFullEntity(BoundaryPoint p)

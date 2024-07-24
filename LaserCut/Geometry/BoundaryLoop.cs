@@ -449,7 +449,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         var visited = new HashSet<int>();
         var cursor = GetCursor();
 
-        while (!visited.Contains(cursor.CurrentId))
+        while (Count > 1 && !visited.Contains(cursor.CurrentId))
         {
             if (cursor.Current is BoundaryLine seg && cursor.PeekPrevious() is BoundaryLine prevSeg)
             {
