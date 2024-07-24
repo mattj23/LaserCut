@@ -1,4 +1,5 @@
-﻿using LaserCut.Geometry;
+﻿using LaserCut.Algorithms;
+using LaserCut.Geometry;
 using LaserCut.Tests.Helpers;
 
 namespace LaserCut.Tests.Algorithms;
@@ -6,215 +7,215 @@ namespace LaserCut.Tests.Algorithms;
 public class BodyOpsTests : ShapeOpTestBase
 {
 
-    // [Fact]
-    // public void PositiveMergeSimple()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(7, 1, 1, 1);
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (8, 1), (8, 2), (7, 2), (7, 3), (0, 3));
-    //     
-    //     var results = fixture.Body.Operate(tool);
-    //     Assert.Single(results);
-    //     AssertLoop(expected, results[0].Outer);
-    //     AssertBodyInner(results[0], fixture.A, fixture.B, fixture.C);
-    // }
+    [Fact]
+    public void PositiveMergeSimple()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(7, 1, 1, 1);
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (8, 1), (8, 2), (7, 2), (7, 3), (0, 3));
+        
+        var results = fixture.Body.Operate(tool);
+        Assert.Single(results);
+        AssertLoop(expected, results[0].Outer);
+        AssertBodyInner(results[0], fixture.A, fixture.B, fixture.C);
+    }
     
-    // [Fact]
-    // public void PositiveMergeRemovesInner()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(5, 1, 3, 1);
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (8, 1), (8, 2), (7, 2), (7, 3), (0, 3));
-    //     
-    //     var results = fixture.Body.Operate(tool);
-    //     Assert.Single(results);
-    //     AssertLoop(expected, results[0].Outer);
-    //     AssertBodyInner(results[0], fixture.A, fixture.B);
-    // }
-    //
-    // [Fact]
-    // public void PositiveMergeChangesInner()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(5.5, 1, 2.5, 1);
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (8, 1), (8, 2), (7, 2), (7, 3), (0, 3));
-    //     var c = BoundaryLoop.Rectangle(5, 1, 0.5, 1).Reversed();
-    //     
-    //     var results = fixture.Body.Operate(tool);
-    //     Assert.Single(results);
-    //     AssertLoop(expected, results[0].Outer);
-    //     
-    //     AssertBodyInner(results[0], fixture.A, fixture.B, c);
-    // }
-    //
-    // [Fact]
-    // public void PositiveMergeRemovesInnerOnly()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(2.5, 0.5, 2, 2);
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
-    //     
-    //     var results = fixture.Body.Operate(tool);
-    //     Assert.Single(results);
-    //     AssertLoop(expected, results[0].Outer);
-    //     
-    //     AssertBodyInner(results[0], fixture.A, fixture.C);
-    // }
-    //
-    // [Fact]
-    // public void PositiveMergeSplitsInner()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(2.5, 1.25, 2, 0.5);
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
-    //     var b1 = BoundaryLoop.Rectangle(3, 1, 1, 0.25).Reversed();
-    //     var b2 = BoundaryLoop.Rectangle(3, 1.75, 1, 0.25).Reversed();
-    //     
-    //     var results = fixture.Body.Operate(tool);
-    //     Assert.Single(results);
-    //     AssertLoop(expected, results[0].Outer);
-    //     
-    //     AssertBodyInner(results[0], fixture.A, b1, b2, fixture.C);
-    // }
-    //
-    // [Fact]
-    // public void NegativeMergeSimple()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(6.5, 1, 1, 1).Reversed();
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (6.5, 1), (6.5, 2), (7, 2), (7, 3), (0, 3));
-    //     
-    //     var results = fixture.Body.Operate(tool);
-    //     Assert.Single(results);
-    //     AssertLoop(expected, results[0].Outer);
-    //     
-    //     AssertBodyInner(results[0], fixture.A, fixture.B, fixture.C);
-    // }
-    //
-    // [Fact]
-    // public void NegativeMergeAddsBoundary()
-    // {
-    //     var outer = BoundaryLoop.Rectangle(0, 0, 3, 3);
-    //     var body = new Body(outer);
-    //     var tool = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
-    //     
-    //     var results = body.Operate(tool);
-    //     Assert.Single(results);
-    //
-    //     var expectedOuter = results[0].Outer.ToItemArray().Select(x => x.Point).ToArray();
-    //     
-    //     AssertLoop(expectedOuter, results[0].Outer);
-    //     AssertBodyInner(results[0], tool);
-    // }
-    //
-    // [Fact]
-    // public void NegativeMergeAddsSecondBoundary()
-    // {
-    //     var outer = BoundaryLoop.Rectangle(0, 0, 5, 3);
-    //     var body = new Body(outer);
-    //     var tool0 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
-    //     var tool1 = BoundaryLoop.Rectangle(3, 1, 1, 1).Reversed();
-    //     
-    //     var result0 = body.Operate(tool0);
-    //     Assert.Single(result0);
-    //     
-    //     var result1 = result0[0].Operate(tool1);
-    //     Assert.Single(result1);
-    //
-    //     var expectedOuter = outer.ToItemArray().Select(x => x.Point).ToArray();
-    //     
-    //     AssertLoop(expectedOuter, result1[0].Outer);
-    //     AssertBodyInner(result1[0], tool0, tool1);
-    // }
-    //
-    // [Fact]
-    // public void NegativeMergeSubsumesInnerSimple()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(2.5, 0.5, 2, 2).Reversed();
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
-    //     
-    //     var result = fixture.Body.Operate(tool);
-    //     Assert.Single(result);
-    //     
-    //     AssertLoop(expected, result[0].Outer);
-    //     AssertBodyInner(result[0], fixture.A, tool, fixture.C);
-    // }
-    //
-    // [Fact]
-    // public void NegativeMergeSubsumesInnerWithIntersections()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(3, 1, 1, 1.5).Reversed();
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
-    //     
-    //     var result = fixture.Body.Operate(tool);
-    //     AssertLoop(expected, result[0].Outer);
-    //     AssertBodyInner(result[0], fixture.A, tool, fixture.C);
-    // }
-    //
-    // [Fact]
-    // public void NegativeMergeIntersectsBoundaryOnce()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(3.25, 1.5, 0.5, 2).Reversed();
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (3.75, 3), (3.75, 2), (4, 2), (4, 1), (3, 1), (3, 2), (3.25, 2), (3.25, 3), (0, 3));
-    //     
-    //     // var plot = new DebugPlot("NegativeMergeIntersectsBoundaryOnce");
-    //     // plot.Add(fixture.Body, "Fixture");
-    //     // plot.Add(tool, "Tool");
-    //     // plot.Plot();
-    //     
-    //     var result = fixture.Body.Operate(tool);
-    //     AssertLoop(expected, result[0].Outer);
-    //     
-    //     AssertBodyInner(result[0], fixture.A, fixture.C);
-    // }
-    //
-    // [Fact]
-    // public void NegativeMergeIntersectsBoundaryTwice()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(3.5, 1.25, 5, 0.5).Reversed();
-    //     var expected = ExpectedPoints((0, 0), (7, 0), (7, 1.25),
-    //         (6, 1.25), (6, 1), (5, 1), (5, 1.25), (4, 1.25), (4, 1), (3, 1), (3, 2), (4, 2), (4, 1.75), (5, 1.75),
-    //         (5, 2), (6, 2), (6, 1.75), (7, 1.75),
-    //         (7, 3), (0, 3));
-    //     
-    //     var result = fixture.Body.Operate(tool);
-    //     AssertLoop(expected, result[0].Outer);
-    //     
-    //     AssertBodyInner(result[0], fixture.A);
-    // }
-    //
-    // [Fact]
-    // public void NegativeMergeJoinsTwoInners()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(3.5, 1.25, 2, 0.5).Reversed();
-    //     var outside = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
-    //     var inside = Loop((3, 1), (4, 1), (4, 1.25), (5, 1.25), (5, 1), (6, 1), (6, 2), (5, 2), (5, 1.75),
-    //         (4, 1.75), (4, 2), (3, 2)).Reversed();
-    //     
-    //     var result = fixture.Body.Operate(tool);
-    //     AssertLoop(outside, result[0].Outer);
-    //     AssertBodyInner(result[0], fixture.A, inside);
-    // }
-    //
-    // [Fact]
-    // public void NegativeMergeJoinsThreeInners()
-    // {
-    //     var fixture = TestBody();
-    //     var tool = BoundaryLoop.Rectangle(1.5, 1.25, 4, 0.5).Reversed();
-    //     var outside = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
-    //     var inside = Loop((3, 1), (4, 1), (4, 1.25), (5, 1.25), (5, 1), (6, 1), (6, 2), (5, 2), (5, 1.75),
-    //         (4, 1.75), (4, 2), (3, 2), (3, 1.75), (2, 1.75), (2, 2), (1, 2), (1, 1),
-    //         (2, 1), (2, 1.25), (3, 1.25)).Reversed();
-    //     
-    //     var result = fixture.Body.Operate(tool);
-    //     AssertLoop(outside, result[0].Outer);
-    //     AssertBodyInner(result[0], inside);
-    // }
+    [Fact]
+    public void PositiveMergeRemovesInner()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(5, 1, 3, 1);
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (8, 1), (8, 2), (7, 2), (7, 3), (0, 3));
+        
+        var results = fixture.Body.Operate(tool);
+        Assert.Single(results);
+        AssertLoop(expected, results[0].Outer);
+        AssertBodyInner(results[0], fixture.A, fixture.B);
+    }
+    
+    [Fact]
+    public void PositiveMergeChangesInner()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(5.5, 1, 2.5, 1);
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (8, 1), (8, 2), (7, 2), (7, 3), (0, 3));
+        var c = BoundaryLoop.Rectangle(5, 1, 0.5, 1).Reversed();
+        
+        var results = fixture.Body.Operate(tool);
+        Assert.Single(results);
+        AssertLoop(expected, results[0].Outer);
+        
+        AssertBodyInner(results[0], fixture.A, fixture.B, c);
+    }
+    
+    [Fact]
+    public void PositiveMergeRemovesInnerOnly()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(2.5, 0.5, 2, 2);
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
+        
+        var results = fixture.Body.Operate(tool);
+        Assert.Single(results);
+        AssertLoop(expected, results[0].Outer);
+        
+        AssertBodyInner(results[0], fixture.A, fixture.C);
+    }
+    
+    [Fact]
+    public void PositiveMergeSplitsInner()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(2.5, 1.25, 2, 0.5);
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
+        var b1 = BoundaryLoop.Rectangle(3, 1, 1, 0.25).Reversed();
+        var b2 = BoundaryLoop.Rectangle(3, 1.75, 1, 0.25).Reversed();
+        
+        var results = fixture.Body.Operate(tool);
+        Assert.Single(results);
+        AssertLoop(expected, results[0].Outer);
+        
+        AssertBodyInner(results[0], fixture.A, b1, b2, fixture.C);
+    }
+    
+    [Fact]
+    public void NegativeMergeSimple()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(6.5, 1, 1, 1).Reversed();
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 1), (6.5, 1), (6.5, 2), (7, 2), (7, 3), (0, 3));
+        
+        var results = fixture.Body.Operate(tool);
+        Assert.Single(results);
+        AssertLoop(expected, results[0].Outer);
+        
+        AssertBodyInner(results[0], fixture.A, fixture.B, fixture.C);
+    }
+    
+    [Fact]
+    public void NegativeMergeAddsBoundary()
+    {
+        var outer = BoundaryLoop.Rectangle(0, 0, 3, 3);
+        var body = new Body(outer);
+        var tool = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
+        
+        var results = body.Operate(tool);
+        Assert.Single(results);
+    
+        var expectedOuter = results[0].Outer.IterItems().Select(x => x.Item.Point).ToArray();
+        
+        AssertLoop(expectedOuter, results[0].Outer);
+        AssertBodyInner(results[0], tool);
+    }
+    
+    [Fact]
+    public void NegativeMergeAddsSecondBoundary()
+    {
+        var outer = BoundaryLoop.Rectangle(0, 0, 5, 3);
+        var body = new Body(outer);
+        var tool0 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
+        var tool1 = BoundaryLoop.Rectangle(3, 1, 1, 1).Reversed();
+        
+        var result0 = body.Operate(tool0);
+        Assert.Single(result0);
+        
+        var result1 = result0[0].Operate(tool1);
+        Assert.Single(result1);
+    
+        var expectedOuter = outer.IterItems().Select(x => x.Item.Point).ToArray();
+        
+        AssertLoop(expectedOuter, result1[0].Outer);
+        AssertBodyInner(result1[0], tool0, tool1);
+    }
+    
+    [Fact]
+    public void NegativeMergeSubsumesInnerSimple()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(2.5, 0.5, 2, 2).Reversed();
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
+        
+        var result = fixture.Body.Operate(tool);
+        Assert.Single(result);
+        
+        AssertLoop(expected, result[0].Outer);
+        AssertBodyInner(result[0], fixture.A, tool, fixture.C);
+    }
+    
+    [Fact]
+    public void NegativeMergeSubsumesInnerWithIntersections()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(3, 1, 1, 1.5).Reversed();
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
+        
+        var result = fixture.Body.Operate(tool);
+        AssertLoop(expected, result[0].Outer);
+        AssertBodyInner(result[0], fixture.A, tool, fixture.C);
+    }
+    
+    [Fact]
+    public void NegativeMergeIntersectsBoundaryOnce()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(3.25, 1.5, 0.5, 2).Reversed();
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (3.75, 3), (3.75, 2), (4, 2), (4, 1), (3, 1), (3, 2), (3.25, 2), (3.25, 3), (0, 3));
+        
+        // var plot = new DebugPlot("NegativeMergeIntersectsBoundaryOnce");
+        // plot.Add(fixture.Body, "Fixture");
+        // plot.Add(tool, "Tool");
+        // plot.Plot();
+        
+        var result = fixture.Body.Operate(tool);
+        AssertLoop(expected, result[0].Outer);
+        
+        AssertBodyInner(result[0], fixture.A, fixture.C);
+    }
+    
+    [Fact]
+    public void NegativeMergeIntersectsBoundaryTwice()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(3.5, 1.25, 5, 0.5).Reversed();
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 1.25),
+            (6, 1.25), (6, 1), (5, 1), (5, 1.25), (4, 1.25), (4, 1), (3, 1), (3, 2), (4, 2), (4, 1.75), (5, 1.75),
+            (5, 2), (6, 2), (6, 1.75), (7, 1.75),
+            (7, 3), (0, 3));
+        
+        var result = fixture.Body.Operate(tool);
+        AssertLoop(expected, result[0].Outer);
+        
+        AssertBodyInner(result[0], fixture.A);
+    }
+    
+    [Fact]
+    public void NegativeMergeJoinsTwoInners()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(3.5, 1.25, 2, 0.5).Reversed();
+        var outside = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
+        var inside = Loop((3, 1), (4, 1), (4, 1.25), (5, 1.25), (5, 1), (6, 1), (6, 2), (5, 2), (5, 1.75),
+            (4, 1.75), (4, 2), (3, 2)).Reversed();
+        
+        var result = fixture.Body.Operate(tool);
+        AssertLoop(outside, result[0].Outer);
+        AssertBodyInner(result[0], fixture.A, inside);
+    }
+    
+    [Fact]
+    public void NegativeMergeJoinsThreeInners()
+    {
+        var fixture = TestBody();
+        var tool = BoundaryLoop.Rectangle(1.5, 1.25, 4, 0.5).Reversed();
+        var outside = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
+        var inside = Loop((3, 1), (4, 1), (4, 1.25), (5, 1.25), (5, 1), (6, 1), (6, 2), (5, 2), (5, 1.75),
+            (4, 1.75), (4, 2), (3, 2), (3, 1.75), (2, 1.75), (2, 2), (1, 2), (1, 1),
+            (2, 1), (2, 1.25), (3, 1.25)).Reversed();
+        
+        var result = fixture.Body.Operate(tool);
+        AssertLoop(outside, result[0].Outer);
+        AssertBodyInner(result[0], inside);
+    }
 
     // [Fact]
     // public void BodyDoubleCutout()

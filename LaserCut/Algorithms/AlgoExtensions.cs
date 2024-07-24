@@ -30,4 +30,16 @@ public static class AlgoExtensions
             target.Enqueue(source.Dequeue());
     }
     
+    public static void TransferTo<T>(this List<T> source, Queue<T> target)
+    {
+        target.EnqueueAll(source);
+        source.Clear();
+    }
+    
+    public static void EnqueueAll<T>(this Queue<T> queue, IEnumerable<T> items)
+    {
+        foreach (var item in items)
+            queue.Enqueue(item);
+    }
+    
 }

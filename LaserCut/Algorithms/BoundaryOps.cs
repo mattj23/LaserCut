@@ -41,6 +41,11 @@ public static class BoundaryOps
     
     private static (BoundaryOpResult, BoundaryLoop[]) IntersectionResult(BoundaryLoop l0, BoundaryLoop l1, IntersectionPair[] pairs)
     {
+        if (pairs.Length == 0)
+        {
+            return (BoundaryOpResult.UnchangedMerged, [l0, l1]);
+        }
+        
         var result = OperateFromPairs(l0, l1, pairs, OpType.Intersection);
         return result.Length == 0 ? (BoundaryOpResult.Destroyed, result) : (BoundaryOpResult.Merged, result);
     }

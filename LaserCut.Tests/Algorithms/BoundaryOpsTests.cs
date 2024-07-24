@@ -73,6 +73,23 @@ public class BoundaryOpsTests : ShapeOpTestBase
         var values = OrientedPoints(result[0], expected);
         Assert.Equal(expected, values);
     }
+    
+    
+    [Fact]
+    public void IntersectionNegativeSharedSide()
+    {
+        // This should basically do nothing
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 3);
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
+        var expected = ExpectedPoints((0, 0), (1, 0), (1, 3), (0, 3));
+        
+        var (kind, result) = loop0.Intersection(loop1);
+        Assert.Equal(BoundaryOpResult.Merged, kind);
+        Assert.Single(result);
+        
+        var values = OrientedPoints(result[0], expected);
+        Assert.Equal(expected, values);
+    }
 
     [Fact]
     public void MergePositiveSharedSide()
@@ -132,6 +149,17 @@ public class BoundaryOpsTests : ShapeOpTestBase
         
         var values = OrientedPoints(result[0], expected);
         Assert.Equal(expected, values);
+    }
+
+    [Fact]
+    public void IntersectionUnchangedMerged()
+    {
+        var loop0 = BoundaryLoop.Rectangle(0, 0, 3, 3);
+        var loop1 = BoundaryLoop.Rectangle(1, 1, 1, 1).Reversed();
+        
+        var (kind, result) = loop0.Intersection(loop1);
+        Assert.Equal(BoundaryOpResult.UnchangedMerged, kind);
+        Assert.Empty(result);
     }
 
     [Fact]

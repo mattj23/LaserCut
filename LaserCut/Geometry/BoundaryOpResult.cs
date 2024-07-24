@@ -6,4 +6,5 @@ public enum BoundaryOpResult
     Unchanged,
     Replaced,
     Merged,
+    UnchangedMerged,
 }
