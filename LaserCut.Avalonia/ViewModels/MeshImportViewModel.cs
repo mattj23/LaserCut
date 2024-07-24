@@ -84,13 +84,19 @@ public class MeshImportViewModel : ReactiveObject
             var sx = bounds.Width / 10 - bounds.MinX;
             var sy = bounds.Height / 10 - bounds.MinY;
             
-            var drawable = new SimpleDrawable();
-            foreach (var contour in result)
+            foreach (var body in result)
             {
-                contour.Transform(Isometry2.Translate(sx, sy));
-                drawable.Add(contour.ToViewModel(null, Brushes.Black, 1), contour.Bounds);
+                body.Translate(sx, sy);
+                var drawable = new SimpleDrawable();
+                
+                drawable.Add(body.Outer.ToViewModel(null, Brushes.Black, 1), body.Outer.Bounds);
+                foreach (var loop in body.Inners)
+                {
+                    drawable.Add(loop.ToViewModel(null, Brushes.DarkBlue, 1), loop.Bounds);
+                }
+                
+                Entities.Register(drawable);
             }
-            Entities.Register(drawable);
 
             await ZoomToFit.Handle(Unit.Default);
             IsNotValid = false;
@@ -105,10 +111,10 @@ public class MeshImportViewModel : ReactiveObject
         }
     }
     
-    private BoundaryLoop[] LoadMeshData(string filePath, CoordinateSystem cs)
+    private Body[] LoadMeshData(string filePath, CoordinateSystem cs)
     {
         var m = Mesh3.ReadStl(filePath, true);
-        return m.ExtractSilhouetteContours(cs);
+        return m.ExtractSilhouetteBodies(cs);
     }
     
 }

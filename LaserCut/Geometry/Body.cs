@@ -109,6 +109,11 @@ public class Body : IHasBounds
         return new Body(id, Outer.Copy(), Inners.Select(i => i.Copy()).ToList());
     }
 
+    public override string ToString()
+    {
+        return $"[Body: Area={Area:F2}, {Inners.Count} Holes, {Bounds.Height:F2}H x {Bounds.Width:F2}W]";
+    }
+
     // public Body OffsetAndFixed(double offset)
     // {
     //     var outer = Outer.OffsetAndRepaired(offset);

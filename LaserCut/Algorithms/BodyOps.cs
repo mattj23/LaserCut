@@ -119,7 +119,7 @@ public static class BodyOps
         return working.Select(x => x.Resolve()).ToArray();
     }
 
-    private class BodyBoundarySet
+    internal class BodyBoundarySet
     {
         public BodyBoundarySet(BoundaryLoop outer, IEnumerable<BoundaryLoop> holes)
         {
@@ -251,82 +251,5 @@ public static class BodyOps
             return new Body(workingOuter, finalHoles);
         }
     }
-    
-    // public static BodyContourSet[] ResolveInsidesToOutsides(IReadOnlyList<BoundaryLoop> outsides,
-    //     IReadOnlyList<BoundaryLoop> insides)
-    // {
-    //     var validated = new List<BodyContourSet>();
-    //
-    //     var unvalidated = new Queue<BodyContourSet>();
-    //     foreach (var outside in outsides) unvalidated.Enqueue(new BodyContourSet(outside, insides));
-    //
-    //     while (unvalidated.Count != 0)
-    //     {
-    //         var current = unvalidated.Dequeue();
-    //         var uncheckedHoles = new Queue<BoundaryLoop>();
-    //         current.Holes.TransferTo(uncheckedHoles);
-    //
-    //         var hadMerge = false;
-    //         while (uncheckedHoles.TryDequeue(out var testHole))
-    //         {
-    //             // Try a merge operation on the outer loop. If it succeeds, replace the outer loop with the result
-    //             // and transfer everything from working back into temp, otherwise (if it fails) add it back to the
-    //             // working queue
-    //             var (result, loops) = current.Outer.Mutate(testHole);
-    //
-    //             // The above operation is always mutating a positive loop (the outer boundary) with a negative
-    //             // loop (the inner boundary) which did not merge with the previous outer boundary.  It should
-    //             // not be possible to get a result which includes any negative loops, but it is possible that
-    //             // we will change the number of outer boundaries.  For example, a hollow rectangle shape may be
-    //             // split into two separate bodies by a U shaped tool that shortens both ends.
-    //
-    //             switch (result)
-    //             {
-    //                 case MutateResult.Disjoint:
-    //                     // The two loops are completely disjoint, which means the inner boundary is not inside this
-    //                     // outer boundary.  We don't need it for this body anymore, though it may be important to
-    //                     // a different body.
-    //                     break;
-    //                 case MutateResult.Destroyed:
-    //                     // The modified outer boundary is completely destroyed by the inner boundary. I'm not sure
-    //                     // yet if this is theoretically possible.
-    //                     throw new NotImplementedException("Not sure what to do here");
-    //                 case MutateResult.Subsumed:
-    //                     // This should not be possible, as the outer boundary is always positive and the inner
-    //                     // boundary is always negative
-    //                     throw new UnreachableException(
-    //                         "Subsumed outer should not be possible with a negative body and tool");
-    //                 case MutateResult.ShapeEnclosesTool:
-    //                     // The outer boundary encloses the inner boundary as we would expect, so we add it back to
-    //                     // the working queue
-    //                     if (loops.Length != 1)
-    //                         throw new InvalidOperationException($"Expected a single loop, got {loops.Length}");
-    //                     current.Holes.Enqueue(testHole);
-    //                     break;
-    //                 case MutateResult.Merged:
-    //                     // We have now modified the outer boundary, so we need to update the working positive loops
-    //                     // and start over.  We'll add the unchecked holes back to the queue (leaving out this one)
-    //                     // and then make a copy of the current BodyContourSet with the same holes but each new outer
-    //                     // loop and add them back to the unvalidated queue.
-    //                     uncheckedHoles.TransferTo(current.Holes);
-    //
-    //                     foreach (var newLoop in loops) unvalidated.Enqueue(new BodyContourSet(newLoop, current.Holes));
-    //
-    //                     hadMerge = true;
-    //                     break;
-    //
-    //                 default:
-    //                     throw new ArgumentOutOfRangeException($"Unexpected result type: {result}");
-    //             }
-    //         }
-    //         // Under normal circumstances, getting to this point means we've worked through all the unchecked holes
-    //         // and the current body set is valid.  However, if we had a merge, we discard the current body set and
-    //         // allow the loop to continue.
-    //         if (!hadMerge) validated.Add(current);
-    //     }
-    //
-    //     return validated.ToArray();
-    // }
-    //
 
 }

@@ -61,7 +61,21 @@ public class BodyOpsTests : ShapeOpTestBase
         
         AssertBodyInner(results[0], fixture.A, fixture.C);
     }
-    
+
+    [Fact]
+    public void PositiveMergeRemovesInnerExact()
+    {
+        var fixture = TestBody();
+        var tool = fixture.B.Reversed();
+        var expected = ExpectedPoints((0, 0), (7, 0), (7, 3), (0, 3));
+        
+        var results = fixture.Body.Operate(tool);
+        Assert.Single(results);
+        AssertLoop(expected, results[0].Outer);
+        
+        AssertBodyInner(results[0], fixture.A, fixture.C);
+    }
+
     [Fact]
     public void PositiveMergeSplitsInner()
     {

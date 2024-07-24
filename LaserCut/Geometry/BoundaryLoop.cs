@@ -503,7 +503,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// <returns></returns>
     public bool Encloses(Point2D p)
     {
-        var ray = new Ray2(p, Vector2D.XAxis);
+        var ray = new Ray2(p, new Vector2D(1, 1));
         var positions = Bvh.Intersections(ray);
         return EnclosesPoint.Check(ray, positions);
     }
