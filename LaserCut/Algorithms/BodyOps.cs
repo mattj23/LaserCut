@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using LaserCut.Geometry;
+using LaserCut.Helpers;
 
 namespace LaserCut.Algorithms;
 
@@ -9,8 +10,8 @@ public static class BodyOps
     {
         return tool.IsPositive ? body.OperatePositive(tool) : body.OperateNegative(tool);
     }
-    
-    public static Body[] OperatePositive(this Body body, BoundaryLoop tool)
+
+    private static Body[] OperatePositive(this Body body, BoundaryLoop tool)
     {
         if (!tool.IsPositive)
             throw new InvalidOperationException("Cannot perform a positive operation with a negative tool");
@@ -66,40 +67,43 @@ public static class BodyOps
         // body.
         while (workingInners.TryDequeue(out var loop))
         {
-            var (_, mergedLoops) = loop.Union(tool);
-            workingBody.Inners.AddRange(mergedLoops.Where(x => !x.IsPositive));
+            var (result, mergedLoops) = loop.Union(tool);
+            switch (result)
+            {
+                case BoundaryOpResult.Merged:
+                    workingBody.Inners.AddRange(mergedLoops.Where(x => !x.IsPositive));
+                    break;
+                case BoundaryOpResult.Destroyed:
+                    // In the case of a union operation, this can only mean that the resulting shape fills the entire
+                    // 2D plane, which in our case means the hole has been destroyed.
+                    break;
+                case BoundaryOpResult.Unchanged:
+                    // The tool is a subset of the area the hole allows, so nothing changes
+                    workingBody.Inners.Add(loop);
+                    break;
+                case BoundaryOpResult.Replaced:
+                    // This would require that the hole is a subset of the tool, which is not possible for a negative
+                    // hole and a positive tool
+                    throw new UnreachableException();
+                case BoundaryOpResult.UnchangedMerged:
+                    // This would require that the hole and the tool are completely disjoint, which can only happen if
+                    // the tool is enclosed by the hole.  In this case, the hole is unchanged and we can add it back to
+                    // the list of holes.
+                    workingBody.Inners.Add(loop);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            
         }
 
         return [workingBody];
     }
 
-    public static Body[] OperateNegative(this Body body, BoundaryLoop tool)
+    private static Body[] OperateNegative(this Body body, BoundaryLoop tool)
     {
         if (tool.IsPositive)
             throw new InvalidOperationException("Cannot perform a negative operation with a positive tool");
-
-        /*
-         * In the case of a negative tool (cut operation):
-         * 1. Consider the operation with the outer loop
-         *  - If the two are completely disjoint, the entire body is unmodified
-         *  - If the outer loop is completely destroyed, the body is empty, and we should return an empty array
-         *  - If there is a merge result with the outer loop, we create a new body for each loop in the result
-         *  - If the shape encloses the tool, the tool will become a new inner boundary
-         *
-         * 2. Now we consider a new body with no inner boundaries (except in the case of the enclosed one), but
-         * we put all the old inner boundaries in a working list
-         * 3. If the outer boundary changed, we iterate through all the old inner boundaries, and if any of them
-         * intersect with the outer boundary we merge them with the outer boundary and remove them from the working
-         * list.  We do this until there are none which merge with the outer boundary.
-         * 4. At this point we know that no remaining inner boundaries will intersect with the outer boundary, and
-         * there are either 0 or 1 inner boundaries already in the body.
-         * 5. Now we pop a loop from the working list and check it against every inner boundary already in the
-         * body.  If it merges or subsumes any of them we remove the inner boundary from the body and add the result
-         * to the working list.  If it is enclosed by any of them, we discard it. Because it's a cut it will never
-         * be destroyed by any of them.  If it makes it through the list then it is disjoint from all of them and
-         * so it is added to the body.
-         * 6. We repeat step 5 until the working list is empty.
-         */
 
         var outer = body.Outer.Copy();
         var (outerResult, resultLoops) = outer.Intersection(tool);
@@ -113,109 +117,6 @@ public static class BodyOps
             .ToArray();
 
         return working.Select(x => x.Resolve()).ToArray();
-
-        // var workingInners = new List<BoundaryLoop>(body.Inners.Select(x => x.Copy()));
-        //
-        // switch (outerResult)
-        // {
-        //     case MutateResult.Disjoint:
-        //         return [body.Copy()];
-        //     case MutateResult.Destroyed:
-        //         return [];
-        //     case MutateResult.Merged:
-        //         break;
-        //     case MutateResult.ShapeEnclosesTool:
-        //         workingInners.Add(tool);
-        //         break;
-        //     case MutateResult.Subsumed:
-        //         throw new UnreachableException("Subsumed outer should not be possible with a negative body and tool");
-        //     default:
-        //         throw new ArgumentOutOfRangeException();
-        // }
-        //
-        // // These result bodies are the positive loops which are the result of the merge operation of the original
-        // // body's outer loop and the negative tool.  The tool may have split the outer loop into multiple loops, so
-        // // this will be a list of positive loops.  There is no way for the outer loop to be modified in a way that
-        // // produces negative loops, so we can assume that all the loops in the result are positive.
-        // var positive = outerLoops.Where(x => x.IsPositive).ToList();
-        // var negative = outerLoops.Where(x => !x.IsPositive).ToList();
-        // if (negative.Count > 0) throw new UnreachableException("Expected no negative loops");
-        //
-        // // If the original outer boundary result was a merge, we have now changed the outer boundary, so we can no 
-        // // longer assume that it does not intersect with any of the inner boundaries. Even more troubling, it is 
-        // // possible for an existing inner boundary to split each of the new outer boundaries into multiple loops.
-        // // We will now need to go through all the inner boundaries and all the outer boundaries and allow them to
-        // // modify each other until no more changes are possible.
-        // var resolved = ResolveInsidesToOutsides(positive, workingInners);
-        //
-        // var final = new List<Body>();
-        // foreach (var workingSet in resolved)
-        // {
-        //     var workingBody = new Body(workingSet.Outer);
-        //
-        //     // Now we know that none of the remaining inner boundaries will intersect with the outer boundary, so we
-        //     // only need to merge them together
-        //     while (workingSet.Holes.TryDequeue(out var loop))
-        //     {
-        //         // From here, we will treat each inner loop from the working queue as a tool of its own and merge it 
-        //         // into the existing inner boundaries.  We will compare the working loop with each inner loop.
-        //         // The possible outcomes will be (1) disjoint, (2) subsumed, (3) merged, or (4) shape encloses tool. If
-        //         // the existing inner boundary is subsumed or merged with the working inner boundary, we remove it
-        //         // from the list and add the results to the working queue. If we find any existing inner boundary
-        //         // encloses the working boundary, we can discard the working boundary. If we make it to the end without
-        //         // any merges, we add the working boundary to the list.
-        //         var discard = false;
-        //         for (var i = 0; i < workingBody.Inners.Count; i++)
-        //         {
-        //             var (result, loops) = workingBody.Inners[i].Mutate(loop);
-        //
-        //             switch (result)
-        //             {
-        //                 case MutateResult.Subsumed:
-        //                     // If the existing inner boundary is subsumed by the working loop we can remove it
-        //                     // completely
-        //                     workingBody.Inners.RemoveAt(i);
-        //                     i--;
-        //                     break;
-        //                 case MutateResult.Merged:
-        //                     // If a merge occurs between the working loop and the existing loop, we place the merge result into
-        //                     // the working queue and discard both the working loop and the existing loop. The only possibility
-        //                     // here is a single negative merged loop.
-        //                     if (loops.Length != 1)
-        //                         throw new InvalidOperationException($"Expected a single loop, got {loops.Length}");
-        //                     if (loops[0].IsPositive) throw new InvalidOperationException("Expected a negative loop");
-        //                     workingSet.Holes.Enqueue(loops[0]);
-        //                     workingBody.Inners.RemoveAt(i);
-        //                     i--;
-        //                     discard = true;
-        //                     break;
-        //                 case MutateResult.ShapeEnclosesTool:
-        //                     // The existing inner boundary encloses the working boundary, so we discard the working boundary
-        //                     discard = true;
-        //                     break;
-        //                 case MutateResult.Disjoint:
-        //                     // The two inner boundaries are completely disjoint, so we leave the existing inner boundary
-        //                     // and retain the working loop
-        //                     break;
-        //                 case MutateResult.Destroyed:
-        //                     // This should not be possible, as the working loop is always negative
-        //                     throw new UnreachableException(
-        //                         "Destroyed inner should not be possible with a negative body and tool");
-        //                 default:
-        //                     throw new ArgumentOutOfRangeException();
-        //             }
-        //         }
-        //
-        //         // We tested the working loop against all current inner boundaries, so if we have not flagged it to
-        //         // be discarded we can add it to the body
-        //         if (!discard) workingBody.Inners.Add(loop);
-        //     }
-        //
-        //     // We have now inserted all the inner boundaries into the working body, so we can add it to the final list
-        //     final.Add(workingBody);
-        // }
-        //
-        // return final.ToArray();
     }
 
     private class BodyBoundarySet

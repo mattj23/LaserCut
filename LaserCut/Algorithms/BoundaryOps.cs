@@ -58,7 +58,7 @@ public static class BoundaryOps
         return relation switch
         {
             // The areas enclosed by the loops are completely disjoint, so the result is both loops together
-            ShapeRelation.DisjointTo => (BoundaryOpResult.Merged, [l0, l1]),
+            ShapeRelation.DisjointTo => (BoundaryOpResult.UnchangedMerged, [l0, l1]),
 
             // Shape 0 is a subset of shape 1, so the result is shape 1
             ShapeRelation.IsSubsetOf => (BoundaryOpResult.Replaced, [l1]),
@@ -67,11 +67,23 @@ public static class BoundaryOps
             ShapeRelation.IsSupersetOf => (BoundaryOpResult.Unchanged, [l0]),
             
             // The two shapes have intersection, so we need to compute the result
-            ShapeRelation.Intersects => (BoundaryOpResult.Merged,
-                OperateFromPairs(l0, l1, intersections, OpType.Union)),
+            ShapeRelation.Intersects => UnionResult(l0, l1, intersections),
             _ => throw new ArgumentOutOfRangeException(nameof(relation), relation, null)
         };
     }
+
+    private static (BoundaryOpResult, BoundaryLoop[]) UnionResult(BoundaryLoop l0, BoundaryLoop l1,
+        IntersectionPair[] pairs)
+    {
+        // If there are no intersections, it means that there are no portions of either boundary which we know to be
+        // in the final results set.  For the case of a union operation, this can only mean that the entirety of space
+        // is included in the result, such as when a positive and a negative of the same shape are combined.
+        if (pairs.Length == 0) return (BoundaryOpResult.Destroyed, []);
+
+        var result = OperateFromPairs(l0, l1, pairs, OpType.Union);
+        return result.Length == 0 ? (BoundaryOpResult.Destroyed, result) : (BoundaryOpResult.Merged, result);
+    }
+
     
     private static bool ValidForFirst(IntersectionPair pair, OpType opType)
     {

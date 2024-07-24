@@ -159,7 +159,7 @@ public class BoundaryOpsTests : ShapeOpTestBase
         
         var (kind, result) = loop0.Intersection(loop1);
         Assert.Equal(BoundaryOpResult.UnchangedMerged, kind);
-        Assert.Empty(result);
+        Assert.Equal(2, result.Length);
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public class BoundaryOpsTests : ShapeOpTestBase
         var loop1 = BoundaryLoop.Rectangle(2, 2, 1, 1);
     
         var (a, b) = loop0.Union(loop1);
-        Assert.Equal(BoundaryOpResult.Merged, a);
+        Assert.Equal(BoundaryOpResult.UnchangedMerged, a);
         Assert.Equal(2, b.Length);
     }
     
