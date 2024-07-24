@@ -16,9 +16,9 @@ public static class BodyMergeOps
         var c = 0;
         while (queue.TryDequeue(out var body))
         {
-            if (c++ == 0)
+            if (c++ == 5)
             {
-                // break;
+                Console.WriteLine("Problem");
             }
             
             var a0 = working.Area;

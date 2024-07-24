@@ -503,9 +503,22 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// <returns></returns>
     public bool Encloses(Point2D p)
     {
+        // Some fast checks we can do to avoid the more expensive intersection calculations
+        if (!Bounds.Contains(p)) return false;
+        
+        // If the point is ON the boundary, it is considered enclosed
+        var (d, _) = Closest(p);
+        if (d < GeometryConstants.DistEquals) return true; 
+        
+        // If all that fails do a ray intersection...but I think there are cases where this doesn't do well
         var ray = new Ray2(p, new Vector2D(1, 1));
         var positions = Bvh.Intersections(ray);
         return EnclosesPoint.Check(ray, positions);
+    }
+    
+    public (double, Position) Closest(Point2D p)
+    {
+        return Bvh.Closest(p);
     }
     
     /// <summary>
