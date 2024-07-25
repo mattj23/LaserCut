@@ -136,6 +136,11 @@ public class Loop<T>
         }
     }
     
+    public T ItemAt(int id)
+    {
+        return Nodes[id].Item;
+    }
+    
     public int NextId(int id)
     {
         return Nodes[id].NextId;
@@ -444,7 +449,14 @@ public class Loop<T>
         public int CurrentId => _nodeId;
         
         public int NextId => Loop.Nodes[_nodeId].NextId;
-        
+
+        public int GetIdFwd(int n)
+        {
+            var id = CurrentId;
+            for (var i = 0; i < n; i++) id = Loop.Nodes[id].NextId;
+            return id;
+        }
+
         public int PreviousId => Loop.Nodes[_nodeId].PreviousId;
         
         private LoopNode Node => Loop.Nodes[_nodeId];
@@ -452,7 +464,14 @@ public class Loop<T>
         private LoopNode NextNode => Loop.Nodes[Node.NextId];
         
         private LoopNode PreviousNode => Loop.Nodes[Node.PreviousId];
-        
+
+        public int GetIdBack(int n)
+        {
+            var id = CurrentId;
+            for (var i = 0; i < n; i++) id = Loop.Nodes[id].PreviousId;
+            return id;
+        }
+
         public T PeekNext()
         {
             return NextNode.Item;

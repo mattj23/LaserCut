@@ -86,6 +86,7 @@ public class MeshImportViewModel : ReactiveObject
             
             foreach (var body in result)
             {
+                body.ReplaceLinesWithArcs(3e-3);
                 body.Translate(sx, sy);
                 var drawable = new SimpleDrawable();
                 

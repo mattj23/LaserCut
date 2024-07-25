@@ -113,6 +113,15 @@ public class Body : IHasBounds
     {
         return $"[Body: Area={Area:F2}, {Inners.Count} Holes, {Bounds.Height:F2}H x {Bounds.Width:F2}W]";
     }
+    
+    public void ReplaceLinesWithArcs(double tolerance, int minPoints=4)
+    {
+        Outer.ReplaceLinesWithArcs(minPoints, tolerance);
+        foreach (var inner in Inners)
+        {
+            inner.ReplaceLinesWithArcs(minPoints, tolerance);
+        }
+    }
 
     // public Body OffsetAndFixed(double offset)
     // {
