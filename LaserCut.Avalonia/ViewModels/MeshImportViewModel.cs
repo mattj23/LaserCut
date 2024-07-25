@@ -15,12 +15,20 @@ public class MeshImportViewModel : ReactiveObject
     private DrawableEntities _entities = new();
     private bool _isNotValid;
     private bool _loading;
+    private bool _replaceWithArcs;
+    private double _arcPointTol;
+    private double _arcBodyTol;
+    private CoordinateSystem _lastCs = Isometry3.Default;
+    private readonly List<Body> _bodies = new();
 
     public MeshImportViewModel(string filePath)
     {
         _filePath = filePath;
         _isNotValid = false;
         _loading = true;
+        _replaceWithArcs = true;
+        _arcBodyTol = 1e-2;
+        _arcPointTol = 1e-3;
         
         ZoomToFitCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -42,8 +50,13 @@ public class MeshImportViewModel : ReactiveObject
         Observable.Timer(TimeSpan.FromMilliseconds(500))
             .ObserveOn(SynchronizationContext.Current!)
             .Subscribe(_ => UpdateGeometry(Isometry3.Default));
+
+        this.WhenAnyValue(x => x.ReplaceWithArcs, x => x.ArcBodyTol, x => x.ArcPointTol)
+            .Subscribe(_ => UpdateGeometry(_lastCs));
     }
-    
+
+    public MeshImportViewModel() : this("") { }
+
     public Interaction<Unit, Unit> ZoomToFit { get; } = new();
     public ReactiveCommand<Unit, Unit> SetXPlusCommand { get; }
     public ReactiveCommand<Unit, Unit> SetXMinusCommand { get; }
@@ -55,7 +68,25 @@ public class MeshImportViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ZoomToFitCommand { get; }
     
     public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
-    
+
+    public bool ReplaceWithArcs
+    {
+        get => _replaceWithArcs;
+        set => this.RaiseAndSetIfChanged(ref _replaceWithArcs, value);
+    }
+
+    public double ArcPointTol
+    {
+        get => _arcPointTol;
+        set => this.RaiseAndSetIfChanged(ref _arcPointTol, value);
+    }
+
+    public double ArcBodyTol
+    {
+        get => _arcBodyTol;
+        set => this.RaiseAndSetIfChanged(ref _arcBodyTol, value);
+    }
+
     public bool IsNotValid
     {
         get => _isNotValid;
@@ -73,9 +104,21 @@ public class MeshImportViewModel : ReactiveObject
         get => _entities;
         set => this.RaiseAndSetIfChanged(ref _entities, value);
     }
+
+    private IBrush BrushOuter(bool force)
+    {
+        return force || !ReplaceWithArcs ? Brushes.Black : Brushes.LightGray;
+    }
+    
+    private IBrush BrushInner(bool force)
+    {
+        return force || !ReplaceWithArcs ? Brushes.DarkBlue : Brushes.LightGray;
+    }
     
     private async void UpdateGeometry(CoordinateSystem cs)
     {
+        _bodies.Clear();
+        _lastCs = cs;
         IsLoading = true;
         Entities.Clear();
         try
@@ -84,21 +127,43 @@ public class MeshImportViewModel : ReactiveObject
             var bounds = result.CombinedBounds();
             var sx = bounds.Width / 10 - bounds.MinX;
             var sy = bounds.Height / 10 - bounds.MinY;
-
+            
+            // We draw the silhouette bodies, but what color we use depends on whether we are replacing with arcs.
             foreach (var body in result)
             {
-                body.ReplaceLinesWithArcs(1e-3, 1e-2);
-                
                 body.Translate(sx, sy);
                 var drawable = new SimpleDrawable();
                 
-                drawable.Add(body.Outer.ToViewModel(null, Brushes.Black, 1), body.Outer.Bounds);
+                drawable.Add(body.Outer.ToViewModel(null, BrushOuter(false), 1.5), body.Outer.Bounds);
                 foreach (var loop in body.Inners)
                 {
-                    drawable.Add(loop.ToViewModel(null, Brushes.DarkBlue, 1), loop.Bounds);
+                    drawable.Add(loop.ToViewModel(null, BrushInner(false), 1.5), loop.Bounds);
                 }
-                
                 Entities.Register(drawable);
+            }
+            
+            // If we are replacing with arcs, we need to do that now
+            if (ReplaceWithArcs)
+            {
+                foreach (var body in result)
+                {
+                    var copied = body.Copy();
+                    copied.ReplaceLinesWithArcs(ArcPointTol, ArcBodyTol);
+                    _bodies.Add(copied);
+                    
+                    var drawable = new SimpleDrawable();
+                    
+                    drawable.Add(copied.Outer.ToViewModel(null, BrushOuter(true), 1.5), body.Outer.Bounds);
+                    foreach (var loop in copied.Inners)
+                    {
+                        drawable.Add(loop.ToViewModel(null, BrushInner(true), 1.5), loop.Bounds);
+                    }
+                    Entities.Register(drawable);
+                }
+            }
+            else
+            {
+                _bodies.AddRange(result);
             }
 
             await ZoomToFit.Handle(Unit.Default);

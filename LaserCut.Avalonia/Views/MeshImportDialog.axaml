@@ -3,9 +3,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lc="clr-namespace:LaserCut.Avalonia"
+        xmlns:vm="clr-namespace:LaserCut.Avalonia.ViewModels"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LaserCut.Avalonia.Views.MeshImportDialog"
+        x:DataType="vm:MeshImportViewModel"
         Title="Import 2D Geometry from Mesh">
+    
+    <Design.DataContext>
+        <vm:MeshImportViewModel />
+    </Design.DataContext>
     
     <DockPanel>
         <!-- Toolbar -->
@@ -35,7 +41,7 @@
         
         <!-- Confirm button -->
         <Border DockPanel.Dock="Bottom" BorderBrush="#D1D5DA" BorderThickness="1">
-            <Panel Margin="0" Height="40" Background="#F3F3F3">
+            <Panel Margin="0" Background="#F3F3F3">
                 <DockPanel LastChildFill="False">
                     <DockPanel.Styles>
                         <Style Selector="Button">
@@ -43,13 +49,29 @@
                             <Setter Property="Height" Value="32" />
                             <Setter Property="Background" Value="#00FFFFFF" />
                             <Setter Property="Margin" Value="5,0,5,0" />
-                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                        </Style>
+                        <Style Selector="TextBox">
+                            <Setter Property="Margin" Value="10"></Setter>
                         </Style>
                     </DockPanel.Styles>
                     <Button DockPanel.Dock="Right"
                             Command="{Binding ConfirmCommand}">
                         Confirm Geometry
                     </Button>
+                    
+                    <ToggleButton DockPanel.Dock="Left"
+                                  IsChecked="{Binding ReplaceWithArcs}">
+                        Convert Arc Sections
+                    </ToggleButton>
+                    <TextBox Text="{Binding ArcPointTol}"
+                             IsVisible="{Binding ReplaceWithArcs}"
+                             Watermark="Point Tolerance"
+                             UseFloatingWatermark="True" />
+                    <TextBox Text="{Binding ArcBodyTol}"
+                             IsVisible="{Binding ReplaceWithArcs}"
+                             Watermark="Body Tolerance" 
+                             UseFloatingWatermark="True"/>
                 </DockPanel>
             </Panel>
         </Border>
