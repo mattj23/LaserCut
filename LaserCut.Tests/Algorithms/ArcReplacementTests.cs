@@ -12,7 +12,7 @@ public class ArcReplacementTests
     {
         var loop = ToSegments(HalfCircle());
         
-        loop.ReplaceLinesWithArcs(4, 0.01);
+        loop.ReplaceLinesWithArcs(1e-3, 1e-2);
         
         Assert.Equal(2, loop.Count);
         Assert.True(loop.Head is BoundaryLine);
@@ -25,7 +25,7 @@ public class ArcReplacementTests
     public void RoundedRectangle()
     {
         var loop = ToSegments(BoundaryLoop.RoundedRectangle(0, 0, 5, 4, 1));
-        loop.ReplaceLinesWithArcs(4, 0.01);
+        loop.ReplaceLinesWithArcs(1e-3, 1e-2);
         
         Assert.Equal(8, loop.Count);
     }
@@ -34,7 +34,7 @@ public class ArcReplacementTests
     public void FullCircleReplacement()
     {
         var loop = ToSegments(BoundaryLoop.Circle(0, 0, 1.0));
-        loop.ReplaceLinesWithArcs(4, 0.01);
+        loop.ReplaceLinesWithArcs(1e-3, 1e-2);
         
         Assert.Equal(1, loop.Count);
         Assert.True(loop.Head is BoundaryArc);

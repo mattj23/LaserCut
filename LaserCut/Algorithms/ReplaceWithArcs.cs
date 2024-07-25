@@ -68,12 +68,14 @@ public static class ReplaceWithArcs
         }
     }
 
-    private static bool ArcMatches(BoundaryLoop loop, int start, int n, double tol)
+    private static bool ArcMatches(BoundaryLoop loop, int start, int n, double pointTol, double bodyTol)
     {
         var points = PointsAt(loop, start, n);
         if (points.SkipLast(1).Any(p => p is not BoundaryLine)) return false;
         var circle = CircleFromPoints(points);
         if (circle is null) return false;
+
+        var maxPointError = points.Select(x => circle.DistanceFromEdge(x.Point)).Max();
         
         var maxError = double.MinValue;
         for (int i = 0; i < points.Length - 1; i++)
@@ -82,10 +84,19 @@ public static class ReplaceWithArcs
             maxError = Math.Max(maxError, error);
         }
 
-        return maxError <= tol;
+        return maxError <= bodyTol && maxPointError <= pointTol;
+    }
+
+    public static void ReplaceLinesWithArcs(this Body body, double pointTol, double bodyTol, int minPoints = 4)
+    {
+        body.Outer.ReplaceLinesWithArcs(pointTol, bodyTol, minPoints);
+        foreach (var inner in body.Inners)
+        {
+            inner.ReplaceLinesWithArcs(pointTol, bodyTol, minPoints);
+        }
     }
     
-    public static void ReplaceLinesWithArcs(this BoundaryLoop loop, int minPoints, double tol)
+    public static void ReplaceLinesWithArcs(this BoundaryLoop loop, double pointTol, double bodyTol, int minPoints=4)
     {
         if (minPoints < 4) throw new ArgumentException("Minimum number of points must be at least 4");
 
@@ -95,20 +106,20 @@ public static class ReplaceWithArcs
         while (loop.Count > 3 && !visited.Contains(walk.CurrentId))
         {
             var n = minPoints;
-            if (!ArcMatches(loop, walk.CurrentId, n, tol))
+            if (!ArcMatches(loop, walk.CurrentId, n, pointTol, bodyTol))
             {
                 visited.Add(walk.CurrentId);
                 walk.MoveForward();
                 continue;
             }
             
-            while (ArcMatches(loop, walk.PreviousId, n + 1, tol) && n <= loop.Count)
+            while (ArcMatches(loop, walk.PreviousId, n + 1, pointTol, bodyTol) && n <= loop.Count)
             {
                 walk.MoveBackward();
                 n++;
             }
             
-            while (ArcMatches(loop, walk.CurrentId, n + 1, tol) && n <= loop.Count)
+            while (ArcMatches(loop, walk.CurrentId, n + 1, pointTol, bodyTol) && n <= loop.Count)
             {
                 n++;
             }
@@ -125,18 +136,18 @@ public static class ReplaceWithArcs
             }
             walk.MoveBackward();
             
-            Debug.WriteLine($"Removed {n-1} Points for Arc");
+            // Debug.WriteLine($"Removed {n-1} Points for Arc");
             
             // Are the points going clockwise or counter-clockwise?
             var v0 = points[0].Point - circle.Center;
             var v1 = points[1].Point - circle.Center;
             bool clockwise = v0.CrossProduct(v1) < 0;
             var aid = walk.ArcAbs(original.X, original.Y, circle.Center.X, circle.Center.Y, clockwise);
-            var e = loop.Elements.First(x => x.Index == aid);
-            var errors = points.Select(x => (e as Arc).Closest(x.Point).Surface.Point.DistanceTo(x.Point)).ToArray();
-            if (errors.Any(x => x > tol)) throw new InvalidOperationException("Error in Arc Replacement");
+            // var e = loop.Elements.First(x => x.Index == aid);
+            // var errors = points.Select(x => (e as Arc).Closest(x.Point).Surface.Point.DistanceTo(x.Point)).ToArray();
+            // if (errors.Any(x => x > tol)) throw new InvalidOperationException("Error in Arc Replacement");
             
-            Debug.WriteLine($"Finished Arc Replacement {loop.Area}");
+            // Debug.WriteLine($"Finished Arc Replacement {loop.Area}");
         }
 
     }

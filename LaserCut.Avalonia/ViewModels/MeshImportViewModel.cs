@@ -80,17 +80,14 @@ public class MeshImportViewModel : ReactiveObject
         Entities.Clear();
         try
         {
-            var r = await Task.Run(() => LoadMeshData(_filePath, cs));
-            var result = new List<Body>(r);
-            result.Add(new Body(BoundaryLoop.RoundedRectangle(10, 10, 35, 20, 5)));
+            var result = await Task.Run(() => LoadMeshData(_filePath, cs));
             var bounds = result.CombinedBounds();
             var sx = bounds.Width / 10 - bounds.MinX;
             var sy = bounds.Height / 10 - bounds.MinY;
 
-            var flag = true;
             foreach (var body in result)
             {
-                body.ReplaceLinesWithArcs(1e-2);
+                body.ReplaceLinesWithArcs(1e-3, 1e-2);
                 
                 body.Translate(sx, sy);
                 var drawable = new SimpleDrawable();
