@@ -1,4 +1,5 @@
-﻿using LaserCut.Geometry;
+﻿using System.Diagnostics;
+using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
 using MathNet.Numerics.Distributions;
 using MathNet.Spatial.Euclidean;
@@ -122,13 +123,18 @@ public static class ReplaceWithArcs
             {
                 walk.Remove();
             }
+            walk.MoveBackward();
+            
+            Debug.WriteLine($"Removed {n-1} Points for Arc");
             
             // Are the points going clockwise or counter-clockwise?
             var v0 = points[0].Point - circle.Center;
             var v1 = points[1].Point - circle.Center;
             bool clockwise = v0.CrossProduct(v1) < 0;
             walk.ArcAbs(original.X, original.Y, circle.Center.X, circle.Center.Y, clockwise);
+            Debug.WriteLine($"Finished Arc Replacement {loop.Area}");
         }
+
     }
     
 }

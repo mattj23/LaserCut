@@ -22,6 +22,15 @@ public class ArcReplacementTests
     }
 
     [Fact]
+    public void RoundedRectangle()
+    {
+        var loop = ToSegments(BoundaryLoop.RoundedRectangle(0, 0, 5, 4, 1));
+        loop.ReplaceLinesWithArcs(4, 0.01);
+        
+        Assert.Equal(8, loop.Count);
+    }
+
+    [Fact]
     public void FullCircleReplacement()
     {
         var loop = ToSegments(BoundaryLoop.Circle(0, 0, 1.0));

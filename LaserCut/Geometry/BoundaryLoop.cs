@@ -1014,6 +1014,30 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         cursor.SegRel(-w, 0);
         return contour;
     }
+
+    public static BoundaryLoop RoundedRectangle(double x, double y, double w, double h, double r)
+    {
+        var contour = new BoundaryLoop();
+        var cursor = contour.GetCursor();
+
+        double x1 = x + w;
+        double y1 = y + h;
+        double x0C = x + r;
+        double y0C = y + r;
+        double x1C = x1 - r;
+        double y1C = y1 - r;
+        
+        cursor.SegAbs(x0C, y);
+        cursor.ArcAbs(x1C, y, x1C, y0C, false);
+        cursor.SegAbs(x1, y0C);
+        cursor.ArcAbs(x1, y1C, x1C, y1C, false);
+        cursor.SegAbs(x1C, y1);
+        cursor.ArcAbs(x0C, y1, x0C, y1C, false);
+        cursor.SegAbs(x, y1C);
+        cursor.ArcAbs(x, y0C, x0C, y0C, false);
+
+        return contour;
+    }
     
     /// <summary>
     /// Create a new rectangular contour with the center at (cx, cy) and the width and height specified.
