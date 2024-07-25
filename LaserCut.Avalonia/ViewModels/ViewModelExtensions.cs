@@ -78,6 +78,7 @@ public static class ViewModelExtensions
                             RotationAngle = 0,
                             IsLargeArc = sweep > Math.PI,
                             Size = new Size(arc.Radius, arc.Radius),
+                            SweepDirection = arc.IsCcW ? SweepDirection.Clockwise : SweepDirection.CounterClockwise,
                         });
                     }
                     break;

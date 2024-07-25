@@ -1,6 +1,7 @@
 ﻿using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Media;
+using LaserCut.Algorithms;
 using LaserCut.Geometry;
 using LaserCut.Mesh;
 using MathNet.Spatial.Euclidean;
@@ -79,7 +80,9 @@ public class MeshImportViewModel : ReactiveObject
         Entities.Clear();
         try
         {
-            var result = await Task.Run(() => LoadMeshData(_filePath, cs));
+            var r = await Task.Run(() => LoadMeshData(_filePath, cs));
+            var result = new List<Body>(r);
+            result.Add(new Body(BoundaryLoop.RoundedRectangle(10, 10, 35, 20, 5)));
             var bounds = result.CombinedBounds();
             var sx = bounds.Width / 10 - bounds.MinX;
             var sy = bounds.Height / 10 - bounds.MinY;
@@ -87,11 +90,8 @@ public class MeshImportViewModel : ReactiveObject
             var flag = true;
             foreach (var body in result)
             {
-                if (flag)
-                {
-                    body.ReplaceLinesWithArcs(3e-3);
-                    flag = false;
-                }
+                body.ReplaceLinesWithArcs(1e-2);
+                
                 body.Translate(sx, sy);
                 var drawable = new SimpleDrawable();
                 

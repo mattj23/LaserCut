@@ -141,4 +141,34 @@ public static class ReplaceWithArcs
 
     }
     
+    public static BoundaryLoop ToSegments(this BoundaryLoop loop)
+    {
+        var working = new BoundaryLoop();
+        var write = working.GetCursor();
+
+        foreach (var e in loop.Elements)
+        {
+            var l = 0.0;
+            while (l < e.Length)
+            {
+                var p = e.AtLength(l).Point;
+                write.SegAbs(p.X, p.Y);
+                l += 0.02;
+            }
+            write.SegAbs(e.End.X, e.End.Y);
+        }
+        
+        working.RemoveZeroLengthElements();
+        working.RemoveAdjacentRedundancies();
+
+        return working;
+    }
+
+    public static Body ToSegments(this Body body)
+    {
+        var outer = body.Outer.ToSegments();
+        var inners = body.Inners.Select(x => x.ToSegments()).ToList();
+        return new Body(outer, inners);
+    }
+    
 }
