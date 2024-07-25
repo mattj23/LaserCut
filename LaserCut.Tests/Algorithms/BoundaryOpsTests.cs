@@ -319,7 +319,7 @@ public class BoundaryOpsTests : ShapeOpTestBase
         var loop0 = BoundaryLoop.Rectangle(0, 0, 1, 1);
         var loop1 = BoundaryLoop.Rectangle(1, 0, 1, 1);
         
-        var (a, b) = loop0.Intersection(loop1, new OpDebugWriter(@"D:\temp\test1.dbg"));
+        var (a, b) = loop0.Intersection(loop1);
         Assert.Equal(BoundaryOpResult.Destroyed, a);
         Assert.Empty(b);
     }

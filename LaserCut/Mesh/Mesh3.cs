@@ -388,14 +388,14 @@ public class Mesh3
         return results.ToArray();
     }
 
-    public Body[] ExtractSilhouetteBodies(CoordinateSystem view)
+    private Body[] ExtractPatchBodies(CoordinateSystem view, Func<Face, Vector3D, bool> predicate)
     {
         var results = new List<Body>();
-
-        var workingMesh = FromFacesWhere((_, n) => n.DotProduct(view.ZAxis) > 1e-6);
-        workingMesh.Transform(view);
+        var temp = Clone();
+        temp.Transform(view);
+        var workingMesh = temp.FromFacesWhere(predicate);
         workingMesh.MergeVertices();
-
+        
         // First we need to separate the mesh into patches of connected triangles. This requires us to compute the
         // adjacency of the faces.  Face adjacency is determined by whether two faces share an edge, so by computing a
         // mapping of edges to faces, we can construct an adjacency map of faces.
@@ -443,6 +443,13 @@ public class Mesh3
 
             results.Add(new Body(outer[0], inner));
         }
+
+        return results.ToArray();
+    }
+
+    public Body[] ExtractSilhouetteBodies(CoordinateSystem view)
+    {
+        var results = ExtractPatchBodies(view, (_, n) => n.DotProduct(view.ZAxis) > 1e-6);
         
         // For now, we'll do a naive merge of the bodies.  This will be improved later.
         return results.MergeBodies();

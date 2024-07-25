@@ -14,14 +14,8 @@ public static class BodyMergeOps
         if (queue.Count == 0) return null;
         
         var working = queue.Dequeue();
-        var c = 0;
         while (queue.TryDequeue(out var body))
         {
-            // if (c++ == 5)
-            // {
-            //     Console.WriteLine("Problem");
-            // }
-            
             var a0 = working.Area;
             var (relation, _) = working.Outer.ShapeRelationTo(body.Outer);
             switch (relation)
@@ -41,8 +35,6 @@ public static class BodyMergeOps
                     {
                         working = working.OperateAssertSingle(hole);
                     }
-                    
-                    Console.WriteLine($"{a0:F2} -> {working.Area:F2} ({body})");
                     
                     // Now we need to empty the finished queue
                     finished.TransferTo(queue);
