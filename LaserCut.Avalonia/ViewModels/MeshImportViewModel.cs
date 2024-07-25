@@ -83,10 +83,15 @@ public class MeshImportViewModel : ReactiveObject
             var bounds = result.CombinedBounds();
             var sx = bounds.Width / 10 - bounds.MinX;
             var sy = bounds.Height / 10 - bounds.MinY;
-            
+
+            var flag = true;
             foreach (var body in result)
             {
-                body.ReplaceLinesWithArcs(3e-3);
+                if (flag)
+                {
+                    body.ReplaceLinesWithArcs(3e-3);
+                    flag = false;
+                }
                 body.Translate(sx, sy);
                 var drawable = new SimpleDrawable();
                 

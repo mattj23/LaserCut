@@ -131,7 +131,11 @@ public static class ReplaceWithArcs
             var v0 = points[0].Point - circle.Center;
             var v1 = points[1].Point - circle.Center;
             bool clockwise = v0.CrossProduct(v1) < 0;
-            walk.ArcAbs(original.X, original.Y, circle.Center.X, circle.Center.Y, clockwise);
+            var aid = walk.ArcAbs(original.X, original.Y, circle.Center.X, circle.Center.Y, clockwise);
+            var e = loop.Elements.First(x => x.Index == aid);
+            var errors = points.Select(x => (e as Arc).Closest(x.Point).Surface.Point.DistanceTo(x.Point)).ToArray();
+            if (errors.Any(x => x > tol)) throw new InvalidOperationException("Error in Arc Replacement");
+            
             Debug.WriteLine($"Finished Arc Replacement {loop.Area}");
         }
 
