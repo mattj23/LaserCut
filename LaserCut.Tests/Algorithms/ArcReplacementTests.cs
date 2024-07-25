@@ -25,7 +25,11 @@ public class ArcReplacementTests
     public void FullCircleReplacement()
     {
         var loop = ToSegments(BoundaryLoop.Circle(0, 0, 1.0));
-
+        loop.ReplaceLinesWithArcs(4, 0.01);
+        
+        Assert.Equal(1, loop.Count);
+        Assert.True(loop.Head is BoundaryArc);
+        Assert.Equal(Point2D.Origin, (loop.Tail as BoundaryArc)!.Center, PointCheck.Default);
     }
 
     private BoundaryLoop HalfCircle()

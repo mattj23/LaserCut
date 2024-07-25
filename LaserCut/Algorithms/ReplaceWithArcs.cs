@@ -54,6 +54,9 @@ public static class ReplaceWithArcs
         var p0 = points[0].Point;
         var p1 = points[points.Length / 2].Point;
         var p2 = points[^1].Point;
+        
+        if (p2.DistanceTo(p0) < GeometryConstants.DistEquals * 2) p2 = points[^2].Point;
+        
         try
         {
             return new Circle2(p0, p1, p2);
@@ -98,18 +101,14 @@ public static class ReplaceWithArcs
                 continue;
             }
             
-            while (ArcMatches(loop, walk.PreviousId, n + 1, tol) && n < loop.Count)
+            while (ArcMatches(loop, walk.PreviousId, n + 1, tol) && n <= loop.Count)
             {
                 walk.MoveBackward();
                 n++;
             }
             
-            while (ArcMatches(loop, walk.CurrentId, n + 1, tol) && n < loop.Count)
+            while (ArcMatches(loop, walk.CurrentId, n + 1, tol) && n <= loop.Count)
             {
-                if (n == 157)
-                {
-                    Console.WriteLine("here");
-                }
                 n++;
             }
             
