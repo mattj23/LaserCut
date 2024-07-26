@@ -60,6 +60,14 @@
                         Confirm Geometry
                     </Button>
                     
+                </DockPanel>
+            </Panel>
+        </Border>
+        
+        <!-- Side Panel -->
+        <Border DockPanel.Dock="Left" BorderBrush="#D1D5DA" BorderThickness="1"
+                Width="150" Padding="5">
+            <StackPanel>
                     <ToggleButton DockPanel.Dock="Left"
                                   IsChecked="{Binding ReplaceWithArcs}">
                         Convert Arc Sections
@@ -72,8 +80,10 @@
                              IsVisible="{Binding ReplaceWithArcs}"
                              Watermark="Body Tolerance" 
                              UseFloatingWatermark="True"/>
-                </DockPanel>
-            </Panel>
+                
+            </StackPanel>
+            
+            
         </Border>
         
         <!-- Viewport -->
