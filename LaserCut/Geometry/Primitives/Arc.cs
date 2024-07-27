@@ -261,6 +261,11 @@ public class Arc : IBoundaryElement
         return FromEnds(End, Start, Center, IsCcW, -1);
     }
 
+    public (double, Position, Position) Closest(IBoundaryElement other)
+    {
+        throw new NotImplementedException();
+    }
+
     private Position[] ValidPositionsFromPoints(IEnumerable<Point2D> points)
     {
         var results = new List<Position>();

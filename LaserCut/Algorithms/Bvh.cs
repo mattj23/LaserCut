@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
 using MathNet.Spatial.Euclidean;
@@ -157,6 +158,76 @@ public class Bvh
         }
         
         return results.ToArray();
+    }
+
+    public (double, Position, Position) Closest(Bvh other)
+    {
+        // In this case, the closest distance is pruned by computing both the closest distance and 
+        // the farthest distance between the bounds of each pair of nodes.  For any pair of nodes, if the
+        // closest distance between nodes is larger than the minimum farthest distance we've come across
+        // so far, we can ignore it.
+        //
+        var minFarthest = double.MaxValue;
+
+        var queue = new Queue<(Bvh, Bvh)>();
+        var leafPairs = new Queue<(Bvh, Bvh)>();
+        queue.Enqueue((this, other));
+
+        while (queue.TryDequeue(out var pair))
+        {
+            var (a, b) = pair;
+            var closest = a.Bounds.ClosestDistance(b.Bounds);
+            var farthest = a.Bounds.FarthestDistance(b.Bounds);
+            
+            if (closest > minFarthest) continue;
+            if (farthest < minFarthest) minFarthest = farthest;
+
+            switch (a.IsLeaf)
+            {
+                case true when b.IsLeaf:
+                    leafPairs.Enqueue((a, b));
+                    break;
+                case true when !b.IsLeaf:
+                    queue.Enqueue((a, b.Left!));
+                    queue.Enqueue((a, b.Right!));
+                    break;
+                case false when b.IsLeaf:
+                    queue.Enqueue((a.Right!, b));
+                    queue.Enqueue((a.Left!, b));
+                    break;
+                default:
+                    queue.Enqueue((a.Right!, b.Right!));
+                    queue.Enqueue((a.Left!, b.Right!));
+                    queue.Enqueue((a.Right!, b.Left!));
+                    queue.Enqueue((a.Left!, b.Left!));
+                    break;
+            }
+        }
+        
+        // Now validate the leaf pairs
+        var best = double.MaxValue;
+        var p0 = default(Position);
+        var p1 = default(Position);
+
+        while (leafPairs.TryDequeue(out var pair))
+        {
+            var (a, b) = pair;
+            if (a.Bounds.ClosestDistance(b.Bounds) > minFarthest) continue;
+
+            foreach (var e0 in a._elements)
+            {
+                foreach (var e1 in b._elements)
+                {
+                    var (d, pa, pb) = e0.Closest(e1);
+                    if (!(d < best)) continue;
+                    best = d;
+                    p0 = pa;
+                    p1 = pb;
+                }
+            }
+        }
+
+        return (best, p0, p1);
     }
 
     /// <summary>

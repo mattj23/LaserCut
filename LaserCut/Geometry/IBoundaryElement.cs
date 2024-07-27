@@ -110,5 +110,6 @@ public interface IBoundaryElement : IBvhIntersect
     IBoundaryElement OffsetBy(double distance);
     
     IBoundaryElement Reversed();
-    
+
+    (double, Position, Position) Closest(IBoundaryElement other);
 }

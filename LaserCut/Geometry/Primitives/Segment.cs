@@ -168,6 +168,11 @@ public class Segment : Line2, IBoundaryElement
         return new Segment(End, Start, -1);
     }
 
+    public (double, Position, Position) Closest(IBoundaryElement other)
+    {
+        throw new NotImplementedException();
+    }
+
     private Aabb2 GetAabb()
     {
         var xMin = Math.Min(Start.X, End.X);
