@@ -263,7 +263,13 @@ public class Arc : IBoundaryElement
 
     public (double, Position, Position) Closest(IBoundaryElement other)
     {
-        throw new NotImplementedException();
+        return other switch
+        {
+            Arc arc => Distances.Closest(this, arc),
+            Segment seg => Distances.Closest(this, seg),
+            _ => throw new ArgumentException(
+                $"No means of computing closest distance between Arc and {other.GetType()}")
+        };
     }
 
     private Position[] ValidPositionsFromPoints(IEnumerable<Point2D> points)

@@ -170,7 +170,13 @@ public class Segment : Line2, IBoundaryElement
 
     public (double, Position, Position) Closest(IBoundaryElement other)
     {
-        throw new NotImplementedException();
+        return other switch
+        {
+            Arc arc => Distances.Closest(this, arc),
+            Segment seg => Distances.Closest(this, seg),
+            _ => throw new ArgumentException(
+                $"No means of computing closest distance between Segment and {other.GetType()}")
+        };
     }
 
     private Aabb2 GetAabb()
