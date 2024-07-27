@@ -148,6 +148,16 @@ public struct Aabb2
         return Math.Sqrt(dx * dx + dy * dy);
     }
     
+    public double ClosestDistance(Aabb2 other)
+    {
+        if (Intersects(other))
+            return 0;
+        
+        var dx = Math.Max(0, Math.Max(MinX - other.MaxX, other.MinX - MaxX));
+        var dy = Math.Max(0, Math.Max(MinY - other.MaxY, other.MinY - MaxY));
+        return Math.Sqrt(dx * dx + dy * dy);
+    }
+    
     /// <summary>
     /// Finds the farthest distance between this bounding box and a point.
     /// </summary>
@@ -156,10 +166,29 @@ public struct Aabb2
     public double FarthestDistance(Point2D point)
     {
         // The farthest point on the box will be one of the corners.
-        
-        // TODO: replace this with clamping once you have time to verify it
-        var distances = new []{ point.DistanceTo(new Point2D(MinX, MinY)), point.DistanceTo(new Point2D(MinX, MaxY)),
-            point.DistanceTo(new Point2D(MaxX, MinY)), point.DistanceTo(new Point2D(MaxX, MaxY)) };
-        return distances.Max();
+        var dx = Math.Max(Math.Abs(MinX - point.X), Math.Abs(MaxX - point.X));
+        var dy = Math.Max(Math.Abs(MinY - point.Y), Math.Abs(MaxY - point.Y));
+
+        return Math.Sqrt(dx * dx + dy * dy);
     }
+
+    public double FarthestDistance(Aabb2 other)
+    {
+        var dx = Math.Max(MaxX - other.MinX, other.MaxX - MinX);
+        var dy = Math.Max(MaxY - other.MinY, other.MaxY - MinY);
+        
+        return Math.Sqrt(dx * dx + dy * dy);
+    }
+    
+    public Point2D[] Corners()
+    {
+        return
+        [
+            new Point2D(MinX, MinY),
+            new Point2D(MinX, MaxY),
+            new Point2D(MaxX, MinY),
+            new Point2D(MaxX, MaxY)
+        ];
+    }
+    
 }

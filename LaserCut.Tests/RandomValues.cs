@@ -114,4 +114,16 @@ public class RandomValues
         return seg1;
     }
 
+    public Aabb2 Box(Aabb2 envelope)
+    {
+        return Aabb2.FromPoints([Point(envelope), Point(envelope)]);
+    }
+
+    public Aabb2 Box(Aabb2 envelope, double maxHeight, double maxWidth)
+    {
+        var center = Point(envelope);
+        var halfHeight = Double(maxHeight * 0.1, maxHeight) / 2;
+        var halfWidth = Double(maxWidth * 0.1, maxWidth) / 2;
+        return new Aabb2(center.X - halfWidth, center.Y - halfHeight, center.X + halfWidth, center.Y + halfHeight);
+    }
 }
