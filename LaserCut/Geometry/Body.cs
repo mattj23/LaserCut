@@ -98,6 +98,14 @@ public class Body : IHasBounds
     {
         MirrorY(Bounds.Center.Y);
     }
+    
+    public Body MirroredY()
+    {
+        var temp = Copy();
+        temp.MirrorY();
+        
+        return new Body(temp.Outer.Reversed(), temp.Inners.Select(x => x.Reversed()).ToList());
+    }
 
     public Body Copy()
     {

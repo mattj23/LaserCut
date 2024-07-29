@@ -131,7 +131,8 @@ public class MeshImportViewModel : ReactiveObject
         Entities.Clear();
         try
         {
-            var result = await Task.Run(() => LoadMeshData(_filePath, cs));
+            var temp = await Task.Run(() => LoadMeshData(_filePath, cs));
+            var result = temp.Select(x => x.MirroredY()).ToArray();
             var bounds = result.CombinedBounds();
             var sx = bounds.Width / 10 - bounds.MinX;
             var sy = bounds.Height / 10 - bounds.MinY;
@@ -140,7 +141,6 @@ public class MeshImportViewModel : ReactiveObject
             foreach (var body in result)
             {
                 body.Translate(sx, sy);
-                body.FlipY();
                 var drawable = new SimpleDrawable();
                 
                 drawable.Add(body.Outer.ToViewModel(null, BrushOuter(false), 1.5), body.Outer.Bounds);
