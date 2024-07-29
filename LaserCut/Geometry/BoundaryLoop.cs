@@ -456,12 +456,15 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
                 var p0 = prevSeg.Point;
                 var p1 = seg.Point;
                 var p2 = cursor.PeekNext().Point;
-                var s = new Segment(p0, p2, -1);
-                var error = Math.Abs(s.SignedDistanceTo(p1));
-                if (error < GeometryConstants.DistEquals)
+                if (p0.DistanceTo(p2) > GeometryConstants.DistEquals)
                 {
-                    cursor.Remove();
-                    continue;
+                    var s = new Segment(p0, p2, -1);
+                    var error = Math.Abs(s.SignedDistanceTo(p1));
+                    if (error < GeometryConstants.DistEquals)
+                    {
+                        cursor.Remove();
+                        continue;
+                    }
                 }
             }
             else if (cursor.Current is BoundaryArc arc && cursor.PeekPrevious() is BoundaryArc prvArc)
