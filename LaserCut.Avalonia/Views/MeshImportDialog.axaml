@@ -40,7 +40,7 @@
         </Border>
         
         <!-- Confirm button -->
-        <Border DockPanel.Dock="Bottom" BorderBrush="#D1D5DA" BorderThickness="1">
+        <Border DockPanel.Dock="Bottom" BorderBrush="#D1D5DA" BorderThickness="1" Height="40">
             <Panel Margin="0" Background="#F3F3F3">
                 <DockPanel LastChildFill="False">
                     <DockPanel.Styles>
@@ -65,9 +65,9 @@
         </Border>
         
         <!-- Side Panel -->
-        <Border DockPanel.Dock="Left" BorderBrush="#D1D5DA" BorderThickness="1"
-                Width="150" Padding="5">
-            <StackPanel>
+        <Border DockPanel.Dock="Left" BorderBrush="#D1D5DA" BorderThickness="1" Padding="5"
+                Background="#F3F3F3">
+            <StackPanel Spacing="5">
                     <ToggleButton DockPanel.Dock="Left"
                                   IsChecked="{Binding ReplaceWithArcs}">
                         Convert Arc Sections

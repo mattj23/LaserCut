@@ -387,7 +387,8 @@ public class Mesh3
         
         return results.ToArray();
     }
-
+    
+    
     private Body[] ExtractPatchBodies(CoordinateSystem view, Func<Face, Vector3D, bool> predicate)
     {
         var results = new List<Body>();
@@ -454,6 +455,12 @@ public class Mesh3
         // For now, we'll do a naive merge of the bodies.  This will be improved later.
         return results.MergeBodies();
     }
+
+    public (Body, double)[] ExtractFlatPatches(CoordinateSystem view)
+    {
+        throw new NotImplementedException();
+    }
+    
 
     /// <summary>
     /// Transform the mesh in place using a coordinate system.  This will transform all the vertices and normals in the
