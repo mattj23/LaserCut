@@ -8,14 +8,31 @@ namespace LaserCut.Geometry.Primitives;
 public static class Distances
 {
 
+    private static (double, Position, Position) MinFrom(IEnumerable<(Position, Position)> pairs)
+    {
+        var items = pairs.Select(x => (x.Item1.DistanceTo(x.Item2), x.Item1, x.Item2));
+        return items.MinBy(x => x.Item1);
+    }
+
     public static (double, Position, Position) Closest(Segment a, Segment b)
     {
-        throw new NotImplementedException();
+        return MinFrom([
+            (new Position(0, a), b.Closest(a.Start)),
+            (new Position(1, a), b.Closest(a.End)),
+            (a.Closest(b.Start), new Position(0, b)),
+            (a.Closest(b.End), new Position(1, b))
+        ]);
     }
     
     public static (double, Position, Position) Closest(Arc a, Segment b)
     {
-        throw new NotImplementedException();
+        // Point of the 
+        return MinFrom([
+            (new Position(0, a), b.Closest(a.Start)),
+            (new Position(1, a), b.Closest(a.End)),
+            (a.Closest(b.Start), new Position(0, b)),
+            (a.Closest(b.End), new Position(1, b))
+        ]);
     }
     
     public static (double, Position, Position) Closest(Segment a, Arc b)

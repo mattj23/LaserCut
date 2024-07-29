@@ -32,4 +32,9 @@ public readonly record struct Position(double L, IBoundaryElement Element)
     {
         return Empty ? "Empty" : $"{Element}@{L:F4}";
     }
+
+    public double DistanceTo(Position other)
+    {
+        return Surface.DistanceTo(other.Surface);
+    }
 }
