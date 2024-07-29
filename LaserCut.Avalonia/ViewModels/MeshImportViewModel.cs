@@ -4,6 +4,7 @@ using Avalonia.Media;
 using LaserCut.Algorithms;
 using LaserCut.Avalonia.Models;
 using LaserCut.Geometry;
+using LaserCut.Geometry.Primitives;
 using LaserCut.Mesh;
 using MathNet.Spatial.Euclidean;
 using ReactiveUI;
@@ -161,10 +162,12 @@ public class MeshImportViewModel : ReactiveObject
                     _bodies.Add(copied);
                     
                     var drawable = new SimpleDrawable();
+                    AddArcs(copied.Outer, drawable);
                     
                     drawable.Add(copied.Outer.ToViewModel(null, BrushOuter(true), 1.5), body.Outer.Bounds);
                     foreach (var loop in copied.Inners)
                     {
+                        AddArcs(loop, drawable);
                         drawable.Add(loop.ToViewModel(null, BrushInner(true), 1.5), loop.Bounds);
                     }
                     Entities.Register(drawable);
@@ -186,6 +189,17 @@ public class MeshImportViewModel : ReactiveObject
         {
             _firstRun = true;
             IsLoading = false;
+        }
+    }
+
+    private void AddArcs(BoundaryLoop loop, SimpleDrawable drawable)
+    {
+        foreach (var element in loop.Elements)
+        {
+            if (element is Arc arc)
+            {
+                drawable.Add(arc.ToViewModel(Brushes.LightBlue, 6), arc.Bounds);
+            }
         }
     }
     
