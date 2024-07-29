@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
+using LaserCut.Avalonia.Models;
 using LaserCut.Avalonia.ViewModels;
 using LaserCut.Geometry;
 using ReactiveUI;
@@ -19,7 +21,7 @@ public class MainWindowViewModel : ViewModelBase
             .Subscribe(_ => TestRun());
     }
 
-    public Interaction<Unit, Unit> ImportMeshInteraction { get; } = new();
+    public Interaction<Unit, ImportedGeometry?> ImportMeshInteraction { get; } = new();
     
     public DrawableEntities Entities
     {
@@ -30,6 +32,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private async void TestRun()
     {
-        await ImportMeshInteraction.Handle(Unit.Default);
+        var result = await ImportMeshInteraction.Handle(Unit.Default);
+        Debug.WriteLine(result);
     }
 }

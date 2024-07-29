@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using LaserCut.Algorithms;
+using LaserCut.Data;
 using LaserCut.Geometry;
 using MathNet.Spatial.Euclidean;
 
@@ -456,7 +457,7 @@ public class Mesh3
         return results.MergeBodies();
     }
 
-    public (Body, double)[] ExtractFlatPatches(CoordinateSystem view)
+    public FlatPatches[] ExtractFlatPatches(CoordinateSystem view)
     {
         throw new NotImplementedException();
     }

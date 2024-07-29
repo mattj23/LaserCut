@@ -4,6 +4,8 @@ using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using LaserCut.Algorithms;
+using LaserCut.Avalonia.Models;
 using LaserCut.Avalonia.Sample.ViewModels;
 using LaserCut.Avalonia.ViewModels;
 using LaserCut.Avalonia.Views;
@@ -28,12 +30,12 @@ public partial class MainWindow : Window
         base.OnDataContextChanged(e);
     }
 
-    private async Task DoImportMeshInteraction(InteractionContext<Unit, Unit> ctx)
+    private async Task DoImportMeshInteraction(InteractionContext<Unit, ImportedGeometry?> ctx)
     {
         // File open dialog
         var options = new FilePickerOpenOptions
         {
-            Title = "Open STL File of Gasket",
+            Title = "Open STL File",
             FileTypeFilter = new[]
                 { new FilePickerFileType("Stereolithography") { Patterns = new[] { "*.stl", "*.STL" } } },
             AllowMultiple = false
@@ -44,13 +46,13 @@ public partial class MainWindow : Window
         {
             var vm = new MeshImportViewModel(file.TryGetLocalPath());
             var dialog = new MeshImportDialog { DataContext = vm };
-            await dialog.ShowDialog(this);
+            var result = await dialog.ShowDialog<ImportedGeometry?>(this);
 
-            ctx.SetOutput(Unit.Default);
+            ctx.SetOutput(result);
         }
         else
         {
-            ctx.SetOutput(Unit.Default);
+            ctx.SetOutput(null);
         }
         
     }

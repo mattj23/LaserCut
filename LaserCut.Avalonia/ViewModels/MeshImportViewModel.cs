@@ -2,6 +2,7 @@
 using System.Reactive.Linq;
 using Avalonia.Media;
 using LaserCut.Algorithms;
+using LaserCut.Avalonia.Models;
 using LaserCut.Geometry;
 using LaserCut.Mesh;
 using MathNet.Spatial.Euclidean;
@@ -18,6 +19,7 @@ public class MeshImportViewModel : ReactiveObject
     private bool _replaceWithArcs;
     private double _arcPointTol;
     private double _arcBodyTol;
+    private bool _firstRun = false;
     private CoordinateSystem _lastCs = Isometry3.Default;
     private readonly List<Body> _bodies = new();
 
@@ -42,17 +44,21 @@ public class MeshImportViewModel : ReactiveObject
         SetZPlusCommand = ReactiveCommand.Create(() => UpdateGeometry(Isometry3.Default));
         SetZMinusCommand = ReactiveCommand.Create(() => UpdateGeometry(Isometry3.ZMinusToZ));
         
-        // ConfirmCommand = ReactiveCommand.CreateFromTask(async () =>
-        // {
-        //     await Confirm.Handle(_piece!);
-        // }, this.WhenAnyValue(x => x.IsNotValid, x => !x));
+        ConfirmCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            await Confirm.Handle(new ImportedGeometry(_bodies.ToArray(), []));
+
+        }, this.WhenAnyValue(x => x.IsNotValid, x => !x));
 
         Observable.Timer(TimeSpan.FromMilliseconds(500))
             .ObserveOn(SynchronizationContext.Current!)
             .Subscribe(_ => UpdateGeometry(Isometry3.Default));
 
         this.WhenAnyValue(x => x.ReplaceWithArcs, x => x.ArcBodyTol, x => x.ArcPointTol)
-            .Subscribe(_ => UpdateGeometry(_lastCs));
+            .Subscribe(_ =>
+            {
+                if (_firstRun) UpdateGeometry(_lastCs);
+            });
     }
 
     public MeshImportViewModel() : this("") { }
@@ -68,6 +74,8 @@ public class MeshImportViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ZoomToFitCommand { get; }
     
     public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
+
+    public Interaction<ImportedGeometry, Unit> Confirm { get; } = new();
 
     public bool ReplaceWithArcs
     {
@@ -109,12 +117,12 @@ public class MeshImportViewModel : ReactiveObject
     {
         return force || !ReplaceWithArcs ? Brushes.Black : Brushes.LightGray;
     }
-    
+
     private IBrush BrushInner(bool force)
     {
         return force || !ReplaceWithArcs ? Brushes.DarkBlue : Brushes.LightGray;
     }
-    
+
     private async void UpdateGeometry(CoordinateSystem cs)
     {
         _bodies.Clear();
@@ -132,6 +140,7 @@ public class MeshImportViewModel : ReactiveObject
             foreach (var body in result)
             {
                 body.Translate(sx, sy);
+                body.FlipY();
                 var drawable = new SimpleDrawable();
                 
                 drawable.Add(body.Outer.ToViewModel(null, BrushOuter(false), 1.5), body.Outer.Bounds);
@@ -175,6 +184,7 @@ public class MeshImportViewModel : ReactiveObject
         }
         finally
         {
+            _firstRun = true;
             IsLoading = false;
         }
     }

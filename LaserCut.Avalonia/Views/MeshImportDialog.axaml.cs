@@ -2,6 +2,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using LaserCut.Avalonia.Models;
 using LaserCut.Avalonia.ViewModels;
 using ReactiveUI;
 
@@ -19,18 +20,18 @@ public partial class MeshImportDialog : Window
         if (DataContext is MeshImportViewModel vm)
         {
             vm.ZoomToFit.RegisterHandler(DoZoomToFit);
-            // vm.Confirm.RegisterHandler(DoConfirm);
+            vm.Confirm.RegisterHandler(DoConfirm);
         }
         
         base.OnDataContextChanged(e);
     }
 
-    // private Task DoConfirm(InteractionContext<PieceViewModel, Unit> interaction)
-    // {
-    //     Close(interaction.Input);
-    //     interaction.SetOutput(Unit.Default);
-    //     return Task.CompletedTask;
-    // }
+    private Task DoConfirm(InteractionContext<ImportedGeometry, Unit> interaction)
+    {
+        Close(interaction.Input);
+        interaction.SetOutput(Unit.Default);
+        return Task.CompletedTask;
+    }
 
     private async Task DoZoomToFit(InteractionContext<Unit, Unit> interaction)
     {
