@@ -89,69 +89,37 @@ public static class ViewModelExtensions
         }
         
     }
-    
-    public static BoundaryLoopViewModel ToViewModel(this BoundaryLoop boundaryLoop, 
-        Matrix transform, IBrush? fill = null, IBrush? stroke = null, double strokeThickness = 1)
+
+    public static PathGeometry ToPathGeometry(this BoundaryLoop loop)
     {
-        var figure = new PathFigure()
+        var figure = new PathFigure
         {
             IsClosed = true,
-            StartPoint = boundaryLoop.Head.Point.Transformed(transform).ToAvalonia(),
+            StartPoint = loop.Head.Point.ToAvalonia(),
             Segments = new PathSegments()
         };
 
-        foreach (var e2 in boundaryLoop.Elements)
-        {
-            var e = e2.Transformed(transform);
+        foreach (var e in loop.Elements)
             switch (e)
             {
                 case Segment segment:
-                    figure.Segments.Add(new LineSegment() { Point = segment.End.ToAvalonia() });
+                    figure.Segments.Add(new LineSegment { Point = segment.End.ToAvalonia() });
                     break;
                 case Arc arc:
                     ArcSegment(arc, figure.Segments);
                     break;
             }
-        }
-        
-        var geometry = new PathGeometry() { Figures = new PathFigures() { figure } };
-        
-        return new BoundaryLoopViewModel
-        {
-            Geometry = geometry,
-            Fill = fill,
-            Stroke = stroke,
-            StrokeThickness = strokeThickness,
-        };
+
+        return new PathGeometry { Figures = new PathFigures { figure } };
     }
-    public static BoundaryLoopViewModel ToViewModel(this BoundaryLoop boundaryLoop, IBrush? fill = null, IBrush? stroke = null,
+    
+    public static BoundaryLoopViewModel ToViewModel(this BoundaryLoop loop, IBrush? fill = null, IBrush? stroke = null,
         double strokeThickness = 1)
     {
-        var figure = new PathFigure()
-        {
-            IsClosed = true,
-            StartPoint = boundaryLoop.Head.Point.ToAvalonia(),
-            Segments = new PathSegments()
-        };
-
-        foreach (var e in boundaryLoop.Elements)
-        {
-            switch (e)
-            {
-                case Segment segment:
-                    figure.Segments.Add(new LineSegment() { Point = segment.End.ToAvalonia() });
-                    break;
-                case Arc arc:
-                    ArcSegment(arc, figure.Segments);
-                    break;
-            }
-        }
-        
-        var geometry = new PathGeometry() { Figures = new PathFigures() { figure } };
         
         return new BoundaryLoopViewModel
         {
-            Geometry = geometry,
+            Geometry = loop.ToPathGeometry(),
             Fill = fill,
             Stroke = stroke,
             StrokeThickness = strokeThickness,
