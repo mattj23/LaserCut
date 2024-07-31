@@ -11,6 +11,16 @@ public static class Isometry2
         return Translate(vector.X, vector.Y);
     }
     
+    public static Matrix Identity()
+    {
+        return DenseMatrix.OfArray(new double[,]
+        {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1}
+        });
+    }
+    
     public static Matrix Translate(double x, double y)
     {
         return DenseMatrix.OfArray(new double[,]

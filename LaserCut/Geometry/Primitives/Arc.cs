@@ -1,4 +1,5 @@
 using LaserCut.Algorithms;
+using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Spatial.Euclidean;
 using MathNet.Spatial.Units;
 
@@ -270,6 +271,12 @@ public class Arc : IBoundaryElement
             _ => throw new ArgumentException(
                 $"No means of computing closest distance between Arc and {other.GetType()}")
         };
+    }
+
+    public IBoundaryElement Transformed(Matrix transform)
+    {
+        return FromEnds(Start.Transformed(transform), End.Transformed(transform), Center.Transformed(transform), !IsCcW,
+            -1);
     }
 
     private Position[] ValidPositionsFromPoints(IEnumerable<Point2D> points)

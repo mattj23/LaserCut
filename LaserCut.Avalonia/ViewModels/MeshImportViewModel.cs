@@ -30,7 +30,7 @@ public class MeshImportViewModel : ReactiveObject
         _isNotValid = false;
         _loading = true;
         _replaceWithArcs = true;
-        _arcBodyTol = 1e-2;
+        _arcBodyTol = 4e-2;
         _arcPointTol = 1e-3;
         
         ZoomToFitCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -114,14 +114,35 @@ public class MeshImportViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _entities, value);
     }
 
-    private IBrush BrushOuter(bool force)
+    private Body[] ToArcs(Body[] bodies)
     {
-        return force || !ReplaceWithArcs ? Brushes.Black : Brushes.LightGray;
+        return bodies.Select(x =>
+        {
+            var copy = x.Copy();
+            copy.ReplaceLinesWithArcs(ArcPointTol, ArcBodyTol);
+            return copy;
+        }).ToArray();
     }
 
-    private IBrush BrushInner(bool force)
+    private void ToDrawable(IEnumerable<Body> bodies, double sx, double sy, IBrush outer, IBrush inner,
+        Action<BoundaryLoop, SimpleDrawable>? action = null)
     {
-        return force || !ReplaceWithArcs ? Brushes.DarkBlue : Brushes.LightGray;
+        var drawable = new SimpleDrawable();
+        foreach (var body in bodies)
+        {
+            var working = body.Copy();
+            working.Translate(sx, sy);
+            
+            drawable.Add(working.Outer.ToViewModel(null, outer, 1.5), working.Outer.Bounds);
+            action?.Invoke(working.Outer, drawable);
+            foreach (var loop in working.Inners)
+            {
+                action?.Invoke(loop, drawable);
+                drawable.Add(loop.ToViewModel(null, inner, 1.5), loop.Bounds);
+            }
+        }
+
+        Entities.Register(drawable);
     }
 
     private async void UpdateGeometry(CoordinateSystem cs)
@@ -132,50 +153,27 @@ public class MeshImportViewModel : ReactiveObject
         Entities.Clear();
         try
         {
+            // Load the mesh data and flip it to the correct orientation
             var temp = await Task.Run(() => LoadMeshData(_filePath, cs));
             var result = temp.Select(x => x.MirroredY()).ToArray();
             var bounds = result.CombinedBounds();
+            
             var sx = bounds.Width / 10 - bounds.MinX;
             var sy = bounds.Height / 10 - bounds.MinY;
             
-            // We draw the silhouette bodies, but what color we use depends on whether we are replacing with arcs.
-            foreach (var body in result)
-            {
-                body.Translate(sx, sy);
-                var drawable = new SimpleDrawable();
-                
-                drawable.Add(body.Outer.ToViewModel(null, BrushOuter(false), 1.5), body.Outer.Bounds);
-                foreach (var loop in body.Inners)
-                {
-                    drawable.Add(loop.ToViewModel(null, BrushInner(false), 1.5), loop.Bounds);
-                }
-                Entities.Register(drawable);
-            }
-            
-            // If we are replacing with arcs, we need to do that now
+            // If we're going to replace arc-like sections with true arc elements, the overall plan will be to preserve
+            // and draw the original bodies a light gray color, but then draw the new bodies in a darker color.  If 
+            // we aren't, we'll just draw the original bodies in black.
             if (ReplaceWithArcs)
             {
-                foreach (var body in result)
-                {
-                    var copied = body.Copy();
-                    copied.ReplaceLinesWithArcs(ArcPointTol, ArcBodyTol);
-                    _bodies.Add(copied);
-                    
-                    var drawable = new SimpleDrawable();
-                    AddArcs(copied.Outer, drawable);
-                    
-                    drawable.Add(copied.Outer.ToViewModel(null, BrushOuter(true), 1.5), body.Outer.Bounds);
-                    foreach (var loop in copied.Inners)
-                    {
-                        AddArcs(loop, drawable);
-                        drawable.Add(loop.ToViewModel(null, BrushInner(true), 1.5), loop.Bounds);
-                    }
-                    Entities.Register(drawable);
-                }
+                ToDrawable(result, sx, sy, Brushes.DarkGray, Brushes.DarkGray);
+                _bodies.AddRange(ToArcs(result));
+                ToDrawable(_bodies, sx, sy, Brushes.Black, Brushes.MediumBlue, AddArcs);
             }
             else
             {
                 _bodies.AddRange(result);
+                ToDrawable(_bodies, sx, sy, Brushes.Black, Brushes.MediumBlue);
             }
 
             await ZoomToFit.Handle(Unit.Default);

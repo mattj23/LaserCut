@@ -38,7 +38,7 @@
                                   StrokeDashArray="{Binding DashArray}" />
                         </DataTemplate>
                         
-                        <DataTemplate DataType="vm:ContourViewModel">
+                        <DataTemplate DataType="vm:BoundaryLoopViewModel">
                             <Path Fill="{Binding Fill}"
                                   Stroke="{Binding Stroke}"
                                   StrokeThickness="{Binding DisplayThickness}"

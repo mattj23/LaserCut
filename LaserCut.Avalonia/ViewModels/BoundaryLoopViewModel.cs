@@ -4,11 +4,11 @@ using ReactiveUI;
 
 namespace LaserCut.Avalonia.ViewModels;
 
-public class ContourViewModel : DrawViewModelBase
+public class BoundaryLoopViewModel : DrawViewModelBase
 {
     private PathGeometry _geometry = new();
     
-    public ContourViewModel() : base()
+    public BoundaryLoopViewModel() : base()
     {
 
     }

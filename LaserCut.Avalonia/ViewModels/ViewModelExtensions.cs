@@ -4,6 +4,7 @@ using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
 using MathNet.Spatial.Euclidean;
+using Matrix = MathNet.Numerics.LinearAlgebra.Double.Matrix;
 
 namespace LaserCut.Avalonia.ViewModels;
 
@@ -32,7 +33,7 @@ public static class ViewModelExtensions
         return loop.ToItemArray().Select(x => x.ToAvalonia()).ToList();
     }
 
-    public static ContourViewModel ToViewModel(this Arc arc, IBrush stroke, double strokeThickness = 1)
+    public static BoundaryLoopViewModel ToViewModel(this Arc arc, IBrush stroke, double strokeThickness = 1)
     {
         var figure = new PathFigure()
         {
@@ -44,7 +45,7 @@ public static class ViewModelExtensions
         
         var geometry = new PathGeometry { Figures = new PathFigures() { figure } };
         
-        return new ContourViewModel 
+        return new BoundaryLoopViewModel 
         {
             Geometry = geometry,
             Fill = null,
@@ -89,7 +90,41 @@ public static class ViewModelExtensions
         
     }
     
-    public static ContourViewModel ToViewModel(this BoundaryLoop boundaryLoop, IBrush? fill = null, IBrush? stroke = null,
+    public static BoundaryLoopViewModel ToViewModel(this BoundaryLoop boundaryLoop, 
+        Matrix transform, IBrush? fill = null, IBrush? stroke = null, double strokeThickness = 1)
+    {
+        var figure = new PathFigure()
+        {
+            IsClosed = true,
+            StartPoint = boundaryLoop.Head.Point.Transformed(transform).ToAvalonia(),
+            Segments = new PathSegments()
+        };
+
+        foreach (var e2 in boundaryLoop.Elements)
+        {
+            var e = e2.Transformed(transform);
+            switch (e)
+            {
+                case Segment segment:
+                    figure.Segments.Add(new LineSegment() { Point = segment.End.ToAvalonia() });
+                    break;
+                case Arc arc:
+                    ArcSegment(arc, figure.Segments);
+                    break;
+            }
+        }
+        
+        var geometry = new PathGeometry() { Figures = new PathFigures() { figure } };
+        
+        return new BoundaryLoopViewModel
+        {
+            Geometry = geometry,
+            Fill = fill,
+            Stroke = stroke,
+            StrokeThickness = strokeThickness,
+        };
+    }
+    public static BoundaryLoopViewModel ToViewModel(this BoundaryLoop boundaryLoop, IBrush? fill = null, IBrush? stroke = null,
         double strokeThickness = 1)
     {
         var figure = new PathFigure()
@@ -114,7 +149,7 @@ public static class ViewModelExtensions
         
         var geometry = new PathGeometry() { Figures = new PathFigures() { figure } };
         
-        return new ContourViewModel
+        return new BoundaryLoopViewModel
         {
             Geometry = geometry,
             Fill = fill,

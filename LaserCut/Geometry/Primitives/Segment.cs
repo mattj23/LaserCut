@@ -1,5 +1,6 @@
 ﻿using LaserCut.Algorithms;
 using LaserCut.Mesh;
+using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry.Primitives;
@@ -177,6 +178,11 @@ public class Segment : Line2, IBoundaryElement
             _ => throw new ArgumentException(
                 $"No means of computing closest distance between Segment and {other.GetType()}")
         };
+    }
+
+    public IBoundaryElement Transformed(Matrix transform)
+    {
+        return new Segment(Start.Transformed(transform), End.Transformed(transform), -1);
     }
 
     private Aabb2 GetAabb()

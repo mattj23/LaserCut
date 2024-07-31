@@ -1,5 +1,6 @@
 using LaserCut.Algorithms;
 using LaserCut.Geometry.Primitives;
+using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
@@ -112,4 +113,6 @@ public interface IBoundaryElement : IBvhIntersect
     IBoundaryElement Reversed();
 
     (double, Position, Position) Closest(IBoundaryElement other);
+    
+    IBoundaryElement Transformed(Matrix transform);
 }

@@ -191,4 +191,6 @@ public struct Aabb2
         ];
     }
     
+    public Aabb2 Translate(double x, double y) => new Aabb2(MinX + x, MinY + y, MaxX + x, MaxY + y);
+    
 }
