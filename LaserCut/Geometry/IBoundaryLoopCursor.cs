@@ -1,4 +1,5 @@
 using LaserCut.Algorithms.Loop;
+using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
 
@@ -20,6 +21,8 @@ public interface IBoundaryLoopCursor : ILoopCursor<BoundaryPoint>
     /// <returns>The integer ID of the entity created by this operation</returns>
     int SegAbs(double x, double y);
 
+    int SegAbs(Point2D point);
+
     /// <summary>
     /// Insert an arc entity that starts at the absolute position (x, y) into the contour.  The center coordinates are
     /// also specified in absolute coordinates.  The arc will be added *after* the current position of the cursor, and
@@ -34,6 +37,8 @@ public interface IBoundaryLoopCursor : ILoopCursor<BoundaryPoint>
     /// surface direction faces towards the center.</param>
     /// <returns>The integer ID of the entity created by this operation</returns>
     int ArcAbs(double x, double y, double cx, double cy, bool cw);
+    
+    int ArcAbs(Point2D start, Point2D center, bool cw);
 
     /// <summary>
     /// Insert a segment entity that starts at a position relative to the entity at the current cursor position.  The

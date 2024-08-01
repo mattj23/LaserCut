@@ -17,6 +17,10 @@ public interface IBoundaryElement : IBvhIntersect
     double Length { get; }
     
     SurfacePoint AtLength(double length);
+    
+    SurfacePoint AtStart { get; }
+    
+    SurfacePoint AtEnd { get; }
 
     Position Closest(Point2D point);
     

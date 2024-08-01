@@ -33,8 +33,9 @@ public class Arc : IBoundaryElement
 
     public static Arc FromEnds(Point2D start, Point2D end, Point2D center, bool clockwise, int index = 0)
     {
-        if (Math.Abs(start.DistanceTo(center) - end.DistanceTo(center)) > GeometryConstants.DistEquals)
-            throw new ArgumentException("Start and end points must be equidistant from the center");
+        var mismatch = Math.Abs(start.DistanceTo(center) - end.DistanceTo(center));
+        if (mismatch > GeometryConstants.DistEquals)
+            throw new ArgumentException($"Start and end points must be equidistant from the center ({mismatch} >= {GeometryConstants.DistEquals})");
 
         var c = new Circle2(center, start.DistanceTo(center));
         var t0 = c.ThetaOf(start);
@@ -155,6 +156,10 @@ public class Arc : IBoundaryElement
         var f = length / Length;
         return AtFraction(f);
     }
+
+    public SurfacePoint AtStart => AtFraction(0);
+
+    public SurfacePoint AtEnd => AtFraction(1);
 
     public bool IsThetaOnArc(double test)
     {

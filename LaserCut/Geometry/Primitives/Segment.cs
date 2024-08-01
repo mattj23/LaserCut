@@ -69,6 +69,10 @@ public class Segment : Line2, IBoundaryElement
         return new SurfacePoint(PointAt(length), Direction);
     }
 
+    public SurfacePoint AtStart => AtLength(0);
+    
+    public SurfacePoint AtEnd => AtLength(Length);
+
     /// <summary>
     /// Compute the position on the segment that is closest to the given point.  This may be the start or end point if
     /// the projection of the point onto the line is outside the segment.

@@ -7,6 +7,7 @@ using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry.Primitives;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Spatial.Euclidean;
+using MathNet.Spatial.Units;
 
 namespace LaserCut.Geometry;
 
@@ -61,6 +62,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
 {
     private Bvh? _bvh = null;
     private List<IBoundaryElement>? _elements = null;
+    private Dictionary<int, IBoundaryElement>? _elementsById = null;
     private double _area = double.NaN;
     
     /// <summary>
@@ -110,6 +112,8 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// geometric elements. If the contour is in an invalid state, an exception will be thrown.
     /// </summary>
     public IReadOnlyList<IBoundaryElement> Elements => _elements ??= BuildElements();
+    
+    public IReadOnlyDictionary<int, IBoundaryElement> ElementsById => _elementsById ??= Elements.ToDictionary(e => e.Index, e => e);
     
     /// <summary>
     /// Gets the bounding volume hierarchy for the contour for accelerated geometric operations.  This will trigger
@@ -273,57 +277,42 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// <returns>A new contour, which may have self-intersections</returns>
     public BoundaryLoop Offset(double distance)
     {
-        /* Offsetting a contour is more complicated than offsetting a polyline, because the arc and segment boundaries
-         * behave different. Instead of moving the vertices directly, we will have to perform the geometric offset
-         * operation on each segment and arc and then determine the location of the new vertices between neighboring
-         * elements.
-         */
-
-        // First, create the new elements by offsetting each element in the contour
-        var newElements = Elements.ToDictionary(e => e.Index, e => e.OffsetBy(distance));
-        
-        // Now we will need to find the new start point for each element.  We will look at each element and its 
-        // previous neighbor to determine what its new start point is.  We will take advantage of the fact that 
-        // arc element endpoints offset correctly, so we only need to compute the new start point for segments 
-        // preceded by another segment.
         var newContour = new BoundaryLoop();
         var write = newContour.GetCursor();
 
         foreach (var item in IterItems())
         {
-            var element = newElements[item.Id];
-            var previous = newElements[Nodes[item.Id].PreviousId];
+            var e1 = ElementsById[item.Id];
+            var e0 = ElementsById[PreviousId(item.Id)];
 
-            if (element is Arc arc)
+            switch (e0, e1)
             {
-                write.InsertFromElement(arc);
-            }
-            else if (previous is Arc prevArc)
-            {
-                // This is a segment preceded by an arc, so we can use the arc's endpoint as the start point
-                write.SegAbs(prevArc.End.X, prevArc.End.Y);
-            }
-            else if (previous is Segment prevSeg && element is Segment seg)
-            {
-                // This is a segment preceded by a segment, so we will need to calculate the new start point. If the
-                // two segments are collinear, the midpoint between the previous end and the new start will be the new
-                // starting point. If they are not collinear, they will have a single intersection point which must be 
-                // the new start point.
-                if (prevSeg.IsCollinear(seg))
-                {
-                    write.SegAbs((prevSeg.End.X + seg.Start.X) / 2, (prevSeg.End.Y + seg.Start.Y) / 2);
-                }
-                else
-                {
-                    var (_, t1) = prevSeg.IntersectionParams(seg);
-                    var p = seg.PointAt(t1);
-                    write.SegAbs(p.X, p.Y);
-                }
-            }
-            else
-            {
-                // This case should not occur, so throw an error
-                throw new UnreachableException();
+                case (Segment s0, Segment s1):
+                    var angle = s0.AtEnd.Normal.SignedAngle(s1.AtStart.Normal);
+                    var bisector = new Line2(s1.Start, s0.AtEnd.Normal.Rotate(Angle.FromRadians(angle)));
+                    var offset = s1.Offset(distance);
+                    var (t0, _) = offset.IntersectionParams(bisector);
+                    write.SegAbs(offset.PointAt(t0));
+                    break;
+                case (Segment s0, Arc a1):
+                    write.ArcAbs(OffsetIntersections.Make(s0, a1, distance), a1.Center, !a1.IsCcW);
+                    break;
+                case (Arc a0, Segment s1):
+                    write.SegAbs(OffsetIntersections.Make(a0, s1, distance));
+                    break;
+                case (Arc a0, Arc a1):
+                    if (a0.Index == a1.Index)
+                    {
+                        // Single circle offset
+                        write.ArcAbs(a1.OffsetBy(distance).Start, a1.Center, !a1.IsCcW);
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException();
             }
         }
 
@@ -867,6 +856,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         _area = double.NaN;
         _bvh = null;
         _elements = null;
+        _elementsById = null;
     }
 
     /// <summary>
@@ -942,12 +932,22 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
 
         public int SegAbs(double x, double y)
         {
-            return InsertAfter(new BoundaryLine(new Point2D(x, y)));
+            return SegAbs(new Point2D(x, y));
+        }
+        
+        public int SegAbs(Point2D p)
+        {
+            return InsertAfter(new BoundaryLine(p));
         }
         
         public int ArcAbs(double x, double y, double cx, double cy, bool cw)
         {
-            return InsertAfter(new BoundaryArc(new Point2D(x, y), new Point2D(cx, cy), cw));
+            return ArcAbs(new Point2D(x, y), new Point2D(cx, cy), cw);
+        }
+
+        public int ArcAbs(Point2D p, Point2D c, bool cw)
+        {
+            return InsertAfter(new BoundaryArc(p, c, cw));
         }
         
         public int SegRel(double x, double y)
