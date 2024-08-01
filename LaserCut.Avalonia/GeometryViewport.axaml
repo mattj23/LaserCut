@@ -40,14 +40,6 @@
                                   StrokeDashArray="{Binding DashArray}" />
                         </DataTemplate>
                         
-                        <DataTemplate DataType="vm:OriginViewModel">
-                            <Ellipse Fill="Chartreuse"
-                                     Stroke="Black"
-                                     IsVisible="{Binding IsVisible}"
-                                     RenderTransform="{Binding Transform}"
-                                     />
-                        </DataTemplate>
-
                         <DataTemplate DataType="vm:BoundaryLoopViewModel">
                             <Path Fill="{Binding Fill}"
                                   IsVisible="{Binding IsVisible}"

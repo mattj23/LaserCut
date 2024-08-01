@@ -17,8 +17,8 @@ public class OriginViewModel : ReactiveObject, IDrawViewModel
     public OriginViewModel(Guid id, Matrix transform)
     {
         Id = id;
-        _position = new Vector3D(x, y ,r);
-        _transform = TransformFromVector(_position);
+        _xyr = Xyr.FromMatrix(transform);
+        _transform = MakeTransform(_xyr);
     }
 
     public Guid Id { get; }
@@ -46,10 +46,10 @@ public class OriginViewModel : ReactiveObject, IDrawViewModel
 
     public double DisplayThickness => StrokeThickness;
 
-    public void Update(double x, double y, double r)
+    public void Update(Matrix transform)
     {
-        _position = new Vector3D(x, y, r);
-        Transform = TransformFromVector(_position);
+        _xyr = Xyr.FromMatrix(transform);
+        Transform = MakeTransform(_xyr);
     }
     
     public void UpdateZoom(double zoom)
@@ -58,14 +58,14 @@ public class OriginViewModel : ReactiveObject, IDrawViewModel
         this.RaisePropertyChanged(nameof(DisplayThickness));
     }
 
-    private Transform TransformFromVector(Vector3D v)
+    private static Transform MakeTransform(Xyr xyr)
     {
         return new TransformGroup()
         {
             Children =
             [
-                new TranslateTransform(v.X, v.Y),
-                new RotateTransform(v.Z, 0, 0)
+                new TranslateTransform(xyr.X, xyr.Y),
+                new RotateTransform(double.RadiansToDegrees(xyr.R), 0, 0)
             ]
         };
     }
