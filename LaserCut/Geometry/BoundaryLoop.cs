@@ -314,7 +314,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
                     }
                     else
                     {
-                        throw new NotImplementedException();
+                        write.ArcAbs(OffsetIntersections.Make(a0, a1, distance), a1.Center, !a1.IsCcW);
                     }
                     break;
                 default:

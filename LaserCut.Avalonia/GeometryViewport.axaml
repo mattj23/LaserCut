@@ -24,6 +24,7 @@
                     <ItemsControl.DataTemplates>
                         <DataTemplate DataType="vm:PolygonViewModel">
                             <Polygon Points="{Binding Points}"
+                                     IsVisible="{Binding IsVisible}"
                                      Fill="{Binding Fill}"
                                      Stroke="{Binding Stroke}"
                                      StrokeThickness="{Binding DisplayThickness}"
@@ -32,14 +33,24 @@
 
                         <DataTemplate DataType="vm:LineViewModel">
                             <Line StartPoint="{Binding Start}"
+                                  IsVisible="{Binding IsVisible}"
                                   EndPoint="{Binding End}"
                                   Stroke="{Binding Stroke}"
                                   StrokeThickness="{Binding DisplayThickness}"
                                   StrokeDashArray="{Binding DashArray}" />
                         </DataTemplate>
                         
+                        <DataTemplate DataType="vm:OriginViewModel">
+                            <Ellipse Fill="Chartreuse"
+                                     Stroke="Black"
+                                     IsVisible="{Binding IsVisible}"
+                                     RenderTransform="{Binding Transform}"
+                                     />
+                        </DataTemplate>
+
                         <DataTemplate DataType="vm:BoundaryLoopViewModel">
                             <Path Fill="{Binding Fill}"
+                                  IsVisible="{Binding IsVisible}"
                                   Stroke="{Binding Stroke}"
                                   StrokeThickness="{Binding DisplayThickness}"
                                   StrokeDashArray="{Binding DashArray}"

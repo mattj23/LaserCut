@@ -75,5 +75,18 @@ public static class OffsetIntersections
         var line = seg.Offset(distance);
         return line.PointAt(tN + t0);
     }
+
+    public static Point2D Make(Arc arc0, Arc arc1, double distance)
+    {
+        // Check for tangency
+        if (arc0.AtEnd.Normal.IsParallelTo(arc1.AtStart.Normal, GeometryConstants.DistEquals))
+        {
+            var a0 = arc0.OffsetBy(distance).End.ToVector();
+            var a1 = arc1.OffsetBy(distance).Start.ToVector();
+            return Point2D.OfVector(a0 + a1 / 2);
+        }
+
+        throw new NotImplementedException();
+    }
     
 }

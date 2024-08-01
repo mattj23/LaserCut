@@ -16,6 +16,7 @@ public abstract class DrawViewModelBase : ReactiveObject, IDrawViewModel
     private IBrush? _fill;
     private IBrush? _stroke;
     private double _strokeThickness;
+    private bool _isVisible;
 
     protected DrawViewModelBase()
     {
@@ -40,6 +41,12 @@ public abstract class DrawViewModelBase : ReactiveObject, IDrawViewModel
     {
         get => _fill;
         set => this.RaiseAndSetIfChanged(ref _fill, value);
+    }
+
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set => this.RaiseAndSetIfChanged(ref _isVisible, value);
     }
 
     public double DisplayThickness => StrokeThickness / ZoomValue;

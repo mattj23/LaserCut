@@ -10,9 +10,12 @@ public interface IDrawViewModel
 {
     Guid Id { get; }
     
-    IBrush? Stroke { get; set; }
-    IBrush? Fill { get; set; }
+    IBrush? Stroke { get; }
+    IBrush? Fill { get; }
+    
     double StrokeThickness { get; set; }
+    
+    bool IsVisible { get; }
     
     double DisplayThickness { get; }
     

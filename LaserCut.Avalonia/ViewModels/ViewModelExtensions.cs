@@ -22,6 +22,7 @@ public static class ViewModelExtensions
         return new PolygonViewModel
         {
             Points = loop.ToItemArray().Select(x => x.ToAvalonia()).ToList(), 
+            IsVisible = true,
             Fill = fill,
             Stroke = stroke,
             StrokeThickness = strokeThickness,
@@ -48,6 +49,7 @@ public static class ViewModelExtensions
         return new BoundaryLoopViewModel 
         {
             Geometry = geometry,
+            IsVisible = true,
             Fill = null,
             Stroke = stroke,
             StrokeThickness = strokeThickness,
@@ -120,6 +122,7 @@ public static class ViewModelExtensions
         return new BoundaryLoopViewModel
         {
             Geometry = loop.ToPathGeometry(),
+            IsVisible = true,
             Fill = fill,
             Stroke = stroke,
             StrokeThickness = strokeThickness,
