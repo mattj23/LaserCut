@@ -67,8 +67,8 @@ public class OriginViewModel : ReactiveObject, IDrawViewModel
             Children =
             [
                 new ScaleTransform(1 / zoom, 1 / zoom),
+                new RotateTransform(double.RadiansToDegrees(xyr.R), 0, 0),
                 new TranslateTransform(xyr.X, xyr.Y),
-                new RotateTransform(double.RadiansToDegrees(xyr.R), 0, 0)
             ]
         };
     }
