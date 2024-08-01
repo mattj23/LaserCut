@@ -18,7 +18,7 @@ public class OriginViewModel : ReactiveObject, IDrawViewModel
     {
         Id = id;
         _xyr = Xyr.FromMatrix(transform);
-        _transform = MakeTransform(_xyr, ZoomValue);
+        Transform = MakeTransform(_xyr, ZoomValue);
         IsVisible = true;
     }
 

@@ -46,6 +46,11 @@
                                   StrokeDashArray="{Binding DashArray}" />
                         </DataTemplate>
                         
+                        <!-- Etchable Text -->
+                        <DataTemplate DataType="vm:TextViewModel">
+                            <ContentPresenter Content="{Binding Block}"></ContentPresenter>
+                        </DataTemplate>
+                        
                         <!-- Origin Cross -->
                         <DataTemplate DataType="vm:OriginViewModel">
                             <Canvas ClipToBounds="False"
