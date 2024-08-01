@@ -38,7 +38,7 @@ public static class OffsetIntersections
         var tN = Math.Abs(t - tP) < Math.Abs(-t - tP) ? t : -t;
 
         var line = seg.Offset(distance);
-        return line.PointAt(tN);
+        return line.PointAt(tN + t0);
     }
     
     public static Point2D Make(Arc arc, Segment seg, double distance)
@@ -73,7 +73,7 @@ public static class OffsetIntersections
         var tN = Math.Abs(t - tP) < Math.Abs(-t - tP) ? t : -t;
 
         var line = seg.Offset(distance);
-        return line.PointAt(tN);
+        return line.PointAt(tN + t0);
     }
     
 }

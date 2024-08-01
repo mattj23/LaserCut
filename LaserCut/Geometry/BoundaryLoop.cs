@@ -288,11 +288,17 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             switch (e0, e1)
             {
                 case (Segment s0, Segment s1):
-                    var angle = s0.AtEnd.Normal.SignedAngle(s1.AtStart.Normal);
-                    var bisector = new Line2(s1.Start, s0.AtEnd.Normal.Rotate(Angle.FromRadians(angle)));
-                    var offset = s1.Offset(distance);
-                    var (t0, _) = offset.IntersectionParams(bisector);
-                    write.SegAbs(offset.PointAt(t0));
+                    var m0 = s0.Offset(distance);
+                    var m1 = s1.Offset(distance);
+                    if (m0.IsCollinear(m1))
+                    {
+                        write.SegAbs(m1.Start);
+                    }
+                    else
+                    {
+                        var (t0, _) = m0.IntersectionParams(m1);
+                        write.SegAbs(m0.PointAt(t0));
+                    }
                     break;
                 case (Segment s0, Arc a1):
                     write.ArcAbs(OffsetIntersections.Make(s0, a1, distance), a1.Center, !a1.IsCcW);
