@@ -17,9 +17,15 @@
                             EnableZoom="True"
                             ClipToBounds="True"
                             Background="White"
+                            PointerMoved="ViewCanvas_OnPointerMoved"
+                            PointerPressed="ViewCanvas_OnPointerPressed"
+                            PointerReleased="ViewCanvas_OnPointerReleased"
+                            PointerExited="ViewCanvas_OnPointerExited"
+                            PointerCaptureLost="ViewCanvas_OnPointerCaptureLost"
                             ZoomChanged="ViewPort_OnZoomChanged">
 
-                <ItemsControl ItemsSource="{Binding #ThisControl.Entities.Geometries}">
+                <ItemsControl ItemsSource="{Binding #ThisControl.Entities.Geometries}"
+                              ClipToBounds="False">
                     <!-- Templates for different types of view models -->
                     <ItemsControl.DataTemplates>
                         <DataTemplate DataType="vm:PolygonViewModel">
@@ -40,6 +46,24 @@
                                   StrokeDashArray="{Binding DashArray}" />
                         </DataTemplate>
                         
+                        <!-- Origin Cross -->
+                        <DataTemplate DataType="vm:OriginViewModel">
+                            <Canvas ClipToBounds="False"
+                                    IsVisible="{Binding IsVisible}"
+                                    RenderTransform="{Binding Transform}">
+                                <Polyline Points="-10,0 40,0 30,10 40,0 30,-10"
+                                          Stroke="Red"
+                                          StrokeJoin="Round"
+                                          StrokeLineCap="Round"
+                                          StrokeThickness="{Binding StrokeThickness}"/>
+                                <Polyline Points="0,-10 0,40 10,30 0,40 -10,30"
+                                          StrokeJoin="Round"
+                                          StrokeLineCap="Round"
+                                          Stroke="Green"
+                                          StrokeThickness="{Binding StrokeThickness}"/>
+                            </Canvas>
+                        </DataTemplate>
+                        
                         <DataTemplate DataType="vm:BoundaryLoopViewModel">
                             <Path Fill="{Binding Fill}"
                                   IsVisible="{Binding IsVisible}"
@@ -55,18 +79,15 @@
                         <ItemsPanelTemplate>
                             <Canvas Background="White"
                                     x:Name="ViewCanvas"
-                                    PointerMoved="ViewCanvas_OnPointerMoved"
-                                    PointerPressed="ViewCanvas_OnPointerPressed"
-                                    PointerReleased="ViewCanvas_OnPointerReleased"
-                                    PointerExited="ViewCanvas_OnPointerExited"
-                                    PointerCaptureLost="ViewCanvas_OnPointerCaptureLost" />
+                                    ClipToBounds="False" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
 
                     <!-- The actual parent template -->
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <ContentControl Content="{Binding}" />
+                            <ContentControl Content="{Binding}"
+                                            ClipToBounds="False"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                     

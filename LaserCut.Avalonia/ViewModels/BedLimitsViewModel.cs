@@ -37,6 +37,7 @@ public class BedLimitsViewModel : ReactiveObject, IDrawable
         var line = new LineViewModel
         {
             Start = new Point(x0, y0),
+            IsVisible = true,
             End = new Point(x1, y1),
             Stroke = Brushes.Gray,
             StrokeThickness = 1.5,

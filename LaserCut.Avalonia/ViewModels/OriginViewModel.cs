@@ -10,7 +10,7 @@ public class OriginViewModel : ReactiveObject, IDrawViewModel
 {
     protected double ZoomValue = 1;
     private bool _isVisible;
-    private double _strokeThickness;
+    private double _strokeThickness = 3.0;
     private Xyr _xyr;
     private ITransform _transform;
 
@@ -18,7 +18,8 @@ public class OriginViewModel : ReactiveObject, IDrawViewModel
     {
         Id = id;
         _xyr = Xyr.FromMatrix(transform);
-        _transform = MakeTransform(_xyr);
+        _transform = MakeTransform(_xyr, ZoomValue);
+        IsVisible = true;
     }
 
     public Guid Id { get; }
@@ -49,21 +50,23 @@ public class OriginViewModel : ReactiveObject, IDrawViewModel
     public void Update(Matrix transform)
     {
         _xyr = Xyr.FromMatrix(transform);
-        Transform = MakeTransform(_xyr);
+        Transform = MakeTransform(_xyr, ZoomValue);
     }
     
     public void UpdateZoom(double zoom)
     {
         ZoomValue = zoom;
         this.RaisePropertyChanged(nameof(DisplayThickness));
+        Transform = MakeTransform(_xyr, ZoomValue);
     }
 
-    private static Transform MakeTransform(Xyr xyr)
+    private static Transform MakeTransform(Xyr xyr, double zoom)
     {
         return new TransformGroup()
         {
             Children =
             [
+                new ScaleTransform(1 / zoom, 1 / zoom),
                 new TranslateTransform(xyr.X, xyr.Y),
                 new RotateTransform(double.RadiansToDegrees(xyr.R), 0, 0)
             ]
