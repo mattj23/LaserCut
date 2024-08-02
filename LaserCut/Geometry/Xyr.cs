@@ -1,4 +1,5 @@
 ﻿using MathNet.Numerics.LinearAlgebra.Double;
+using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Geometry;
 
@@ -30,4 +31,6 @@ public readonly record struct Xyr(double X, double Y, double R)
         var r = Math.Atan2(m[1, 0], m[0, 0]);
         return new Xyr(x, y, r);
     }
+
+    public Point2D Point => new Point2D(X, Y);
 }
