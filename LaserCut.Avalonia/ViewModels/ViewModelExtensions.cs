@@ -4,7 +4,6 @@ using LaserCut.Algorithms.Loop;
 using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
 using MathNet.Spatial.Euclidean;
-using Matrix = MathNet.Numerics.LinearAlgebra.Double.Matrix;
 
 namespace LaserCut.Avalonia.ViewModels;
 
