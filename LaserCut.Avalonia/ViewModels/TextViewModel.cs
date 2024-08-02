@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using LaserCut.Geometry;
 using LaserCut.Text;
-using Microsoft.VisualBasic;
 using ReactiveUI;
 
 namespace LaserCut.Avalonia.ViewModels;
