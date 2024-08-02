@@ -153,20 +153,20 @@ public class DrawableEntities : ReactiveObject
 
     private Guid InteractiveUnderPoint(Point2D p)
     {
-        if (GetInteractive(_activeDrawable) is { } interactive && interactive.Contains(p))
-        {
-            return _activeDrawable;
-        }
-        
+        // We want to find the interactive object with the smallest hit area that contains the point.  This will
+        // prevent larger objects from taking precedence over smaller ones.
+        var smallest = double.MaxValue;
+        var smallestId = Guid.Empty;
         foreach (var i in IterateInteractive())
         {
-            if (i.Contains(p))
+            if (i.HitArea < smallest && i.Contains(p))
             {
-                return i.Id;
+                smallest = i.HitArea;
+                smallestId = i.Id;
             }
         }
         
-        return Guid.Empty;
+        return smallestId;
     }
 
     private IEnumerable<IInteractiveDrawable> IterateInteractive()

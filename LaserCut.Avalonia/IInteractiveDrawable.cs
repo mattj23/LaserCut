@@ -7,6 +7,8 @@ public interface IInteractiveDrawable : IDrawable
 {
     bool Contains(Point2D point);
     
+    double HitArea { get; }
+    
     void MouseEnter();
     void MouseExit();
 
