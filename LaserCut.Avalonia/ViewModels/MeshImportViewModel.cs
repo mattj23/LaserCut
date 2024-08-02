@@ -47,7 +47,8 @@ public class MeshImportViewModel : ReactiveObject
         
         ConfirmCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            await Confirm.Handle(new ImportedGeometry(_bodies.ToArray(), []));
+            var result = new ImportedGeometry(_filePath, _bodies.ToArray(), []);
+            await Confirm.Handle(result);
 
         }, this.WhenAnyValue(x => x.IsNotValid, x => !x));
 

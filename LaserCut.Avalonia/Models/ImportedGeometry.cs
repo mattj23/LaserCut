@@ -3,4 +3,4 @@ using LaserCut.Geometry;
 
 namespace LaserCut.Avalonia.Models;
 
-public record ImportedGeometry(Body[] Silhouettes, FlatPatches[] Flat);
+public record ImportedGeometry(string FilePath, Body[] Silhouettes, FlatPatches[] Flat);
