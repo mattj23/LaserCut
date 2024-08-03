@@ -25,12 +25,15 @@
         
         <NumericUpDown Grid.Row="0" Grid.Column="1"
                        Value="{Binding X, Mode=TwoWay}"
+                       Increment="0.1"
                        FormatString="{Binding LengthFormat}" />
         <NumericUpDown Grid.Row="1" Grid.Column="1"
+                       Increment="0.1"
                        Value="{Binding Y, Mode=TwoWay}"
                        FormatString="{Binding LengthFormat}" />
         <NumericUpDown Grid.Row="2" Grid.Column="1"
                        IsVisible="{Binding HasR}"
+                       Increment="1"
                        Value="{Binding R, Mode=TwoWay}"
                        FormatString="0.00°" />
     </Grid>

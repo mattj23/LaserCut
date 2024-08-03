@@ -23,7 +23,15 @@ public class XyrViewModel : ReactiveObject
         LengthFormat = GetLengthFormat();
     }
     
+    public Action<double, double, double>? OnEditedValuesAction { get; set; }
+    
     public bool HasR { get; }
+    
+    public double XMm => _xMm;
+    
+    public double YMm => _yMm;
+    
+    public double RRad => _rRad;
     
     /// <summary>
     /// Gets or sets the X coordinate in the currently active length unit.
@@ -113,6 +121,7 @@ public class XyrViewModel : ReactiveObject
     
     protected virtual void OnNewEditValues(double xMm, double yMm, double r)
     {
+        OnEditedValuesAction?.Invoke(xMm, yMm, r);
     }
     
 }

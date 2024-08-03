@@ -16,49 +16,31 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
     private EtchAlign _vertical;
     private Xyr _parentXyr;
     private double _fontSize = 12;
-    private double _x;
-    private double _y;
-    private double _r;
     private Rect _bounds;
-    
 
-    public TextViewModel(Guid id)
+    public TextViewModel(Guid id, UnitViewModel unit)
     {
         Id = id;
+        XyrVm = new XyrViewModel(unit, true)
+        {
+            OnEditedValuesAction = (_, _, _) => UpdateTransform()
+        };
 
         this.WhenAnyValue(x => x.Text, x => x.FontSize)
             .Subscribe(_ => SetBlockProperties());
         
-        this.WhenAnyValue(x => x.Horizontal, x => x.Vertical, x => x.X, x=> x.Y)
+        this.WhenAnyValue(x => x.Horizontal, x => x.Vertical)
             .Subscribe(_ => UpdateTransform());
-        
     }
+
+    public List<EnumOption<EtchAlign>> AlignOptions { get; } = EnumSelector.Get<EtchAlign>();
 
     public Guid Id { get; }
     public IBrush? Stroke => null;
     public IBrush? Fill => null;
     public double StrokeThickness { get; set; }
     
-    public double X
-    {
-        get => _x;
-        set => this.RaiseAndSetIfChanged(ref _x, value);
-    }
-    
-    public double Y
-    {
-        get => _y;
-        set => this.RaiseAndSetIfChanged(ref _y, value);
-    }
-    
-    /// <summary>
-    /// Gets or sets the rotation angle in degrees
-    /// </summary>
-    public double R
-    {
-        get => _r;
-        set => this.RaiseAndSetIfChanged(ref _r, value);
-    }
+    public XyrViewModel XyrVm { get; }
 
     public EtchAlign Horizontal
     {
@@ -115,7 +97,12 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
 
         var transform = new TransformGroup
         {
-            Children = [ align, new RotateTransform(R, 0, 0), new TranslateTransform(X, Y), parent, ]
+            Children = [ 
+                align, 
+                new RotateTransform(XyrVm.R, 0, 0), 
+                new TranslateTransform(XyrVm.XMm, XyrVm.YMm), 
+                parent 
+            ]
         };
 
         Block.RenderTransform = transform;
@@ -156,8 +143,6 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
         
         Block.Text = Text;
         Block.FontSize = FontSize;
-        
-        
     }
 
     private void OnBoundsUpdate(Rect b)
