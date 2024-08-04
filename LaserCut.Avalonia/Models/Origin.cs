@@ -9,6 +9,7 @@ namespace LaserCut.Avalonia.Models;
 public class Origin : ReactiveObject, IOrigin
 {
     private Matrix _parentMatrix = Isometry2.Identity();
+    private Matrix _parentInverse = Isometry2.Identity();
     private Guid _parentId = Guid.Empty;
     private IDisposable? _updates;
 
@@ -60,6 +61,10 @@ public class Origin : ReactiveObject, IOrigin
 
     public Matrix LocalTransform => (Matrix)(Isometry2.Translate(X, Y) * Isometry2.Rotate(double.RadiansToDegrees(R)));
     
+    public Matrix ParentTransform => _parentMatrix;
+    
+    public Matrix ParentInverse => _parentInverse;
+    
     public Matrix Transform  => (Matrix)(_parentMatrix * LocalTransform);
     
     public Matrix InverseTransform => (Matrix)Transform.Inverse();
@@ -106,6 +111,7 @@ public class Origin : ReactiveObject, IOrigin
     private void ParentUpdate(Matrix matrix)
     {
         _parentMatrix = matrix;
+        _parentInverse = (Matrix)matrix.Inverse();
         _changed.OnNext(Transform);
     }
     

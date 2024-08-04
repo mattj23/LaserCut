@@ -15,4 +15,6 @@ public interface IOrigin
     Guid ParentId { get; }
     
     Matrix Transform { get; }
+    
+    Matrix ParentTransform { get; }
 }
