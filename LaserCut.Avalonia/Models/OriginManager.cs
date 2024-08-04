@@ -4,6 +4,21 @@ using DynamicData.Binding;
 
 namespace LaserCut.Avalonia.Models;
 
+public class OriginOptions
+{
+    private readonly ReadOnlyObservableCollection<IEntityWithOrigin> _options;
+
+    public OriginOptions(ObservableCollection<IEntityWithOrigin> source, Guid excludeId)
+    {
+        source.ToObservableChangeSet()
+            .Filter(x => x.Origin.Id != excludeId)
+            .Bind(out _options)
+            .Subscribe();
+    }
+    
+    public ReadOnlyObservableCollection<IEntityWithOrigin> Options => _options;
+}
+
 public class OriginManager
 {
     private readonly ObservableCollection<IEntityWithOrigin> _options = new();
@@ -26,8 +41,8 @@ public class OriginManager
         _options.Remove(entity);
     }
 
-    public IObservableList<IEntityWithOrigin> Filtered(Guid excludeId)
+    public OriginOptions Filtered(Guid excludeId)
     {
-        return Options.ToObservableChangeSet().Filter(x => x.Origin.Id != excludeId).AsObservableList();
+        return new OriginOptions(_options, excludeId);
     }
 }

@@ -13,6 +13,8 @@ public class Origin : ReactiveObject, IOrigin
     private IDisposable? _updates;
 
     private readonly BehaviorSubject<Matrix> _changed;
+    private readonly Subject<IOrigin> _parentChanged = new();
+    
     private double _x;
     private double _y;
     private double _r;
@@ -53,6 +55,8 @@ public class Origin : ReactiveObject, IOrigin
     public Xyr Xyr => new(X, Y, R);
 
     public IObservable<Matrix> MatrixChanged  => _changed.AsObservable();
+    
+    public IObservable<IOrigin> ParentChanged => _parentChanged.AsObservable();
 
     public Matrix LocalTransform => (Matrix)(Isometry2.Translate(X, Y) * Isometry2.Rotate(double.RadiansToDegrees(R)));
     
@@ -75,6 +79,7 @@ public class Origin : ReactiveObject, IOrigin
             _updates = parent.MatrixChanged.Subscribe(ParentUpdate);
             ParentUpdate(parent.Transform);
         }
+        _parentChanged.OnNext(this);
     }
     
     public void Update(double x, double y, double r)

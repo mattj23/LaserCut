@@ -10,5 +10,9 @@ public interface IOrigin
     double R { get; }
     
     IObservable<Matrix> MatrixChanged { get; }
+    IObservable<IOrigin> ParentChanged { get; }
+    
+    Guid ParentId { get; }
+    
     Matrix Transform { get; }
 }
