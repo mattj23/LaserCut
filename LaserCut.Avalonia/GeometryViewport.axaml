@@ -46,6 +46,14 @@
                                   StrokeDashArray="{Binding DashArray}" />
                         </DataTemplate>
                         
+                        <DataTemplate DataType="vm:LineEtchViewModel">
+                            <Line StartPoint="{Binding Start}"
+                                  IsVisible="{Binding IsVisible}"
+                                  EndPoint="{Binding End}"
+                                  Stroke="{Binding Stroke}"
+                                  StrokeThickness="{Binding StrokeThickness}" />
+                        </DataTemplate>
+                        
                         <!-- Etchable Text -->
                         <DataTemplate DataType="vm:TextViewModel">
                             <ContentPresenter Content="{Binding Block}"></ContentPresenter>

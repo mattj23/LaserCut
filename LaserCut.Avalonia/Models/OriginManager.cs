@@ -1,6 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using DynamicData;
-using DynamicData.Binding;
 using ReactiveUI;
 
 namespace LaserCut.Avalonia.Models;

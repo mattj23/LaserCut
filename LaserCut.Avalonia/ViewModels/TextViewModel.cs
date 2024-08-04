@@ -136,13 +136,14 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
             Block = new TextBlock
             {
                 RenderTransformOrigin = RelativePoint.TopLeft,
+                Foreground = Brushes.DodgerBlue,
             };
             Block.WhenAnyValue(x => x.Bounds)
                 .Subscribe(OnBoundsUpdate);
         }
         
         Block.Text = Text;
-        Block.FontSize = FontSize;
+        Block.FontSize = FontSize * 0.264583;
     }
 
     private void OnBoundsUpdate(Rect b)
