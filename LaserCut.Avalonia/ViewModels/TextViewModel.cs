@@ -1,6 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Fonts;
+using LaserCut.Avalonia.Models;
 using LaserCut.Geometry;
 using LaserCut.Text;
 using ReactiveUI;
@@ -18,15 +20,19 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
     private double _fontSize = 12;
     private Rect _bounds;
 
+    private FontFamily _font;
+
     public TextViewModel(Guid id, UnitViewModel unit)
     {
+        Font = FontManager.Current.DefaultFontFamily;
+        
         Id = id;
         XyrVm = new XyrViewModel(unit, true)
         {
             OnEditedValuesAction = (_, _, _) => UpdateTransform()
         };
 
-        this.WhenAnyValue(x => x.Text, x => x.FontSize)
+        this.WhenAnyValue(x => x.Text, x => x.FontSize, x => x.Font)
             .Subscribe(_ => SetBlockProperties());
         
         this.WhenAnyValue(x => x.Horizontal, x => x.Vertical)
@@ -39,6 +45,14 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
     public IBrush? Stroke => null;
     public IBrush? Fill => null;
     public double StrokeThickness { get; set; }
+
+    public IList<FontFamily> FontOptions => SystemFonts.Instance.Fonts;
+    
+    public FontFamily Font
+    {
+        get => _font;
+        set => this.RaiseAndSetIfChanged(ref _font, value);
+    }
     
     public XyrViewModel XyrVm { get; }
 
@@ -143,6 +157,7 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
         }
         
         Block.Text = Text;
+        Block.FontFamily = Font;
         Block.FontSize = FontSize * 0.264583;
     }
 
