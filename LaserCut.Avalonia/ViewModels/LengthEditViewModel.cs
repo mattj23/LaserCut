@@ -20,6 +20,7 @@ public class LengthEditViewModel : ReactiveObject
     }
     
     public IObservable<double> ValueChanged => _valueChanged;
+    
 
     public double Value
     {

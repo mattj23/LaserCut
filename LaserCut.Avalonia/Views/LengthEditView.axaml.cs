@@ -6,6 +6,24 @@ namespace LaserCut.Avalonia.Views;
 
 public partial class LengthEditView : UserControl
 {
+    public static readonly StyledProperty<double> MinimumValueProperty = 
+        AvaloniaProperty.Register<LengthEditView, double>("MinimumValue", double.MinValue);
+
+    public static readonly StyledProperty<double> IncrementValueProperty = AvaloniaProperty.Register<LengthEditView, double>(
+        "IncrementValue", 0.1);
+
+    public double IncrementValue
+    {
+        get => GetValue(IncrementValueProperty);
+        set => SetValue(IncrementValueProperty, value);
+    }
+    
+    public double MinimumValue
+    {
+        get => GetValue(MinimumValueProperty);
+        set => SetValue(MinimumValueProperty, value);
+    }
+    
     public LengthEditView()
     {
         InitializeComponent();

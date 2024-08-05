@@ -5,12 +5,14 @@
              xmlns:vm="clr-namespace:LaserCut.Avalonia.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:LengthEditViewModel"
+             x:Name="ThisControl"
              x:Class="LaserCut.Avalonia.Views.LengthEditView">
     <Design.DataContext>
         <vm:LengthEditViewModel />
     </Design.DataContext>
     
     <NumericUpDown Value="{Binding Value, Mode=TwoWay}"
-                   Increment="0.1"
+                   Increment="{Binding #ThisControl.IncrementValue}"
+                   Minimum="{Binding #ThisControl.MinimumValue}"
                    FormatString="{Binding LengthFormat}" />
 </UserControl>

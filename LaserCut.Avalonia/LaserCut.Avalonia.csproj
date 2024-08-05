@@ -16,4 +16,8 @@
       <ProjectReference Include="..\LaserCut\LaserCut.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Converters\" />
+    </ItemGroup>
+
 </Project>
