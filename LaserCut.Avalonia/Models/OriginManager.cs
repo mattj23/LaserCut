@@ -64,6 +64,8 @@ public class OriginManager
     {
         _options.Remove(entity);
         _origins.Remove(entity.Origin.Id);
+        _dependencies.Remove(entity.Origin.Id);
+        _filtered.Remove(entity.Origin.Id);
         ConstructDependencies();
     }
 

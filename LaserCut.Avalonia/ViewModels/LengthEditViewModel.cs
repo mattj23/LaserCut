@@ -53,10 +53,11 @@ public class LengthEditViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(Value));
     }
 
-    protected void SetValue(double valueMm)
+    public void SetValue(double valueMm)
     {
         _valueMm = valueMm;
         _value = _units.MmToUnit(valueMm);
+        _valueChanged.OnNext(_valueMm);
         this.RaisePropertyChanged(nameof(Value));
     }
     
