@@ -6,6 +6,7 @@ using LaserCut.Avalonia.Models;
 using LaserCut.Geometry;
 using LaserCut.Text;
 using ReactiveUI;
+using Matrix = MathNet.Numerics.LinearAlgebra.Double.Matrix;
 
 namespace LaserCut.Avalonia.ViewModels;
 
@@ -17,6 +18,7 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
     private EtchAlign _horizontal;
     private EtchAlign _vertical;
     private Xyr _parentXyr;
+    private Xyr _fullXyr;
     private double _fontSize = 12;
     private Rect _bounds;
 
@@ -101,23 +103,20 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
         _parentXyr = xyr;
         UpdateTransform();
     }
+    
+    public Xyr FullXyr => _fullXyr;
 
     private void UpdateTransform()
     {
         if (Block is null) return;
         
         var align = AlignmentTransform();
-        var parent = new MatrixTransform { Matrix = _parentXyr.AsMatrix().ToAvalonia() };
 
-        var transform = new TransformGroup
-        {
-            Children = [ 
-                align, 
-                new RotateTransform(XyrVm.R, 0, 0), 
-                new TranslateTransform(XyrVm.XMm, XyrVm.YMm), 
-                parent 
-            ]
-        };
+        var fullMatrix = (Matrix)(_parentXyr.AsMatrix() * XyrVm.CurrentXyr.AsMatrix());
+        _fullXyr = Xyr.FromMatrix(fullMatrix);
+        
+        var full = new MatrixTransform { Matrix = fullMatrix.ToAvalonia() };
+        var transform = new TransformGroup { Children = [ align, full, ] };
 
         Block.RenderTransform = transform;
     }

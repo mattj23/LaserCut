@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using LaserCut.Geometry;
+using ReactiveUI;
 
 namespace LaserCut.Avalonia.ViewModels;
 
@@ -80,6 +81,8 @@ public class XyrViewModel : ReactiveObject
             this.RaisePropertyChanged();
         }
     }
+    
+    public Xyr CurrentXyr => new(_xMm, _yMm, _rRad);
     
     public string LengthFormat
     {
