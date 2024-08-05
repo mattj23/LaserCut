@@ -109,7 +109,7 @@ public class XyrViewModel : ReactiveObject
         };
     }
     
-    protected void SetValues(double xMm, double yMm, double r)
+    public void SetValues(double xMm, double yMm, double r)
     {
         _xMm = xMm;
         _yMm = yMm;
