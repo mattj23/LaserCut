@@ -2,7 +2,7 @@
 
 public enum EtchAlign
 {
-    Near,
-    Center,
-    Far,
+    Near=0,
+    Center=1,
+    Far=2,
 }
