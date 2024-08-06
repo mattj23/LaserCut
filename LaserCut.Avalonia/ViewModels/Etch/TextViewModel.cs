@@ -1,34 +1,30 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Media.Fonts;
 using LaserCut.Avalonia.Models;
 using LaserCut.Geometry;
 using LaserCut.Text;
 using ReactiveUI;
 using Matrix = MathNet.Numerics.LinearAlgebra.Double.Matrix;
 
-namespace LaserCut.Avalonia.ViewModels;
+namespace LaserCut.Avalonia.ViewModels.Etch;
 
-public class TextViewModel : ReactiveObject, IDrawViewModel
+public class TextViewModel : EtchEntityViewModelBase
 {
-    private bool _isVisible;
     private string _text = string.Empty;
     private TextBlock? _block;
     private EtchAlign _horizontal;
     private EtchAlign _vertical;
-    private Xyr _parentXyr;
     private Xyr _fullXyr;
     private double _fontSize = 12;
     private Rect _bounds;
 
     private FontFamily _font;
 
-    public TextViewModel(Guid id, UnitViewModel unit)
+    public TextViewModel(Guid id, UnitViewModel unit) : base(id)
     {
         Font = FontManager.Current.DefaultFontFamily;
         
-        Id = id;
         XyrVm = new XyrViewModel(unit, true)
         {
             OnEditedValuesAction = (_, _, _) => UpdateTransform()
@@ -42,11 +38,6 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
     }
 
     public List<EnumOption<EtchAlign>> AlignOptions { get; } = EnumSelector.Get<EtchAlign>();
-
-    public Guid Id { get; }
-    public IBrush? Stroke => null;
-    public IBrush? Fill => null;
-    public double StrokeThickness { get; set; }
 
     public IList<FontFamily> FontOptions => SystemFonts.Instance.Fonts;
     
@@ -81,14 +72,6 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
         get => _text;
         set => this.RaiseAndSetIfChanged(ref _text, value);
     }
-
-    public bool IsVisible 
-    {
-        get => _isVisible;
-        set => this.RaiseAndSetIfChanged(ref _isVisible, value);
-    }
-
-    public double DisplayThickness => 0;
     
     public double FontSize
     {
@@ -96,23 +79,23 @@ public class TextViewModel : ReactiveObject, IDrawViewModel
         set => this.RaiseAndSetIfChanged(ref _fontSize, value);
     }
     
-    public void UpdateZoom(double zoom) { }
+    public Xyr FullXyr => _fullXyr;
+    
+    public override void UpdateZoom(double zoom) { }
 
-    public void UpdateParentXyr(Xyr xyr)
+
+    public override void OnParentXyrChanged()
     {
-        _parentXyr = xyr;
         UpdateTransform();
     }
     
-    public Xyr FullXyr => _fullXyr;
-
     private void UpdateTransform()
     {
         if (Block is null) return;
         
         var align = AlignmentTransform();
 
-        var fullMatrix = (Matrix)(_parentXyr.AsMatrix() * XyrVm.CurrentXyr.AsMatrix());
+        var fullMatrix = (Matrix)(ParentXyr.AsMatrix() * XyrVm.CurrentXyr.AsMatrix());
         _fullXyr = Xyr.FromMatrix(fullMatrix);
         
         var full = new MatrixTransform { Matrix = fullMatrix.ToAvalonia() };

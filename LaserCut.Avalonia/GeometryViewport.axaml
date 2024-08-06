@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:LaserCut.Avalonia.ViewModels;assembly=LaserCut.Avalonia"
              xmlns:paz="using:Avalonia.Controls.PanAndZoom"
+             xmlns:etch="clr-namespace:LaserCut.Avalonia.ViewModels.Etch"
              x:Name="ThisControl"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              HorizontalAlignment="Stretch"
@@ -46,7 +47,7 @@
                                   StrokeDashArray="{Binding DashArray}" />
                         </DataTemplate>
                         
-                        <DataTemplate DataType="vm:LineEtchViewModel">
+                        <DataTemplate DataType="etch:LineEtchViewModel">
                             <Line StartPoint="{Binding Start}"
                                   IsVisible="{Binding IsVisible}"
                                   EndPoint="{Binding End}"
@@ -55,7 +56,7 @@
                         </DataTemplate>
                         
                         <!-- Etchable Text -->
-                        <DataTemplate DataType="vm:TextViewModel">
+                        <DataTemplate DataType="etch:TextViewModel">
                             <ContentPresenter Content="{Binding Block}"></ContentPresenter>
                         </DataTemplate>
                         

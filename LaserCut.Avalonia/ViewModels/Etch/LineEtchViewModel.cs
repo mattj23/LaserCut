@@ -4,22 +4,17 @@ using LaserCut.Geometry;
 using MathNet.Spatial.Euclidean;
 using ReactiveUI;
 
-namespace LaserCut.Avalonia.ViewModels;
+namespace LaserCut.Avalonia.ViewModels.Etch;
 
-public class LineEtchViewModel : ReactiveObject, IDrawViewModel
+public class LineEtchViewModel : EtchEntityViewModelBase
 {
-    private UnitViewModel _units;
-    private bool _isVisible;
-    private double _strokeThickness;
-
     private Point _start;
     private Point _end;
-    private Xyr _parentXyr;
 
-    public LineEtchViewModel(UnitViewModel units)
+    public LineEtchViewModel(UnitViewModel units) : this(Guid.NewGuid(), units) { }
+    
+    public LineEtchViewModel(Guid id, UnitViewModel units) : base(id)
     {
-        _units = units;
-        Id = Guid.NewGuid();
         Stroke = new SolidColorBrush(Colors.DodgerBlue);
         
         EditX0 = new LengthEditViewModel(units);
@@ -35,12 +30,6 @@ public class LineEtchViewModel : ReactiveObject, IDrawViewModel
         EditStrokeThickness.ValueChanged.Subscribe(_ => StrokeThickness = EditStrokeThickness.GetValueMm());
     }
 
-    public Guid Id { get; }
-    
-    public IBrush? Stroke { get; }
-    
-    public IBrush? Fill => null;
-    
     public LengthEditViewModel EditX0 { get; } 
     public LengthEditViewModel EditY0 { get; }
     public LengthEditViewModel EditX1 { get; }
@@ -60,35 +49,18 @@ public class LineEtchViewModel : ReactiveObject, IDrawViewModel
         set => this.RaiseAndSetIfChanged(ref _end, value);
     }
 
-    public double StrokeThickness
+    public override void OnParentXyrChanged()
     {
-        get => _strokeThickness;
-        set => this.RaiseAndSetIfChanged(ref _strokeThickness, value);
-    }
-
-    public bool IsVisible
-    {
-        get => _isVisible;
-        set => this.RaiseAndSetIfChanged(ref _isVisible, value);
-    }
-
-    public double DisplayThickness => StrokeThickness;
-    
-    public void UpdateParentXyr(Xyr xyr)
-    {
-        _parentXyr = xyr;
         UpdatePoints();
     }
-    
-    public void UpdateZoom(double zoom)
-    {
-    }
+
+    public override void UpdateZoom(double zoom) { }
     
     private void UpdatePoints()
     {
         var p0 = new Point2D(EditX0.GetValueMm(), EditY0.GetValueMm());
         var p1 = new Point2D(EditX1.GetValueMm(), EditY1.GetValueMm());
-        var t = _parentXyr.AsMatrix();
+        var t = ParentXyr.AsMatrix();
         Start = p0.Transformed(t).ToAvalonia();
         End = p1.Transformed(t).ToAvalonia();
     }

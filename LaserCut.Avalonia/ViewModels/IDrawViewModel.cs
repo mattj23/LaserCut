@@ -6,7 +6,7 @@ namespace LaserCut.Avalonia.ViewModels;
 /// <summary>
 /// A view model for geometry displayed in a drawn viewport
 /// </summary>
-public interface IDrawViewModel
+public interface IDrawViewModel: IHasGuid
 {
     Guid Id { get; }
     
