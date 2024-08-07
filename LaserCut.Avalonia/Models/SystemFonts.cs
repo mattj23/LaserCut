@@ -10,6 +10,8 @@ public class SystemFonts
             .OrderBy(x => x.Name)
             .ToList();
     }
+
+    public FontFamily Default => FontManager.Current.DefaultFontFamily;
     
     public IList<FontFamily> Fonts { get; } 
     
