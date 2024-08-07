@@ -14,39 +14,39 @@ namespace LaserCut.Avalonia.ViewModels.Etch;
 public class TextViewModel : EtchEntityViewModelBase
 {
     private string _text = string.Empty;
-    private TextBlock? _block;
     private EtchAlign _horizontal;
     private EtchAlign _vertical;
     private Xyr _fullXyr;
-    private double _fontSize = 12;
-    private FontFamily _font;
     private AvaloniaGeometry? _geometry;
     private ITransform? _transform;
+    private FontItem _font;
     
-    public TextViewModel(Guid id, UnitViewModel unit) : base(id)
+    public TextViewModel(Guid id, UnitViewModel unit, FontRegistry fonts) : base(id)
     {
-        Font = FontManager.Current.DefaultFontFamily;
+        FontOptions = fonts;
+        Font = FontOptions.Registered.FirstOrDefault()!;
         
         XyrVm = new XyrViewModel(unit, true)
         {
             OnEditedValuesAction = (_, _, _) => UpdateTransform()
         };
 
-        this.WhenAnyValue(x => x.Text, x => x.FontSize, x => x.Font)
+        this.WhenAnyValue(x => x.Text, x => x.Font)
             .Subscribe(_ => SetBlockProperties());
         
         this.WhenAnyValue(x => x.Horizontal, x => x.Vertical)
             .Subscribe(_ => UpdateTransform());
         
-        this.WhenAnyValue(x => x.IsVisible)
-            .Subscribe(x => {if (Block is { } b) b.IsVisible = x;});
+        Font.WhenAnyValue(x => x.Family, x => x.Size)
+            .Subscribe(_ => SetBlockProperties());
+        
     }
+    
+    public FontRegistry FontOptions { get; }
 
     public List<EnumOption<EtchAlign>> AlignOptions { get; } = EnumSelector.Get<EtchAlign>();
 
-    public IList<FontFamily> FontOptions => SystemFonts.Instance.Fonts;
-    
-    public FontFamily Font
+    public FontItem Font
     {
         get => _font;
         set => this.RaiseAndSetIfChanged(ref _font, value);
@@ -67,12 +67,6 @@ public class TextViewModel : EtchEntityViewModelBase
         get => _vertical;
         set => this.RaiseAndSetIfChanged(ref _vertical, value);
     }
-    
-    public TextBlock? Block
-    {
-        get => _block;
-        set => this.RaiseAndSetIfChanged(ref _block, value);
-    }
 
     public AvaloniaGeometry? Geometry
     {
@@ -84,12 +78,6 @@ public class TextViewModel : EtchEntityViewModelBase
     {
         get => _text;
         set => this.RaiseAndSetIfChanged(ref _text, value);
-    }
-    
-    public double FontSize
-    {
-        get => _fontSize;
-        set => this.RaiseAndSetIfChanged(ref _fontSize, value);
     }
     
     public ITransform? Transform
@@ -150,8 +138,9 @@ public class TextViewModel : EtchEntityViewModelBase
     private void SetBlockProperties()
     {
         var fmt = new FormattedText(Text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, 
-            new Typeface(Font), FontSize * 1.33333 * 0.264583, Brushes.Black);
+            new Typeface(Font.Family), Font.Size * 1.33333 * 0.264583, Brushes.Black);
         Geometry = fmt.BuildGeometry(new Point(0, 0));
+        UpdateTransform();
     }
 
 }

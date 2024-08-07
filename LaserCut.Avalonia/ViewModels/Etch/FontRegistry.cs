@@ -19,24 +19,34 @@ public class FontItem : ReactiveObject
 
     public int Id { get; }
     
+    public string Name => $"{Family.Name} {Size}pt";
+    
     public IList<FontFamily> SystemOptions => SystemFonts.Instance.Fonts;
 
     public FontFamily Family
     {
         get => _family;
-        set => this.RaiseAndSetIfChanged(ref _family, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _family, value);
+            this.RaisePropertyChanged(nameof(Name));
+        }
     }
-    
+
     public double Size
     {
         get => _size;
-        set => this.RaiseAndSetIfChanged(ref _size, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _size, value);
+            this.RaisePropertyChanged(nameof(Name));
+        }
     }
 }
 
 public class FontRegistry : ReactiveObject
 {
-    private ObservableCollection<FontItem> _fonts = new();
+    private readonly ObservableCollection<FontItem> _fonts = new();
     
     public FontRegistry()
     {
