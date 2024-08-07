@@ -57,7 +57,12 @@
                         
                         <!-- Etchable Text -->
                         <DataTemplate DataType="etch:TextViewModel">
-                            <ContentPresenter Content="{Binding Block}"></ContentPresenter>
+                            <!-- <ContentPresenter Content="{Binding Geom}" /> -->
+                            <Path Fill="{Binding Fill}"
+                                  Data="{Binding Geometry}"
+                                  IsVisible="{Binding IsVisible}" 
+                                  RenderTransformOrigin="{Binding TransformOrigin}"
+                                  RenderTransform="{Binding Transform}"/>
                         </DataTemplate>
                         
                         <!-- Origin Cross -->

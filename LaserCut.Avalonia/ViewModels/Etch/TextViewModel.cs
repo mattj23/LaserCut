@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System.Globalization;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using LaserCut.Avalonia.Models;
@@ -6,6 +7,7 @@ using LaserCut.Geometry;
 using LaserCut.Text;
 using ReactiveUI;
 using Matrix = MathNet.Numerics.LinearAlgebra.Double.Matrix;
+using AvaloniaGeometry = Avalonia.Media.Geometry;
 
 namespace LaserCut.Avalonia.ViewModels.Etch;
 
@@ -17,10 +19,10 @@ public class TextViewModel : EtchEntityViewModelBase
     private EtchAlign _vertical;
     private Xyr _fullXyr;
     private double _fontSize = 12;
-    private Rect _bounds;
-
     private FontFamily _font;
-
+    private AvaloniaGeometry? _geometry;
+    private ITransform? _transform;
+    
     public TextViewModel(Guid id, UnitViewModel unit) : base(id)
     {
         Font = FontManager.Current.DefaultFontFamily;
@@ -35,6 +37,9 @@ public class TextViewModel : EtchEntityViewModelBase
         
         this.WhenAnyValue(x => x.Horizontal, x => x.Vertical)
             .Subscribe(_ => UpdateTransform());
+        
+        this.WhenAnyValue(x => x.IsVisible)
+            .Subscribe(x => {if (Block is { } b) b.IsVisible = x;});
     }
 
     public List<EnumOption<EtchAlign>> AlignOptions { get; } = EnumSelector.Get<EtchAlign>();
@@ -46,6 +51,8 @@ public class TextViewModel : EtchEntityViewModelBase
         get => _font;
         set => this.RaiseAndSetIfChanged(ref _font, value);
     }
+    
+    public RelativePoint TransformOrigin => RelativePoint.TopLeft;
     
     public XyrViewModel XyrVm { get; }
 
@@ -66,6 +73,12 @@ public class TextViewModel : EtchEntityViewModelBase
         get => _block;
         set => this.RaiseAndSetIfChanged(ref _block, value);
     }
+
+    public AvaloniaGeometry? Geometry
+    {
+        get => _geometry;
+        set => this.RaiseAndSetIfChanged(ref _geometry, value);
+    }
     
     public string Text
     {
@@ -77,6 +90,12 @@ public class TextViewModel : EtchEntityViewModelBase
     {
         get => _fontSize;
         set => this.RaiseAndSetIfChanged(ref _fontSize, value);
+    }
+    
+    public ITransform? Transform
+    {
+        get => _transform;
+        set => this.RaiseAndSetIfChanged(ref _transform, value);
     }
     
     public Xyr FullXyr => _fullXyr;
@@ -91,8 +110,6 @@ public class TextViewModel : EtchEntityViewModelBase
     
     private void UpdateTransform()
     {
-        if (Block is null) return;
-        
         var align = AlignmentTransform();
 
         var fullMatrix = (Matrix)(ParentXyr.AsMatrix() * XyrVm.CurrentXyr.AsMatrix());
@@ -101,24 +118,29 @@ public class TextViewModel : EtchEntityViewModelBase
         var full = new MatrixTransform { Matrix = fullMatrix.ToAvalonia() };
         var transform = new TransformGroup { Children = [ align, full, ] };
 
-        Block.RenderTransform = transform;
+        Transform = transform;
     }
+    
+    private double GeomWidth => _geometry?.Bounds.Width ?? 0;
+    private double GeomHeight => _geometry?.Bounds.Height ?? 0;
 
     private TranslateTransform AlignmentTransform()
     {
+        var x0 = Geometry?.Bounds.Left ?? 0;
         var sx = Horizontal switch
         {
-            EtchAlign.Near => 0,
-            EtchAlign.Center => -_bounds.Width/2,
-            EtchAlign.Far => -_bounds.Width,
+            EtchAlign.Near => -x0,
+            EtchAlign.Center => -x0 - GeomWidth/2,
+            EtchAlign.Far => -x0 - GeomWidth,
             _ => 0
         };
         
+        var y0 = Geometry?.Bounds.Top ?? 0;
         var sy = Vertical switch
         {
-            EtchAlign.Near => 0,
-            EtchAlign.Center => -_bounds.Height/2,
-            EtchAlign.Far => -_bounds.Height,
+            EtchAlign.Near => -y0,
+            EtchAlign.Center => -y0 - GeomHeight/2,
+            EtchAlign.Far => -y0 - GeomHeight,
             _ => 0
         };
 
@@ -127,26 +149,9 @@ public class TextViewModel : EtchEntityViewModelBase
 
     private void SetBlockProperties()
     {
-        if (Block is null)
-        {
-            Block = new TextBlock
-            {
-                RenderTransformOrigin = RelativePoint.TopLeft,
-                Foreground = Brushes.DodgerBlue,
-            };
-            Block.WhenAnyValue(x => x.Bounds)
-                .Subscribe(OnBoundsUpdate);
-        }
-        
-        Block.Text = Text;
-        Block.FontFamily = Font;
-        Block.FontSize = FontSize * 0.264583;
-    }
-
-    private void OnBoundsUpdate(Rect b)
-    {
-        _bounds = b;
-        UpdateTransform();
+        var fmt = new FormattedText(Text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, 
+            new Typeface(Font), FontSize * 1.33333 * 0.264583, Brushes.Black);
+        Geometry = fmt.BuildGeometry(new Point(0, 0));
     }
 
 }
