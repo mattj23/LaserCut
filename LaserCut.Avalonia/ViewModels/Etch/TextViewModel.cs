@@ -1,8 +1,6 @@
 ﻿using System.Globalization;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Media;
-using LaserCut.Avalonia.Models;
 using LaserCut.Geometry;
 using LaserCut.Text;
 using ReactiveUI;
@@ -40,6 +38,7 @@ public class TextViewModel : EtchEntityViewModelBase
         Font.WhenAnyValue(x => x.Family, x => x.Size)
             .Subscribe(_ => SetBlockProperties());
         
+        FontOptions.Removed.Subscribe(_ => VerifyFont());
     }
     
     public FontRegistry FontOptions { get; }
@@ -90,10 +89,17 @@ public class TextViewModel : EtchEntityViewModelBase
     
     public override void UpdateZoom(double zoom) { }
 
-
     public override void OnParentXyrChanged()
     {
         UpdateTransform();
+    }
+
+    protected void VerifyFont()
+    {
+        if (!FontOptions.Registered.Contains(Font))
+        {
+            Font = FontOptions.Registered.FirstOrDefault()!;
+        }
     }
     
     private void UpdateTransform()

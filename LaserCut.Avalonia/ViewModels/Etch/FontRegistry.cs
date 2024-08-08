@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Subjects;
 using Avalonia.Media;
 using LaserCut.Avalonia.Models;
 using MsBox.Avalonia;
@@ -61,18 +62,24 @@ public class FontItem : ReactiveObject
     {
         var box = MessageBoxManager
             .GetMessageBoxStandard("Remove Font", $"Are you sure you want to remove the font {Name}?", ButtonEnum.YesNo);
-        if (await box.ShowAsync() == ButtonResult.Yes) _registry.Remove(this);
+        if (await box.ShowAsync() == ButtonResult.Yes)
+        {
+            _registry.Remove(this);
+        }
     }
 }
 
 public class FontRegistry : ReactiveObject
 {
     private readonly ObservableCollection<FontItem> _fonts = new();
+    private readonly Subject<Unit> _removedSubject = new();
     
     public FontRegistry()
     {
         Registered = new ReadOnlyObservableCollection<FontItem>(_fonts);
     }
+    
+    public IObservable<Unit> Removed => _removedSubject;
     
     public int Count => _fonts.Count;
 
@@ -109,6 +116,7 @@ public class FontRegistry : ReactiveObject
         if (Count == 1) return;
         
         _fonts.Remove(item);
+        _removedSubject.OnNext(default);
         this.RaisePropertyChanged(nameof(Count));
     }
 
