@@ -19,5 +19,9 @@ public interface IDrawable : IHasBounds
     IObservable<IDrawViewModel> Added { get; }
     IObservable<IDrawViewModel> Removed { get; }
     
+    /// <summary>
+    /// Gets a value indicating whether the bounds of the drawable should be used for zoom to fit calculations
+    /// </summary>
+    bool UseBounds { get; }
     
 }

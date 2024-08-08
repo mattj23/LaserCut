@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Reactive.Linq;
 using DynamicData;
 using LaserCut.Geometry.Primitives;
 using MathNet.Spatial.Euclidean;
@@ -73,7 +72,8 @@ public class DrawableEntities : ReactiveObject
         var bounds = Aabb2.Empty;
         foreach (var (_, item) in _drawables)
         {
-            bounds = bounds.Union(item.Drawable.Bounds);
+            if (item.Drawable.UseBounds)
+                bounds = bounds.Union(item.Drawable.Bounds);
         }
 
         return bounds;

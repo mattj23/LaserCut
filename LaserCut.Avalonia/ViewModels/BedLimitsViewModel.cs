@@ -31,7 +31,8 @@ public class BedLimitsViewModel : ReactiveObject, IDrawable
     public Aabb2 Bounds { get; }
     public IObservable<IDrawViewModel> Added => _added.AsObservable();
     public IObservable<IDrawViewModel> Removed => _removed.AsObservable();
-    
+    public bool UseBounds => false;
+
     private void AddLine(double x0, double y0, double x1, double y1)
     {
         var line = new LineViewModel

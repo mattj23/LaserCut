@@ -23,7 +23,9 @@ public class SimpleDrawable : IDrawable
     public IReadOnlyList<IDrawViewModel> Geometries => _geometries;
     
     public Aabb2 Bounds { get; private set; }
-    
+
+    public bool UseBounds => true;
+
     public IObservable<IDrawViewModel> Added => _added.AsObservable();
     
     public IObservable<IDrawViewModel> Removed => _removed.AsObservable();
