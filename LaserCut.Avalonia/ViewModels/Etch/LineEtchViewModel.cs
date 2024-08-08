@@ -1,6 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Media;
+using LaserCut.Avalonia.HitTesting;
 using LaserCut.Geometry;
+using LaserCut.Geometry.Primitives;
 using MathNet.Spatial.Euclidean;
 using ReactiveUI;
 
@@ -10,23 +12,22 @@ public class LineEtchViewModel : EtchEntityViewModelBase
 {
     private Point _start;
     private Point _end;
+    private Segment? _segment;
 
     public LineEtchViewModel(UnitViewModel units) : this(Guid.NewGuid(), units) { }
     
     public LineEtchViewModel(Guid id, UnitViewModel units) : base(id)
     {
-        Stroke = new SolidColorBrush(Colors.DodgerBlue);
-        
         EditX0 = new LengthEditViewModel(units);
         EditY0 = new LengthEditViewModel(units);
         EditX1 = new LengthEditViewModel(units);
         EditY1 = new LengthEditViewModel(units);
         EditStrokeThickness = new LengthEditViewModel(units);
         
-        EditX0.ValueChanged.Subscribe(_ => UpdatePoints());
-        EditY0.ValueChanged.Subscribe(_ => UpdatePoints());
-        EditX1.ValueChanged.Subscribe(_ => UpdatePoints());
-        EditY1.ValueChanged.Subscribe(_ => UpdatePoints());
+        EditX0.ValueChanged.Subscribe(_ => OnPointsEdited());
+        EditY0.ValueChanged.Subscribe(_ => OnPointsEdited());
+        EditX1.ValueChanged.Subscribe(_ => OnPointsEdited());
+        EditY1.ValueChanged.Subscribe(_ => OnPointsEdited());
         EditStrokeThickness.ValueChanged.Subscribe(_ => StrokeThickness = EditStrokeThickness.GetValueMm());
     }
 
@@ -35,7 +36,8 @@ public class LineEtchViewModel : EtchEntityViewModelBase
     public LengthEditViewModel EditX1 { get; }
     public LengthEditViewModel EditY1 { get; }
     public LengthEditViewModel EditStrokeThickness { get; }
-    
+
+    public override Aabb2 Bounds => _segment?.Bounds ?? Aabb2.Empty;
     
     public Point Start
     {
@@ -51,17 +53,40 @@ public class LineEtchViewModel : EtchEntityViewModelBase
 
     public override void OnParentXyrChanged()
     {
-        UpdatePoints();
+        UpdateGeometry();
     }
 
     public override void UpdateZoom(double zoom) { }
-    
-    private void UpdatePoints()
+
+    private void OnPointsEdited()
     {
         var p0 = new Point2D(EditX0.GetValueMm(), EditY0.GetValueMm());
         var p1 = new Point2D(EditX1.GetValueMm(), EditY1.GetValueMm());
-        var t = ParentXyr.AsMatrix();
-        Start = p0.Transformed(t).ToAvalonia();
-        End = p1.Transformed(t).ToAvalonia();
+        if (p0.DistanceTo(p1) < GeometryConstants.DistEquals) p1 = p0 + new Vector2D(1e-4, 1e-4);
+        
+        _segment = new Segment(p0, p1, 0);
+        NotifyChange();
+        UpdateGeometry();
+    }
+    
+    private void UpdateGeometry()
+    {
+        if (_segment is null) return;
+        
+        var s = _segment.Transformed(ParentXyr.AsMatrix());
+        Start = s.Start.ToAvalonia();
+        End = s.End.ToAvalonia();
+    }
+    
+    public override void UpdateHitGeometry()
+    {
+        OnPointsEdited();
+    }
+
+    public override bool Hit(Point2D point)
+    {
+        if (_segment is null) return false;
+
+        return _segment.Closest(point).Surface.Point.DistanceTo(point) < EditStrokeThickness.GetValueMm() * 4;
     }
 }

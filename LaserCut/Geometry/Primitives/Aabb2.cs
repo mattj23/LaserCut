@@ -31,6 +31,11 @@ public struct Aabb2
     public double Height => MaxY - MinY;
     
     public Point2D Center => new Point2D((MinX + MaxX) / 2, (MinY + MaxY) / 2);
+
+    public static Aabb2 FromPoints(Point2D p0, Point2D p1)
+    {
+        return new Aabb2(Math.Min(p0.X, p1.X), Math.Min(p0.Y, p1.Y), Math.Max(p0.X, p1.X), Math.Max(p0.Y, p1.Y));
+    }
     
     public static Aabb2 FromPoints(IEnumerable<Point2D> points)
     {

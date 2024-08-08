@@ -14,6 +14,8 @@ public static class ViewModelExtensions
     
     public static Point ToAvalonia(this Point3D point) => new Point(point.X, point.Y);
     
+    public static Point2D ToPoint2D(this Point point) => new Point2D(point.X, point.Y);
+    
     
     public static PolygonViewModel ToPolygonViewModel(this PointLoop loop, IBrush? fill = null, IBrush? stroke = null,
         double strokeThickness = 1)
