@@ -997,9 +997,10 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// <param name="radius">The radius of the circle to create</param>
     /// <param name="cw">True for a clockwise (negative) circle, false for a counter-clockwise (positive) circle</param>
     /// <returns>A newly created `Contour` object</returns>
-    public static BoundaryLoop Circle(double cx, double cy, double radius, bool cw = false)
+    public static BoundaryLoop Circle(double cx, double cy, double radius, bool cw = false, Guid? id = null)
     {
-        var contour = new BoundaryLoop();
+        var loopId = id ?? Guid.NewGuid();
+        var contour = new BoundaryLoop(loopId);
         var cursor = contour.GetCursor();
         cursor.ArcAbs(cx + radius, cy, cx, cy, cw);
         return contour;
