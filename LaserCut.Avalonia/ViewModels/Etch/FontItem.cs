@@ -32,6 +32,8 @@ public class FontItem : ReactiveObject
 
     public int Id { get; }
     
+    public string IdDisplay => $"Font ID: {Id}";
+    
     public string Name => $"{Family.Name} {Size}pt";
     
     public IList<FontFamily> SystemOptions => SystemFonts.Instance.Fonts;

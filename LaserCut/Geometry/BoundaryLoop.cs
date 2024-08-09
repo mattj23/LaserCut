@@ -1004,7 +1004,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         cursor.ArcAbs(cx + radius, cy, cx, cy, cw);
         return contour;
     }
-    
+
     /// <summary>
     /// Create a new rectangular contour with the lower-left corner at (x, y) and the width and height specified.
     /// </summary>
@@ -1012,22 +1012,25 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// <param name="y">The y position of the lower-left corner in absolute coordinates</param>
     /// <param name="w">The width of the rectangle</param>
     /// <param name="h">The height of the rectangle</param>
+    /// <param name="id"></param>
     /// <returns>A newly created `Contour` object</returns>
-    public static BoundaryLoop Rectangle(double x, double y, double w, double h)
+    public static BoundaryLoop Rectangle(double x, double y, double w, double h, Guid? id = null)
     {
-        var contour = new BoundaryLoop();
-        var cursor = contour.GetCursor();
+        var loopId = id ?? Guid.NewGuid();
+        var loop = new BoundaryLoop(loopId);
+        var cursor = loop.GetCursor();
         cursor.SegAbs(x, y);
         cursor.SegRel(w, 0);
         cursor.SegRel(0, h);
         cursor.SegRel(-w, 0);
-        return contour;
+        return loop;
     }
 
-    public static BoundaryLoop RoundedRectangle(double x, double y, double w, double h, double r)
+    public static BoundaryLoop RoundedRectangle(double x, double y, double w, double h, double r, Guid? id = null)
     {
-        var contour = new BoundaryLoop();
-        var cursor = contour.GetCursor();
+        var loopId = id ?? Guid.NewGuid();
+        var loop = new BoundaryLoop(loopId);
+        var cursor = loop.GetCursor();
 
         double x1 = x + w;
         double y1 = y + h;
@@ -1045,7 +1048,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         cursor.SegAbs(x, y1C);
         cursor.ArcAbs(x, y0C, x0C, y0C, false);
 
-        return contour;
+        return loop;
     }
     
     /// <summary>
