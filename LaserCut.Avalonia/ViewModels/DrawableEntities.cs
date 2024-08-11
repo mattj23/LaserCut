@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Reactive.Subjects;
 using DynamicData;
 using LaserCut.Geometry.Primitives;
 using MathNet.Spatial.Euclidean;
@@ -11,12 +12,18 @@ public class DrawableEntities : ReactiveObject
     private double _lastZoom = 1.0;
     private readonly ObservableCollection<IDrawViewModel> _geometries = new();
     private readonly Dictionary<Guid, RegisteredDrawable> _drawables = new();
-    
+    private readonly Subject<(MouseViewportEventArgs, IInteractiveDrawable)> _pointerPressed = new();
+
     private Guid _activeDrawable = Guid.Empty;
     private Point2D? _lastDragReference;
+    private bool _dragStarted;
 
     public ReadOnlyObservableCollection<IDrawViewModel> Geometries => new(_geometries);
-    
+
+    public IObservable<(MouseViewportEventArgs, IInteractiveDrawable)> PointerPressed => _pointerPressed;
+
+    public double DragMinimumThreshold { get; set; } = 3.0;
+
     public void Register(IDrawable drawable)
     {
         if (_drawables.ContainsKey(drawable.Id))
@@ -35,7 +42,7 @@ public class DrawableEntities : ReactiveObject
         _geometries.AddRange(drawable.Geometries);
         _drawables.Add(drawable.Id, new RegisteredDrawable(drawable, addSub, removeSub));
     }
-    
+
     public void UnRegister(IDrawable drawable)
     {
         if (!_drawables.TryGetValue(drawable.Id, out var registered))
@@ -65,8 +72,8 @@ public class DrawableEntities : ReactiveObject
         _drawables.Clear();
         _geometries.Clear();
     }
-    
-    
+
+
     public Aabb2 GetBounds()
     {
         var bounds = Aabb2.Empty;
@@ -78,7 +85,7 @@ public class DrawableEntities : ReactiveObject
 
         return bounds;
     }
-    
+
     public void UpdateZoom(double zoom)
     {
         _lastZoom = zoom;
@@ -94,7 +101,7 @@ public class DrawableEntities : ReactiveObject
         if (!e.LeftButton)
         {
             var nextActive = InteractiveUnderPoint(e.Point);
-            
+
             // The active drawable is changing, so let's update the items
             if (nextActive != _activeDrawable)
             {
@@ -111,7 +118,12 @@ public class DrawableEntities : ReactiveObject
         }
         else if (_lastDragReference is { } lastDrag)
         {
-            if (GetInteractive(_activeDrawable) is { } interactive)
+            if (!_dragStarted && lastDrag.DistanceTo(e.Point) > DragMinimumThreshold)
+            {
+                _dragStarted = true;
+            }
+
+            if (_dragStarted && GetInteractive(_activeDrawable) is { } interactive)
             {
                 _lastDragReference += interactive.DragTransform(e.Point - lastDrag);
             }
@@ -126,21 +138,24 @@ public class DrawableEntities : ReactiveObject
             if (e.LeftButton && interactive.IsDraggable)
             {
                 // Initiate dragging mechanics
+                _dragStarted = false;
                 _lastDragReference = e.Point;
             }
             else
             {
                 interactive.MouseClick(e);
             }
+
+            _pointerPressed.OnNext((e, interactive));
         }
-        
+
     }
-    
+
     public void OnPointerReleased(MouseViewportEventArgs e)
     {
         _lastDragReference = null;
     }
-    
+
     public void OnPointerExited()
     {
         if (GetInteractive(_activeDrawable) is { } interactive)
@@ -165,7 +180,7 @@ public class DrawableEntities : ReactiveObject
                 smallestId = i.Id;
             }
         }
-        
+
         return smallestId;
     }
 
@@ -186,17 +201,17 @@ public class DrawableEntities : ReactiveObject
         {
             return drawable.Drawable as IInteractiveDrawable;
         }
-        
+
         return null;
     }
-    
-    
+
+
     private void GeometryAdded(IDrawViewModel geometry)
     {
         geometry.UpdateZoom(_lastZoom);
         _geometries.Add(geometry);
     }
-    
+
     private void GeometryRemoved(IDrawViewModel geometry)
     {
         var i = _geometries.IndexOf(geometry);
@@ -205,6 +220,6 @@ public class DrawableEntities : ReactiveObject
             _geometries.RemoveAt(i);
         }
     }
-    
+
     private record RegisteredDrawable(IDrawable Drawable, IDisposable AddSub, IDisposable RemoveSub);
 }
