@@ -12,20 +12,20 @@ public class BedLimitsViewModel : ReactiveObject, IDrawable
     private readonly List<IDrawViewModel> _geometries = new();
     private readonly Subject<IDrawViewModel> _added = new();
     private readonly Subject<IDrawViewModel> _removed = new();
-    
+
     public BedLimitsViewModel(double height, double width)
     {
         Id = Guid.NewGuid();
         Bounds = Aabb2.Empty;
 
         var zero = 0.001;
-        
+
         AddLine(zero, zero, zero, height);
         AddLine(zero, height, width, height);
         AddLine(width, height, width, zero);
         AddLine(width, zero, zero, zero);
     }
-    
+
     public Guid Id { get; }
     public IReadOnlyList<IDrawViewModel> Geometries => _geometries;
     public Aabb2 Bounds { get; }
@@ -44,7 +44,7 @@ public class BedLimitsViewModel : ReactiveObject, IDrawable
             StrokeThickness = 1.5,
             DashArray = [4.0, 4.0]
         };
-        
+
         _geometries.Add(line);
         _added.OnNext(line);
     }

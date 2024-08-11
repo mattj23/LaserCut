@@ -4,6 +4,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.PanAndZoom;
 using Avalonia.Input;
 using LaserCut.Avalonia.ViewModels;
+using LaserCut.Geometry;
+using LaserCut.Geometry.Primitives;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Avalonia;
@@ -15,12 +17,12 @@ public partial class GeometryViewport : UserControl
 
     public static readonly StyledProperty<double> ZoomToFitScaleProperty =
         AvaloniaProperty.Register<GeometryViewport, double>(nameof(ZoomToFitScale), 1.5);
-    
+
     public GeometryViewport()
     {
         InitializeComponent();
     }
-    
+
     public DrawableEntities Entities
     {
         get => GetValue(EntitiesProperty);
@@ -39,10 +41,12 @@ public partial class GeometryViewport : UserControl
         Entities.UpdateZoom(e.ZoomX);
     }
 
-    public async Task ZoomToFit()
+    public async Task ZoomToBounds(Aabb2 bounds)
     {
-        var bounds = Entities.GetBounds();
         if (bounds.IsEmpty)
+            return;
+
+        if (bounds.Width < GeometryConstants.DistEquals && bounds.Height < GeometryConstants.DistEquals)
             return;
 
         var workingX = bounds.Width * ZoomToFitScale + 1.0;
@@ -51,13 +55,22 @@ public partial class GeometryViewport : UserControl
         var zy = ViewPort.Bounds.Height / workingY;
         var zoom = Math.Min(zx, zy);
 
-        // Figure out the offset to center the box in the viewport
-        var offsetX = bounds.Center.X - ViewPort.Bounds.Width / (2 * zoom);
-        var offsetY = bounds.Center.Y - ViewPort.Bounds.Height / (2 * zoom);
+        ViewPort.Zoom(zoom, bounds.Center.X, bounds.Center.Y);
 
-        ViewPort.Zoom(zoom, offsetX, offsetY);
+        // Figure out the offset to center the box in the viewport
+        var offsetX = ViewPort.Bounds.Width / (2 * zoom) - bounds.Center.X;
+        var offsetY = ViewPort.Bounds.Height / (2 * zoom) - bounds.Center.Y;
+
+        ViewPort.Pan(offsetX * zoom, offsetY * zoom);
+
         await Task.Delay(TimeSpan.FromMilliseconds(10));
         Entities.UpdateZoom(zoom);
+    }
+
+    public Task ZoomToFit()
+    {
+        var bounds = Entities.GetBounds();
+        return ZoomToBounds(bounds);
     }
 
     private void ViewCanvas_OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
@@ -78,7 +91,7 @@ public partial class GeometryViewport : UserControl
 
     private void ViewCanvas_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        
+
         var p = e.GetCurrentPoint(ViewPort);
         Entities.OnPointerReleased(BuildEvent(p, e.KeyModifiers));
     }
