@@ -10,7 +10,7 @@ public static class Isometry2
     {
         return Translate(vector.X, vector.Y);
     }
-    
+
     public static Matrix Identity()
     {
         return DenseMatrix.OfArray(new double[,]
@@ -20,7 +20,7 @@ public static class Isometry2
             {0, 0, 1}
         });
     }
-    
+
     public static Matrix Translate(double x, double y)
     {
         return DenseMatrix.OfArray(new double[,]
@@ -30,13 +30,13 @@ public static class Isometry2
             {0, 0, 1}
         });
     }
-    
+
     public static Matrix Rotate(Vector2D from, Vector2D to)
     {
         var angle = from.SignedAngleTo(to);
         return Rotate(angle.Degrees);
     }
-    
+
     public static Matrix Rotate(double degrees)
     {
         var radians = degrees * Math.PI / 180;
@@ -50,18 +50,42 @@ public static class Isometry2
         });
     }
 
+    public static Matrix FromBasisX(Point2D origin, Vector2D xVector)
+    {
+        var y = new Vector2D(-xVector.Y, xVector.X);
+
+        return DenseMatrix.OfArray(new[,]
+        {
+            {xVector.X, y.X, origin.X},
+            {xVector.Y, y.Y, origin.Y},
+            {0, 0, 1}
+        });
+    }
+
+    public static Matrix FromBasisY(Point2D origin, Vector2D yVector)
+    {
+        var x = new Vector2D(yVector.Y, -yVector.X);
+
+        return DenseMatrix.OfArray(new[,]
+        {
+            {x.X, yVector.X, origin.X},
+            {x.Y, yVector.Y, origin.Y},
+            {0, 0, 1}
+        });
+    }
+
     public static Point2D Transformed(this Point2D point, Matrix m)
     {
         var p = Vector<double>.Build.DenseOfArray([point.X, point.Y, 1]);
         var result = m * p;
         return new Point2D(result[0], result[1]);
     }
-    
+
     public static Vector2D Transformed(this Vector2D vector, Matrix m)
     {
         var v = Vector<double>.Build.DenseOfArray([vector.X, vector.Y, 0]);
         var result = m * v;
         return new Vector2D(result[0], result[1]);
     }
-    
+
 }
