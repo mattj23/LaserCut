@@ -19,34 +19,73 @@ public class BoxEdgeCursor
         CsInv = (Matrix)Cs.Inverse();
     }
 
+    /// <summary>
+    /// Gets the start point of the edge in the face coordinate system.
+    /// </summary>
     public Point2D Start { get; }
+
+    /// <summary>
+    /// Gets the end point of the edge in the face coordinate system.
+    /// </summary>
     public Point2D End { get; }
     public double Length { get; }
 
+    /// <summary>
+    /// Gets a matrix which will transform a point on the edge (x, y) to the corresponding point in the face.
+    /// </summary>
     public Matrix Cs { get; }
+
+    /// <summary>
+    /// Gets a matrix which will transform a point on the face to the corresponding point on the edge.
+    /// </summary>
     public Matrix CsInv { get; }
 
-    public Point3D StartWorld => EdgeToWorld(Start);
-    public Point3D EndWorld => EdgeToWorld(End);
+    /// <summary>
+    /// Gets the start point of the edge in the world coordinate system.
+    /// </summary>
+    public Point3D StartWorld => _face.FaceToWorld(Start);
 
-    public Point2D StartFace => EdgeToFace(Start);
-    public Point2D EndFace => EdgeToFace(End);
+    /// <summary>
+    /// Gets the end point of the edge in the world coordinate system.
+    /// </summary>
+    public Point3D EndWorld => _face.FaceToWorld(End);
 
+    /// <summary>
+    /// Transforms a point on the edge to the corresponding point on the face.
+    /// </summary>
+    /// <param name="edgePoint"></param>
+    /// <returns></returns>
     public Point2D EdgeToFace(Point2D edgePoint)
     {
-        return edgePoint.TransformBy(Cs);
+        return edgePoint.Transformed(Cs);
     }
 
+    /// <summary>
+    /// Transforms a point on the face to the corresponding point on the edge.
+    /// </summary>
+    /// <param name="facePoint"></param>
+    /// <returns></returns>
     public Point2D FaceToEdge(Point2D facePoint)
     {
-        return facePoint.TransformBy(CsInv);
+        return facePoint.Transformed(CsInv);
     }
 
+    /// <summary>
+    /// Transforms a point in the world coordinate system to the corresponding point on the edge, dropping any
+    /// mismatched z values.
+    /// </summary>
+    /// <param name="worldPoint"></param>
+    /// <returns></returns>
     public Point2D WorldToEdge(Point3D worldPoint)
     {
         return FaceToEdge(_face.WorldToFace(worldPoint));
     }
 
+    /// <summary>
+    /// Transforms a point on the edge to the corresponding point in the world coordinate system.
+    /// </summary>
+    /// <param name="edgePoint"></param>
+    /// <returns></returns>
     public Point3D EdgeToWorld(Point2D edgePoint)
     {
         return _face.FaceToWorld(EdgeToFace(edgePoint));

@@ -52,24 +52,26 @@ public static class Isometry2
 
     public static Matrix FromBasisX(Point2D origin, Vector2D xVector)
     {
-        var y = new Vector2D(-xVector.Y, xVector.X);
+        var x = xVector.Normalize();
+        var y = new Vector2D(-x.Y, x.X);
 
         return DenseMatrix.OfArray(new[,]
         {
-            {xVector.X, y.X, origin.X},
-            {xVector.Y, y.Y, origin.Y},
+            {x.X, y.X, origin.X},
+            {x.Y, y.Y, origin.Y},
             {0, 0, 1}
         });
     }
 
     public static Matrix FromBasisY(Point2D origin, Vector2D yVector)
     {
-        var x = new Vector2D(yVector.Y, -yVector.X);
+        var y = yVector.Normalize();
+        var x = new Vector2D(y.Y, -y.X);
 
         return DenseMatrix.OfArray(new[,]
         {
-            {x.X, yVector.X, origin.X},
-            {x.Y, yVector.Y, origin.Y},
+            {x.X, y.X, origin.X},
+            {x.Y, y.Y, origin.Y},
             {0, 0, 1}
         });
     }

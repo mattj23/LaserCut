@@ -103,6 +103,20 @@ public class BoxEdge
 
     }
 
+    /// <summary>
+    /// Given a y position on the shared cursor of this edge's neighbor, get the corresponding y position on this edge's
+    /// shared cursor.  This will only function correctly if the edges have been initialized.
+    /// </summary>
+    /// <param name="neighborY"></param>
+    /// <returns></returns>
+    public double SharedY(double neighborY)
+    {
+        var n = Neighbor.SharedCursor.EdgeToWorld(new Point2D(0, neighborY));
+        var l = SharedCursor.WorldToEdge(n);
+
+        return l.Y;
+    }
+
     private BoxEdgeCursor ActualCursor(Point3D[] boxVertices)
     {
         var theory = new BoxEdgeCursor(Face.WorldToFace(boxVertices[StartIndex]),
@@ -112,7 +126,7 @@ public class BoxEdge
         var sy0 = Previous.HasPriority ? 0 : _boxParams.Thickness;
         var sy1 = Next.HasPriority ? 0 : -_boxParams.Thickness;
         var p0 = new Point2D(sx, sy0);
-        var p1 = new Point2D(sx, sy1);
+        var p1 = new Point2D(sx, theory.Length + sy1);
 
         var start = theory.EdgeToFace(p0);
         var end = theory.EdgeToFace(p1);
@@ -127,13 +141,14 @@ public class BoxEdge
             throw new InvalidOperationException("Edges must be initialized before shared cursor can be created.");
         }
 
-        var nStart = _commonCursor.WorldToEdge(Neighbor._commonCursor.StartWorld);
-        var nEnd = _commonCursor.WorldToEdge(Neighbor._commonCursor.EndWorld);
+        var nStart = _commonCursor.WorldToEdge(Neighbor._commonCursor.EndWorld);
+        var nEnd = _commonCursor.WorldToEdge(Neighbor._commonCursor.StartWorld);
 
-        var startEdge = new Point2D(_commonCursor.Start.X, Math.Max(nStart.Y, _commonCursor.Start.Y));
-        var endEdge = new Point2D(_commonCursor.End.X, Math.Min(nEnd.Y, _commonCursor.End.Y));
-        var startFace = _commonCursor.EdgeToFace(startEdge);
-        var endFace = _commonCursor.EdgeToFace(endEdge);
+        var startY = Math.Max(0, nStart.Y);
+        var endY = Math.Min(_commonCursor.Length, nEnd.Y);
+
+        var startFace = _commonCursor.EdgeToFace(new Point2D(0, startY));
+        var endFace = _commonCursor.EdgeToFace(new Point2D(0, endY));
         return new BoxEdgeCursor(startFace, endFace, Face);
     }
 

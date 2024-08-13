@@ -4,14 +4,32 @@ public class BoxModel
 {
     private readonly BoxParams _boxParams;
 
-    private BoxModel(BoxParams boxParams, bool hasLid)
+    private BoxModel(BoxParams boxParams, bool hasLid, BoxFrontFace front, BoxBackFace back, BoxLeftFace left, BoxRightFace right, BoxTopFace top, BoxBottomFace bottom)
     {
         _boxParams = boxParams;
         HasLid = hasLid;
+        Front = front;
+        Back = back;
+        Left = left;
+        Right = right;
+        Top = top;
+        Bottom = bottom;
     }
+
+    public double Length => _boxParams.Length;
+    public double Width => _boxParams.Width;
+    public double Height => _boxParams.Height;
+    public double Thickness => _boxParams.Thickness;
+
 
     public bool HasLid { get; }
 
+    public BoxFrontFace Front { get; }
+    public BoxBackFace Back { get; }
+    public BoxLeftFace Left { get; }
+    public BoxRightFace Right { get; }
+    public BoxTopFace Top { get; }
+    public BoxBottomFace Bottom { get; }
 
     public static BoxModel Create(BoxParams boxParams, bool hasLid)
     {
@@ -42,6 +60,9 @@ public class BoxModel
         // Initialize the edge
         foreach (var edge in allEdges) edge.Initialize();
 
-        throw new NotImplementedException();
+        // Initialize the faces
+        foreach (var face in allFaces) face.Initialize();
+
+        return new BoxModel(boxParams, hasLid, front, back, left, right, top, bottom);
     }
 }
