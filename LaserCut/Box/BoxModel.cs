@@ -1,0 +1,47 @@
+﻿namespace LaserCut.Box;
+
+public class BoxModel
+{
+    private readonly BoxParams _boxParams;
+
+    private BoxModel(BoxParams boxParams, bool hasLid)
+    {
+        _boxParams = boxParams;
+        HasLid = hasLid;
+    }
+
+    public bool HasLid { get; }
+
+
+    public static BoxModel Create(BoxParams boxParams, bool hasLid)
+    {
+        var envelope = boxParams.EnvelopeVertices();
+        var common = boxParams.CommonVertices();
+
+        // Create the six faces of the box
+        var front = new BoxFrontFace(envelope, common, boxParams);
+        var back = new BoxBackFace(envelope, common, boxParams);
+        var left = new BoxLeftFace(envelope, common, boxParams);
+        var right = new BoxRightFace(envelope, common, boxParams);
+        var top = new BoxTopFace(envelope, common, boxParams);
+        var bottom = new BoxBottomFace(envelope, common, boxParams);
+
+        var allFaces = new BoxFace[] {front, back, left, right, top, bottom};
+
+        // Set the neighbours of each face using a common registration.  First we will register them to a registration
+        // object, then we will go through the registration object and set the neighbours of each face.
+        var edgeRegistry = new BoxEdgeRegistry();
+        var allEdges = allFaces.SelectMany(x => x.AllEdges).ToArray();
+
+        // Register the edge
+        foreach (var edge in allEdges) edgeRegistry.Register(edge);
+
+        // Set the neighbours
+        foreach (var edge in allEdges) edge.SetNeighbor(edgeRegistry.FindNeighbor(edge));
+
+        // Initialize the edge
+        foreach (var edge in allEdges) edge.Initialize();
+
+        throw new NotImplementedException();
+    }
+}

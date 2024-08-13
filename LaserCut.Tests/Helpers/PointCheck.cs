@@ -20,7 +20,7 @@ public static class MakePoint
     }
 }
 
-public class PointCheck : IEqualityComparer<Point2D>
+public class PointCheck : IEqualityComparer<Point2D>, IEqualityComparer<Point3D>
 {
     private readonly double _tolerance;
 
@@ -38,8 +38,51 @@ public class PointCheck : IEqualityComparer<Point2D>
     {
         return obj.GetHashCode();
     }
-    
+
     public static PointCheck Tol(double tolerance) => new(tolerance);
 
     public static PointCheck Default => Tol(GeometryConstants.DistEquals);
+    public bool Equals(Point3D x, Point3D y)
+    {
+        return x.DistanceTo(y) < _tolerance;
+    }
+
+    public int GetHashCode(Point3D obj)
+    {
+        return obj.GetHashCode();
+    }
+}
+
+public class VectorCheck : IEqualityComparer<Vector3D>, IEqualityComparer<UnitVector3D>
+{
+    private readonly double _tolerance;
+
+    private VectorCheck(double tolerance)
+    {
+        _tolerance = tolerance;
+    }
+
+
+    public static VectorCheck Tol(double tolerance) => new(tolerance);
+
+    public static VectorCheck Default => Tol(GeometryConstants.DistEquals);
+    public bool Equals(Vector3D x, Vector3D y)
+    {
+        return x.ToPoint3D().DistanceTo(y.ToPoint3D()) < _tolerance;
+    }
+
+    public int GetHashCode(Vector3D obj)
+    {
+        return obj.GetHashCode();
+    }
+
+    public bool Equals(UnitVector3D x, UnitVector3D y)
+    {
+        return Equals(x.ToVector3D(), y.ToVector3D());
+    }
+
+    public int GetHashCode(UnitVector3D obj)
+    {
+        throw new NotImplementedException();
+    }
 }
