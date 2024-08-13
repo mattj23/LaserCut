@@ -167,20 +167,20 @@ public class BoxFaceVertexTests
         var testC = face.CsInv.Transform(face.Envelope.C);
         var testD = face.CsInv.Transform(face.Envelope.D);
 
-        var expectA = new Point3D(-1, -1.5, 0);
-        var expectB = new Point3D(1, -1.5, 0);
-        var expectC = new Point3D(1, 1.5, 0);
-        var expectD = new Point3D(-1, 1.5, 0);
+        var expectA = new Point3D(-1, -1.5, 0.1);
+        var expectB = new Point3D(1, -1.5, 0.1);
+        var expectC = new Point3D(1, 1.5, 0.1);
+        var expectD = new Point3D(-1, 1.5, 0.1);
 
         Assert.Equal(expectA, testA, PointCheck.Default);
         Assert.Equal(expectB, testB, PointCheck.Default);
         Assert.Equal(expectC, testC, PointCheck.Default);
         Assert.Equal(expectD, testD, PointCheck.Default);
 
-        Assert.Equal(face.Envelope.A, face.FaceToWorld(testA.ToPoint2D()), PointCheck.Default);
-        Assert.Equal(face.Envelope.B, face.FaceToWorld(testB.ToPoint2D()), PointCheck.Default);
-        Assert.Equal(face.Envelope.C, face.FaceToWorld(testC.ToPoint2D()), PointCheck.Default);
-        Assert.Equal(face.Envelope.D, face.FaceToWorld(testD.ToPoint2D()), PointCheck.Default);
+        Assert.Equal(face.Common.A, face.FaceToWorld(testA.ToPoint2D()), PointCheck.Default);
+        Assert.Equal(face.Common.B, face.FaceToWorld(testB.ToPoint2D()), PointCheck.Default);
+        Assert.Equal(face.Common.C, face.FaceToWorld(testC.ToPoint2D()), PointCheck.Default);
+        Assert.Equal(face.Common.D, face.FaceToWorld(testD.ToPoint2D()), PointCheck.Default);
 
         Assert.Equal(-UnitVector3D.ZAxis.ToVector3D(), face.Cs.ZAxis, VectorCheck.Default);
     }

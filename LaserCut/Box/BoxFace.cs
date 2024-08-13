@@ -8,6 +8,7 @@ public abstract class BoxFace
     // Theoretical vertex sources of the face
     private readonly BoxParams _boxParams;
     private Body? _body;
+    private readonly Vector3D _vz;
 
     protected BoxFace(FaceIndices indices, Point3D[] envelope, Point3D[] common, int priority, BoxParams boxParams)
     {
@@ -33,7 +34,7 @@ public abstract class BoxFace
         var csVy = (Envelope.C - Envelope.B).Normalize();
         var csVz = csVx.CrossProduct(csVy);
 
-        var toOrigin = csVz.DotProduct(Envelope.A.ToVector3D()) * csVz;
+        var toOrigin = csVz.DotProduct(Common.A.ToVector3D()) * csVz;
         Cs = new CoordinateSystem(toOrigin.ToPoint3D(), csVx, csVy, csVz);
         CsInv = Cs.Invert();
     }

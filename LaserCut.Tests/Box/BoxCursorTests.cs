@@ -23,6 +23,18 @@ public class BoxCursorTests
     }
 
     [Fact]
+    public void CursorBottomCorrectZ()
+    {
+        var box = SimpleBox();
+
+        Assert.Equal(-0.4, box.Bottom.Bottom.SharedCursor.StartWorld.Z, 1e-6);
+        Assert.Equal(-0.4, box.Bottom.Right.SharedCursor.StartWorld.Z, 1e-6);
+        Assert.Equal(-0.4, box.Bottom.Top.SharedCursor.StartWorld.Z, 1e-6);
+        Assert.Equal(-0.4, box.Bottom.Left.SharedCursor.StartWorld.Z, 1e-6);
+
+    }
+
+    [Fact]
     public void SharedCursorWorldEnds()
     {
         var box = SimpleBox();
@@ -39,7 +51,7 @@ public class BoxCursorTests
 
         // Check that the end of one shared cursor is the start of the other
         Assert.Equal(box.Thickness, e0.SharedCursor.StartWorld.DistanceTo(e1.SharedCursor.EndWorld), 1e-6);
-
+        Assert.Equal(box.Thickness, e0.SharedCursor.EndWorld.DistanceTo(e1.SharedCursor.StartWorld), 1e-6);
     }
 
     [Fact]
@@ -59,9 +71,20 @@ public class BoxCursorTests
 
         // Check that the end of one shared cursor is the start of the other
         Assert.Equal(0, e0.SharedY(e1.SharedCursor.Length));
-
+        Assert.Equal(e0.SharedCursor.Length, e1.SharedY(0));
     }
 
+    [Fact]
+    public void CheckAllSharedYEndpoints()
+    {
+        var box = SimpleBox();
+        foreach (var edge in box.AllFaces.SelectMany(x => x.AllEdges))
+        {
+            var other = edge.Neighbor;
+            Assert.Equal(0, edge.SharedY(other.SharedCursor.Length), 1e-12);
+            Assert.Equal(edge.SharedCursor.Length, other.SharedY(0), 1e-12);
+        }
+    }
 
     private BoxModel SimpleBox()
     {

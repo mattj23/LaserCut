@@ -14,13 +14,14 @@ public class BoxModel
         Right = right;
         Top = top;
         Bottom = bottom;
+
+        AllFaces = [front, back, left, right, top, bottom];
     }
 
     public double Length => _boxParams.Length;
     public double Width => _boxParams.Width;
     public double Height => _boxParams.Height;
     public double Thickness => _boxParams.Thickness;
-
 
     public bool HasLid { get; }
 
@@ -30,6 +31,8 @@ public class BoxModel
     public BoxRightFace Right { get; }
     public BoxTopFace Top { get; }
     public BoxBottomFace Bottom { get; }
+
+    public BoxFace[] AllFaces { get; }
 
     public static BoxModel Create(BoxParams boxParams, bool hasLid)
     {
