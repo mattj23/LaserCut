@@ -12,7 +12,7 @@ public class OriginOptions : ReactiveObject
         _options = new ObservableCollection<IEntityWithOrigin>(source);
         Options = new ReadOnlyObservableCollection<IEntityWithOrigin>(_options);
     }
-    
+
     public void SynchronizeOptions(IEnumerable<IEntityWithOrigin> source)
     {
         var target = source.ToArray();
@@ -24,7 +24,7 @@ public class OriginOptions : ReactiveObject
                 _options.RemoveAt(i);
             }
         }
-        
+
         // Add items that are in the source but not in the target
         foreach (var item in target)
         {
@@ -36,7 +36,7 @@ public class OriginOptions : ReactiveObject
     }
 
     public ReadOnlyObservableCollection<IEntityWithOrigin> Options { get; }
-    
+
 }
 
 public class OriginManager
@@ -45,12 +45,12 @@ public class OriginManager
     private readonly Dictionary<Guid, HashSet<Guid>> _dependencies = new();
     private readonly Dictionary<Guid, IOrigin> _origins = new();
     private readonly Dictionary<Guid, OriginOptions> _filtered = new();
-    
+
     public OriginManager()
     {
         Add(new WorkspaceOrigin());
     }
-    
+
     public void Add(IEntityWithOrigin entity)
     {
         _options.Add(entity);
@@ -59,7 +59,7 @@ public class OriginManager
             .Subscribe(_ => ConstructDependencies());
         ConstructDependencies();
     }
-    
+
     public void Remove(IEntityWithOrigin entity)
     {
         _options.Remove(entity);
@@ -103,10 +103,17 @@ public class OriginManager
 
         foreach (var (itemId, options) in _filtered)
         {
-            options.SynchronizeOptions(_options.Where(o => !_dependencies[itemId].Contains(o.Origin.Id)));
+            if (_dependencies.TryGetValue(itemId, out var dependency))
+            {
+                options.SynchronizeOptions(_options.Where(o => !dependency.Contains(o.Origin.Id)));
+            }
+            else
+            {
+                options.SynchronizeOptions([]);
+            }
         }
     }
-    
+
     private void AddChild(Guid parentId, Guid childId)
     {
         // TODO: this is naive and repetitive, fix it later
@@ -114,7 +121,7 @@ public class OriginManager
         {
             _dependencies[parentId] = new HashSet<Guid>();
         }
-        
+
         _dependencies[parentId].Add(childId);
     }
 }
