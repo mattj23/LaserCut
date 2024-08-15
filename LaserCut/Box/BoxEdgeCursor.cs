@@ -91,5 +91,11 @@ public class BoxEdgeCursor
         return _face.FaceToWorld(EdgeToFace(edgePoint));
     }
 
+    public void Operate(BoundaryLoop tool)
+    {
+        var copy = tool.Copy();
+        copy.Transform(Cs);
+        _face.Operate(copy);
+    }
 
 }
