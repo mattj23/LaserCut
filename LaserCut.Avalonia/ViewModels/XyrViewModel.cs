@@ -23,17 +23,17 @@ public class XyrViewModel : ReactiveObject
             .Subscribe(_ => OnUnitChange());
         LengthFormat = GetLengthFormat();
     }
-    
+
     public Action<double, double, double>? OnEditedValuesAction { get; set; }
-    
+
     public bool HasR { get; }
-    
+
     public double XMm => _xMm;
-    
+
     public double YMm => _yMm;
-    
+
     public double RRad => _rRad;
-    
+
     /// <summary>
     /// Gets or sets the X coordinate in the currently active length unit.
     /// </summary>
@@ -49,7 +49,7 @@ public class XyrViewModel : ReactiveObject
             this.RaisePropertyChanged();
         }
     }
-    
+
     /// <summary>
     /// Gets or sets the Y coordinate in the currently active length unit.
     /// </summary>
@@ -65,7 +65,7 @@ public class XyrViewModel : ReactiveObject
             this.RaisePropertyChanged();
         }
     }
-    
+
     /// <summary>
     /// Gets or sets the rotation in degrees.
     /// </summary>
@@ -81,9 +81,9 @@ public class XyrViewModel : ReactiveObject
             this.RaisePropertyChanged();
         }
     }
-    
+
     public Xyr CurrentXyr => new(_xMm, _yMm, _rRad);
-    
+
     public string LengthFormat
     {
         get => _lengthFormat;
@@ -98,7 +98,7 @@ public class XyrViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(X));
         this.RaisePropertyChanged(nameof(Y));
     }
-    
+
     private string GetLengthFormat()
     {
         return _units.Unit switch
@@ -108,7 +108,13 @@ public class XyrViewModel : ReactiveObject
             _ => throw new ArgumentOutOfRangeException()
         };
     }
-    
+
+    /// <summary>
+    /// Set the values of the X, Y, and R properties, where X and Y are in millimeters and R is in radians.
+    /// </summary>
+    /// <param name="xMm"></param>
+    /// <param name="yMm"></param>
+    /// <param name="r"></param>
     public void SetValues(double xMm, double yMm, double r)
     {
         _xMm = xMm;
@@ -120,11 +126,12 @@ public class XyrViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(X));
         this.RaisePropertyChanged(nameof(Y));
         this.RaisePropertyChanged(nameof(R));
+        OnNewEditValues(_xMm, _yMm, _rRad);
     }
-    
+
     protected virtual void OnNewEditValues(double xMm, double yMm, double r)
     {
         OnEditedValuesAction?.Invoke(xMm, yMm, r);
     }
-    
+
 }

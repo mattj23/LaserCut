@@ -1,4 +1,5 @@
-﻿using LaserCut.Geometry;
+﻿using LaserCut.Algorithms;
+using LaserCut.Geometry;
 using MathNet.Spatial.Euclidean;
 
 namespace LaserCut.Box;
@@ -42,6 +43,11 @@ public abstract class BoxFace
     public int Priority { get; }
 
     public FaceIndices Indices { get; }
+
+    public double MaxX => Body.Bounds.MaxX;
+    public double MinX => Body.Bounds.MinX;
+    public double MaxY => Body.Bounds.MaxY;
+    public double MinY => Body.Bounds.MinY;
 
     public BoxEdge Bottom { get; }
     public BoxEdge Top { get; }
@@ -96,6 +102,14 @@ public abstract class BoxFace
     {
         // All edges must be initialized before this runs
         _body = CreateBody();
+    }
+
+    public void Operate(BoundaryLoop tool)
+    {
+        var results = Body.Operate(tool);
+        if (results.Length != 1) throw new InvalidOperationException("Expected a single result from the operation");
+
+        _body = results[0];
     }
 
     private Body CreateBody()
