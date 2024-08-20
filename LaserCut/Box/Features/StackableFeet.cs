@@ -37,7 +37,7 @@ public class StackableFeet : IBoxFeature
 
     private double Width(BoxEdge edge, double thk)
     {
-        return edge.HasPriority ? _width : _width - thk;
+        return edge.HasPriority ? _width + thk : _width;
     }
 
     private BoundaryLoop Flip(BoundaryLoop loop, double length)
