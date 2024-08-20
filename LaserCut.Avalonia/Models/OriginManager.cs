@@ -96,6 +96,11 @@ public class OriginManager
             var working = option.Origin;
             while (working.ParentId != Guid.Empty)
             {
+                if (!_origins.ContainsKey(working.ParentId))
+                {
+                    break;
+                }
+
                 AddChild(working.ParentId, option.Origin.Id);
                 working = _origins[working.ParentId];
             }
