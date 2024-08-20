@@ -2,14 +2,14 @@
 
 public class SpacedTabJoinery : TabJoineryBase
 {
-    private readonly double _thicknessFraction;
-    private readonly double _balanceFraction;
+    private readonly double _width;
+    private readonly double _gap;
 
-    public SpacedTabJoinery(double thicknessFraction, double balanceFraction, double relief)
+    public SpacedTabJoinery(double width, double gap, double relief)
         : base(relief)
     {
-        _thicknessFraction = thicknessFraction;
-        _balanceFraction = balanceFraction;
+        _width = width;
+        _gap = gap;
     }
 
     protected override void DoEdge(BoxEdge pos, BoxEdge neg, double thickness)
@@ -18,9 +18,8 @@ public class SpacedTabJoinery : TabJoineryBase
         var l = pos.SharedCursor.Length;
 
         // Get the tab width and the expected empty space per tab
-        var w = thickness * _thicknessFraction;
-        var s = w * (1 - _balanceFraction) / _balanceFraction;
-        var t = w + s;
+        var w = _width;
+        var t = w + _gap;
 
         var count = (int)(l / t);
         var step = l / count;
