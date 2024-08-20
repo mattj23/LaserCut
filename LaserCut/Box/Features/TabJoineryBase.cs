@@ -35,6 +35,12 @@ public abstract class TabJoineryBase : IBoxFeature
         {
             cursor.RelieveAt(corner.Item.Point, Relief, 0.001);
         }
+
+        AfterPositiveTab(cursor, yCenter, tabLength, thickness, tool);
+    }
+
+    protected virtual void AfterPositiveTab(BoxEdgeCursor cursor, double yCenter, double tabLength, double thickness, BoundaryLoop tool)
+    {
     }
 
     protected void NegativeTab(BoxEdgeCursor cursor, double yCenter, double tabLength, double thickness)
@@ -45,6 +51,12 @@ public abstract class TabJoineryBase : IBoxFeature
         {
             cursor.RelieveAt(corner.Item.Point, Relief, 0.001);
         }
+
+        AfterNegativeTab(cursor, yCenter, tabLength, thickness, tool);
+    }
+
+    protected virtual void AfterNegativeTab(BoxEdgeCursor cursor, double yCenter, double tabLength, double thickness, BoundaryLoop tool)
+    {
     }
 
     protected void ApplyToEdge(BoxEdge edge, double thickness)
