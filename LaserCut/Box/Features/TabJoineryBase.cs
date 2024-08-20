@@ -24,12 +24,21 @@ public abstract class TabJoineryBase : IBoxFeature
     {
         var tool = BoundaryLoop.Rectangle(0, yCenter - tabLength / 2, thickness, tabLength);
         cursor.Operate(tool);
+
+        foreach (var corner in tool.IterItems())
+        {
+            cursor.RelieveAt(corner.Item.Point, 0.02 * 25.4, 0.001);
+        }
     }
 
     protected void NegativeTab(BoxEdgeCursor cursor, double yCenter, double tabLength, double thickness)
     {
         var tool = BoundaryLoop.Rectangle(-thickness, yCenter - tabLength / 2, thickness, tabLength).Reversed();
         cursor.Operate(tool);
+        foreach (var corner in tool.IterItems())
+        {
+            cursor.RelieveAt(corner.Item.Point, 0.02 * 25.4, 0.001);
+        }
     }
 
     protected void ApplyToEdge(BoxEdge edge, double thickness)

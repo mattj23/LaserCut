@@ -93,9 +93,28 @@ public class BoxEdgeCursor
 
     public void Operate(BoundaryLoop tool)
     {
+        _face.Operate(Transform(tool));
+    }
+
+    public void RelieveAt(Point2D point, double radius, double locateTol)
+    {
+        var p = point.Transformed(Cs);
+
+        foreach (var loop in _face.Body.AllLoops)
+        {
+            var (d, id) = loop.ClosestNode(p);
+            if (d < locateTol)
+            {
+                loop.RelieveInternalCorner(id, radius);
+            }
+        }
+    }
+
+    public BoundaryLoop Transform(BoundaryLoop tool)
+    {
         var copy = tool.Copy();
         copy.Transform(Cs);
-        _face.Operate(copy);
+        return copy;
     }
 
 }

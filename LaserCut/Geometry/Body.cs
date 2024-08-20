@@ -11,31 +11,33 @@ namespace LaserCut.Geometry;
 /// </summary>
 public class Body : IHasBounds
 {
-    
+
     public Body(Guid id, BoundaryLoop outer, List<BoundaryLoop> inners)
     {
         Outer = outer;
         Inners = inners;
         Id = id;
     }
-    
+
     public Body(Guid id) : this(id, new BoundaryLoop(), new List<BoundaryLoop>()) { }
 
     public Body(BoundaryLoop outer) : this(Guid.NewGuid(), outer, new List<BoundaryLoop>()) {}
-    
+
     public Body(BoundaryLoop outer, List<BoundaryLoop> inners) : this(Guid.NewGuid(), outer, inners) { }
-    
+
     public Body() : this(new BoundaryLoop(), new List<BoundaryLoop>()) { }
-    
-    public Guid Id { get; } 
-    
+
+    public Guid Id { get; }
+
     public BoundaryLoop Outer { get; private set; }
     public List<BoundaryLoop> Inners { get; }
-    
+
     public Aabb2 Bounds => Outer.Bounds;
-    
+
+    public IEnumerable<BoundaryLoop> AllLoops => new[] {Outer}.Concat(Inners);
+
     public double Area => Outer.Area + Inners.Sum(i => i.Area);
-    
+
     public void Transform(Matrix t)
     {
         Outer.Transform(t);
@@ -44,7 +46,7 @@ public class Body : IHasBounds
             inner.Transform(t);
         }
     }
-    
+
     public void MirrorX(double x = 0)
     {
         Outer.MirrorX(x);
@@ -53,7 +55,7 @@ public class Body : IHasBounds
             inner.MirrorX(x);
         }
     }
-    
+
     public void MirrorY(double y = 0)
     {
         Outer.MirrorY(y);
@@ -75,7 +77,7 @@ public class Body : IHasBounds
         var t = Isometry2.Translate(x, y) * Isometry2.Rotate(degrees) * Isometry2.Translate(-x, -y);
         Transform((Matrix)t);
     }
-    
+
     public void Translate(double x, double y)
     {
         Transform(Isometry2.Translate(x, y));
@@ -94,17 +96,17 @@ public class Body : IHasBounds
     {
         MirrorX(Bounds.Center.X);
     }
-    
+
     public void FlipY()
     {
         MirrorY(Bounds.Center.Y);
     }
-    
+
     public Body MirroredY()
     {
         var temp = Copy();
         temp.MirrorY();
-        
+
         return new Body(temp.Outer.Reversed(), temp.Inners.Select(x => x.Reversed()).ToList());
     }
 
@@ -112,7 +114,7 @@ public class Body : IHasBounds
     {
         return new Body(Outer.Copy(), Inners.Select(i => i.Copy()).ToList());
     }
-    
+
     public Body Copy(Guid id)
     {
         return new Body(id, Outer.Copy(), Inners.Select(i => i.Copy()).ToList());

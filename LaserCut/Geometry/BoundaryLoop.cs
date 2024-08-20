@@ -14,21 +14,21 @@ namespace LaserCut.Geometry;
 public abstract record BoundaryPoint(Point2D Point)
 {
     public abstract BoundaryPoint Copy();
-    
+
     public abstract string Serialize();
 }
 
 public record BoundaryLine(Point2D Point) : BoundaryPoint(Point)
 {
     public override BoundaryPoint Copy() => new BoundaryLine(Point);
-    
+
     public override string Serialize() => $"L[{Point.X:F6},{Point.Y:F6}]";
 }
 
 public record BoundaryArc(Point2D Point, Point2D Center, bool Clockwise) : BoundaryPoint(Point)
 {
     public override BoundaryPoint Copy() => new BoundaryArc(Point, Center, Clockwise);
-    
+
     public override string Serialize() => $"A[{Point.X:F6},{Point.Y:F6},{Center.X:F6},{Center.Y:F6},{Clockwise}]";
 }
 
@@ -56,7 +56,7 @@ public record BoundaryArc(Point2D Point, Point2D Center, bool Clockwise) : Bound
 /// During the building of geometric elements, if the starting point of the next entity is not the same distance from
 /// the arc center as the arc's starting point, an error will be thrown.  If an arc's starting point is the same as its
 /// ending point, the arc will be considered a full circle.
-/// 
+///
 /// </summary>
 public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
 {
@@ -64,13 +64,13 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     private List<IBoundaryElement>? _elements = null;
     private Dictionary<int, IBoundaryElement>? _elementsById = null;
     private double _area = double.NaN;
-    
+
     /// <summary>
     /// Create a new contour with a unique identifier.
     /// </summary>
     /// <param name="id"></param>
     public BoundaryLoop(Guid id) { Id = id; }
-    
+
     /// <summary>
     /// Create a new contour. A unique identifier will be generated automatically.
     /// </summary>
@@ -90,17 +90,17 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             cursor.InsertAfter(entity);
         }
     }
-    
+
     /// <summary>
     /// Create a new contour with a list of initial entities.  A unique identifier will be generated automatically.
     /// </summary>
     /// <param name="entities">A list of initial entities which will be added to the contour at creation</param>
     public BoundaryLoop(IEnumerable<BoundaryPoint> entities) : this(Guid.NewGuid(), entities) { }
-        
+
     // ==============================================================================================================
     // Properties
     // ==============================================================================================================
-    
+
     /// <summary>
     /// Gets a unique identifier for the contour.  This was either generated automatically during construction or
     /// provided by the client code when the contour was created.
@@ -112,27 +112,27 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// geometric elements. If the contour is in an invalid state, an exception will be thrown.
     /// </summary>
     public IReadOnlyList<IBoundaryElement> Elements => _elements ??= BuildElements();
-    
+
     public IReadOnlyDictionary<int, IBoundaryElement> ElementsById => _elementsById ??= Elements.ToDictionary(e => e.Index, e => e);
-    
+
     /// <summary>
     /// Gets the bounding volume hierarchy for the contour for accelerated geometric operations.  This will trigger
     /// the construction of the geometric elements.  If the contour is in an invalid state, an exception will be thrown.
     /// </summary>
     public Bvh Bvh => _bvh ??= new Bvh(Elements);
-    
+
     /// <summary>
     /// Gets the bounding box of the contour.  This will trigger the construction of the geometric elements.  If the
     /// contour is in an invalid state, an exception will be thrown.
     /// </summary>
     public Aabb2 Bounds => Bvh.Bounds;
-    
+
     /// <summary>
     /// Gets the area of the contour found by the shoelace formula.  This will trigger the construction of the
     /// geometric elements.  If the contour is in an invalid state, an exception will be thrown.
     /// </summary>
     public double Area => _area = double.IsNaN(_area) ? CalculateArea() : _area;
-    
+
     /// <summary>
     /// Gets a flag indicating whether the area of the contour is positive.  A positive area implies that the contour
     /// defines a region where a shape exists, while a negative area implies that it defines an area where a shape
@@ -140,7 +140,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// in an invalid state, an exception will be thrown.
     /// </summary>
     public bool IsPositive => Area > 0;
-    
+
     /// <summary>
     /// Gets whether the boundary represents a null set.  This is true if the contour has no elements, or if it has
     /// a single element which is a line segment.  This does not trigger the construction of geometric elements, and
@@ -168,7 +168,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         }
         ResetCachedValues();
     }
-    
+
     /// <summary>
     /// Translate the contour in place by the given vector.
     /// </summary>
@@ -189,7 +189,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     }
 
     /// <summary>
-    /// Mirror the contour in place across the given line.  
+    /// Mirror the contour in place across the given line.
     /// </summary>
     /// <param name="cl">The center-line to mirror the contour across</param>
     public void Mirror(Line2 cl)
@@ -211,7 +211,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         var line = new Line2(new Point2D(x0, 0), Vector2D.YAxis);
         Mirror(line);
     }
-    
+
     public void MirrorY(double y0 = 0)
     {
         var line = new Line2(new Point2D(0, y0), Vector2D.XAxis);
@@ -224,7 +224,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     public new void Reverse()
     {
         var elements = new Dictionary<int, BoundaryPoint>();
-        
+
         // We will iterate through each entity in the contour in forward order and create its replacement.  Because the
         // entity is actually representing the definition of the border between itself and the next entity, each entity
         // type will remain the same, but the starting points will be changed. On arcs, the center will remain the same
@@ -244,7 +244,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             node.Value.Item = elements[node.Key];
             node.Value.SwapNextAndPrevious();
         }
-        
+
         ResetCachedValues();
     }
 
@@ -324,7 +324,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
 
         return newContour;
     }
-    
+
     /// <summary>
     /// Return a new contour which is the result of offsetting the contour by a specified distance and then repairing
     /// any self intersections.  This method will split the contour into non-self-intersecting loops and return the
@@ -348,7 +348,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     {
         var cursor = GetCursor();
         var lastChecked = -1;
-        
+
         while (Count > 1 && lastChecked != cursor.CurrentId)
         {
             // TODO: Think through...do we need a special method for arcs?
@@ -373,12 +373,12 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         // To find portions of the boundary that double back on themselves, we can examine every boundary point in the
         // loop and its previous and next neighbor.  If the element from p -> c is the same type of element as c -> n
         // (and if they have the same center if they're both arcs), and the direction at start of c -> n is the exact
-        // opposite of the direction at the end of p -> c, then we have an infinitely thin portion of the boundary 
+        // opposite of the direction at the end of p -> c, then we have an infinitely thin portion of the boundary
         // where c is the turning point.
         //
         // To remove it, we will remove the element c, and move the cursor back to p.  We then repeat this process
         // until we have made it all the way around the loop.
-        
+
         var cursor = GetCursor();
         var visited = new HashSet<int>();
 
@@ -387,7 +387,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             var curr = cursor.Current;
             var prev = cursor.PeekPrevious();
             var next = cursor.PeekNext();
-            
+
             // Remove any zero-length elements between the current and previous elements
             if (curr.Point.DistanceTo(prev.Point) < GeometryConstants.DistEquals)
             {
@@ -397,7 +397,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
                 cursor.Remove();
                 continue;
             }
-            
+
             // Remove any zero-length elements between the current and next elements
             if (curr.Point.DistanceTo(next.Point) < GeometryConstants.DistEquals)
             {
@@ -429,7 +429,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
                     continue;
                 }
             }
-            
+
             visited.Add(cursor.CurrentId);
             cursor.MoveForward();
         }
@@ -466,23 +466,76 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             {
                 // Look for arcs with the same center and direction
                 if (arc.Center.DistanceTo(prvArc.Center) < GeometryConstants.DistEquals &&
-                    arc.Clockwise == prvArc.Clockwise && 
+                    arc.Clockwise == prvArc.Clockwise &&
                     cursor.CurrentId != cursor.PreviousId)
                 {
                     cursor.Remove();
                     continue;
                 }
             }
-            
+
             visited.Add(cursor.CurrentId);
             cursor.MoveForward();
         }
     }
-    
-    
+
+    /// <summary>
+    /// Modifies the boundary loop in place to add relief to an internal corner at the specified node. If the angle
+    /// from the previous segment to the next segment is less than 180°, the corner will be relieved by inserting an
+    /// arc with the specified radius such that the theoretical corner lies inside the arc. This is used for relieving
+    /// the inside corners of pockets into which a mating piece with a sharp corner will be inserted.
+    /// </summary>
+    /// <param name="nodeId"></param>
+    /// <param name="radius"></param>
+    public void RelieveInternalCorner(int nodeId, double radius)
+    {
+        var e1 = ElementsById[nodeId];
+        var e0 = ElementsById[PreviousId(nodeId)];
+
+        if (e0.AtEnd.Direction.SignedAngle(e1.AtStart.Direction) > 0) return;
+
+        var turn = e1.AtStart.Direction.AngleToCw(-e0.AtEnd.Direction) / 2.0;
+        var d = e1.AtStart.Direction.Rotate(Angle.FromRadians(-turn));
+        var bisector = new Line2(e1.Start, d);
+        var center = bisector.PointAt(radius * 0.95);
+        var circle = new Circle2(center, radius);
+
+        var start = e0.IntersectionsWithCircle(circle).MinBy(x => x.L).Surface.Point;
+        var end = e1.IntersectionsWithCircle(circle).MinBy(x => x.L).Surface.Point;
+
+        // Create the cursor
+        var cursor = GetCursor(nodeId);
+
+        // Capture a copy of the current element, then delete it without advancing forward
+        var current = cursor.Current;
+        cursor.Remove(false);
+
+        // Insert the arc
+        cursor.InsertAfter(new BoundaryArc(start, center, true));
+
+        // Insert the truncated new element
+        if (current is BoundaryLine line)
+        {
+            cursor.InsertAfter(new BoundaryLine(end));
+        }
+        else if (current is BoundaryArc arc)
+        {
+            cursor.InsertAfter(new BoundaryArc(end, arc.Center, arc.Clockwise));
+        }
+    }
+
     // ==============================================================================================================
     // Intersections and distance testing
     // ==============================================================================================================
+
+    public (double, int) ClosestNode(Point2D point)
+    {
+        // TODO: make this more efficient
+        var values = IterItems()
+            .Select(x => (x.Item.Point.DistanceTo(point), x.Id));
+
+        return values.MinBy(x => x.Item1);
+    }
 
     /// <summary>
     /// Determines whether the contour encloses the specified point inside its boundary, ignoring the "direction" of
@@ -503,22 +556,22 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     {
         // Some fast checks we can do to avoid the more expensive intersection calculations
         if (!Bounds.Contains(p)) return false;
-        
+
         // If the point is ON the boundary, it is considered enclosed
         var (d, _) = Closest(p);
-        if (d < GeometryConstants.DistEquals) return true; 
-        
+        if (d < GeometryConstants.DistEquals) return true;
+
         // If all that fails do a ray intersection...but I think there are cases where this doesn't do well
         var ray = new Ray2(p, new Vector2D(1, 1));
         var positions = Bvh.Intersections(ray);
         return EnclosesPoint.Check(ray, positions);
     }
-    
+
     public (double, Position) Closest(Point2D p)
     {
         return Bvh.Closest(p);
     }
-    
+
     /// <summary>
     /// Determines whether the boundary loop *includes* the specified point.  This is similar to `Encloses`, but
     /// accounts for the direction of the loop.  A point is included if it is enclosed and the loop is positive, or if
@@ -534,7 +587,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     /// <summary>
     /// Calculates all intersections between this contour and another contour, returning the results as an array of
     /// `IntersectionPairs`.  The `First` element of each pair will be the element from *this* contour, while the
-    /// `Second` will be from the *other* contour. 
+    /// `Second` will be from the *other* contour.
     /// </summary>
     /// <param name="other">The contour to test for intersections with</param>
     /// <returns>An array of intersection pairs where the first element is from *this* contour.</returns>
@@ -567,7 +620,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         // Intersections that are on portions of the paths that are identical to each other are not intersections that
         // we need to be concerned about.  Because the only place this can happen(?) is at a vertex, we can look for
         // intersections that are at a point that is a vertex on both boundaries.  Then, we look and see if the paths
-        // on both sides of the vertex 
+        // on both sides of the vertex
         var filtered = new List<IntersectionPair>();
         foreach (var pair in IntersectionPairs(other))
         {
@@ -575,7 +628,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             {
                 var (f0, f1) = ElementsAtVertex(pair.Point);
                 var (s0, s1) = other.ElementsAtVertex(pair.Point);
-                
+
                 // Now, if one of two configurations is true, we can ignore this intersection:
                 // * f0 == s0 and f1 == s1 => The elements are the same type with the same geometry start/end
                 // * f0 == s1 and f1 == s0 => The elements are the same type with the reverse geometry start/end
@@ -601,22 +654,22 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             // leaves the space enclosed by the other.
             //
             // This can be difficult in the case of boundaries with overlapping regions.  However, if one enters the
-            // other but the reverse is not true, 
-            // 
-            
+            // other but the reverse is not true,
+            //
+
             // We can still have enclosure with intersections if one contour never exits the other. To check for this
             // we will need to consider the intersections themselves.
             var firstExits = intersections.Any(i => i.FirstExitsSecond);
             var firstEnters = intersections.Any(i => i.FirstEntersSecond);
-            
+
             var reversed = intersections.Select(i => i.Swapped()).ToArray();
             var secondExits = reversed.Any(i => i.FirstExitsSecond);
             var secondEnters = reversed.Any(i => i.FirstEntersSecond);
-            
-            if ((other.IsPositive && !firstExits) || (!other.IsPositive && !firstEnters)) 
+
+            if ((other.IsPositive && !firstExits) || (!other.IsPositive && !firstEnters))
                 return (BoundaryRelation.EnclosedBy, intersections);
-            
-            if ((IsPositive && !secondExits) || (!IsPositive && !secondEnters)) 
+
+            if ((IsPositive && !secondExits) || (!IsPositive && !secondEnters))
                 return (BoundaryRelation.Encloses, intersections);
 
 
@@ -625,7 +678,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
 
         // Is the other loop enclosing this loop?
         if (other.Encloses(Head.Point)) return (BoundaryRelation.EnclosedBy, []);
-        
+
         // Is this loop enclosing the other loop?
         if (Encloses(other.Head.Point)) return (BoundaryRelation.Encloses, []);
 
@@ -643,7 +696,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     {
         var (relation, intersections) = LoopRelationTo(other);
         bool hasIntersections = intersections.Length > 0;
-        
+
         var label = relation switch
         {
             // If the two loops are disjoint, the result will be according to the following table:
@@ -658,7 +711,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
                 (false, true) => ShapeRelation.IsSupersetOf,
                 (false, false) => ShapeRelation.Intersects,
             },
-            
+
             // If this loop encloses the other loop, the result will be according to the following table:
             //  * this (positive) other (positive) => IsSupersetOf
             //  * this (positive) other (negative) => Intersects
@@ -671,9 +724,9 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
                 (false, true) => hasIntersections ? ShapeRelation.Intersects : ShapeRelation.DisjointTo,
                 (false, false) => ShapeRelation.IsSubsetOf,
             },
-            
+
             // If the other loop encloses this loop, the result will be according to the following table:
-            //  * this (positive) other (positive) => IsSubsetOf 
+            //  * this (positive) other (positive) => IsSubsetOf
             //  * this (positive) other (negative) => DisjointTo (but may have intersections?)
             //  * this (negative) other (positive) => Intersects
             //  * this (negative) other (negative) => IsSupersetOf
@@ -684,11 +737,11 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
                 (false, true) => ShapeRelation.Intersects,
                 (false, false) => ShapeRelation.IsSupersetOf,
             },
-            
+
             BoundaryRelation.Intersects => ShapeRelation.Intersects,
             _ => throw new ArgumentOutOfRangeException()
         };
-        
+
         return (label, intersections);
     }
 
@@ -706,29 +759,29 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             var index = e.Index;
             var nextIndex = Nodes[index].NextId;
             var prevIndex = Nodes[index].PreviousId;
-            
+
             // We find all `Position` objects which represent intersections of element `e` against the other elements
             // in the contour.  Keep in mind that the `Position` results will reference the other element, so to
             // create the pairs we need to match the positions against `e`.
-            
-            // By definition, an element can't intersect itself.  However, an element will intersect its neigbors at 
+
+            // By definition, an element can't intersect itself.  However, an element will intersect its neigbors at
             // its endpoints, so we need to exclude intersections where endpoints are involved.
             var intersections = new List<Position>();
             foreach (var p in Bvh.Intersections(e))
             {
                 if (p.Element.Index == index) continue;
-                
+
                 if (p.Element.Index == nextIndex && p.L < GeometryConstants.DistEquals) continue;
-                
+
                 if (p.Element.Index == prevIndex && p.L > p.Element.Length - GeometryConstants.DistEquals) continue;
-                
+
                 intersections.Add(p);
             }
-            
+
             results.AddRange(e.MatchIntersections(intersections));
         }
-        
-        // Finally we will have to individualize the results, since theoretically each intersection should have 
+
+        // Finally we will have to individualize the results, since theoretically each intersection should have
         // appeared twice in our list.
         // TODO: Optimize this, for now it's brute force
         var uniqueResults = new List<IntersectionPair>();
@@ -736,7 +789,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         {
             if (!uniqueResults.Any(p => p.IsEquivalentTo(pair))) uniqueResults.Add(pair);
         }
-        
+
         return uniqueResults.ToArray();
     }
 
@@ -750,16 +803,16 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     public (BoundaryLoop, BoundaryLoop) SplitAtSelfIntersection(IntersectionPair split)
     {
         /* Splitting at self-intersection
-         * 
+         *
          * At any self intersection, we will have two elements which intersect. We will trace out the two loops formed
          * by the split by tracing our way along the contour from the intersection point for both the first and
          * second element.  Each contour ends when it reaches the other element's equivalent intersection point.
          */
-        
+
         // We'll start by the `First` element
         var c0 = ExtractLoopFromTo(split.First.Element, split.First.L, split.Second.Element, split.Second.L);
         var c1 = ExtractLoopFromTo(split.Second.Element, split.Second.L, split.First.Element, split.First.L);
-        
+
         return (c0, c1);
     }
 
@@ -775,12 +828,12 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     {
         var final = new List<BoundaryLoop>();
         var working = new List<BoundaryLoop> {this};
-        
+
         while (working.Count > 0)
         {
             var current = working[0];
             working.RemoveAt(0);
-            
+
             var intersections = current.SelfIntersections();
             if (intersections.Length == 0)
             {
@@ -793,7 +846,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
                 working.Add(c1);
             }
         }
-        
+
         return final.ToArray();
     }
 
@@ -812,24 +865,24 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         var contour = new BoundaryLoop();
         var write = contour.GetCursor();
         var read = GetCursor(e0.Index);
-        
+
         // Add the first element's portion after the intersection
         write.InsertFromElement(e0.SplitAfter(l0));
         read.MoveForward();
-        
+
         // Now we will iterate forward until the read cursor reaches the second element's index
         while (read.CurrentId != e1.Index)
         {
             write.InsertAfter(read.Current);
             read.MoveForward();
         }
-        
+
         // Now we add the second element's portion before the intersection
         write.InsertFromElement(e1.SplitBefore(l1));
 
         return contour;
     }
-    
+
     // ==============================================================================================================
     // Management methods
     // ==============================================================================================================
@@ -876,7 +929,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         {
             area += e.CrossProductWedge;
         }
-        
+
         return area / 2.0;
     }
 
@@ -918,15 +971,15 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
                 return (e, next);
             }
         }
-        
+
         throw new ArgumentException("Vertex not found in contour");
     }
-    
-    
+
+
     // ==============================================================================================================
     // Contour Cursor
     // ==============================================================================================================
-    
+
     private class BoundaryLoopCursor : LoopCursor, IBoundaryLoopCursor
     {
         public BoundaryLoopCursor(Loop<BoundaryPoint> loop, int nodeId) : base(loop, nodeId) { }
@@ -940,12 +993,12 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         {
             return SegAbs(new Point2D(x, y));
         }
-        
+
         public int SegAbs(Point2D p)
         {
             return InsertAfter(new BoundaryLine(p));
         }
-        
+
         public int ArcAbs(double x, double y, double cx, double cy, bool cw)
         {
             return ArcAbs(new Point2D(x, y), new Point2D(cx, cy), cw);
@@ -955,14 +1008,14 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         {
             return InsertAfter(new BoundaryArc(p, c, cw));
         }
-        
+
         public int SegRel(double x, double y)
         {
             var previous = Loop.Count == 0 ? new Point2D(0, 0) : Current.Point;
             var pv = previous + new Vector2D(x, y);
             return SegAbs(pv.X, pv.Y);
         }
-        
+
         public int ArcRel(double x, double y, double cx, double cy, bool cw)
         {
             var previous = Loop.Count == 0 ? new Point2D(0, 0) : Current.Point;
@@ -982,7 +1035,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             };
         }
     }
-    
+
     // ==============================================================================================================
     // Static convenience builder methods
     // ==============================================================================================================
@@ -1039,7 +1092,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         double y0C = y + r;
         double x1C = x1 - r;
         double y1C = y1 - r;
-        
+
         cursor.SegAbs(x0C, y);
         cursor.ArcAbs(x1C, y, x1C, y0C, false);
         cursor.SegAbs(x1, y0C);
@@ -1051,7 +1104,7 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
 
         return loop;
     }
-    
+
     /// <summary>
     /// Create a new rectangular contour with the center at (cx, cy) and the width and height specified.
     /// </summary>
@@ -1080,13 +1133,13 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
             if (contour.Count == 0 || cursor.Current.Point.DistanceTo(p) > GeometryConstants.DistEquals)
                 cursor.SegAbs(p.X, p.Y);
         }
-        
+
         // Check if the last point is the same as the first point, and if so, remove it
         if (contour.Head.Point.DistanceTo(contour.Tail.Point) < GeometryConstants.DistEquals)
         {
             cursor.Remove();
         }
-        
+
         return contour;
     }
 
