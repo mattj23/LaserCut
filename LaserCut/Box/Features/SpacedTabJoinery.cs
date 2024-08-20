@@ -5,7 +5,8 @@ public class SpacedTabJoinery : TabJoineryBase
     private readonly double _thicknessFraction;
     private readonly double _balanceFraction;
 
-    public SpacedTabJoinery(double thicknessFraction, double balanceFraction)
+    public SpacedTabJoinery(double thicknessFraction, double balanceFraction, double relief)
+        : base(relief)
     {
         _thicknessFraction = thicknessFraction;
         _balanceFraction = balanceFraction;

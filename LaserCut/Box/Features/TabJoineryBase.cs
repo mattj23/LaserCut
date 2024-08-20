@@ -4,6 +4,12 @@ namespace LaserCut.Box.Features;
 
 public abstract class TabJoineryBase : IBoxFeature
 {
+    protected readonly double Relief;
+
+    protected TabJoineryBase(double relief)
+    {
+        Relief = relief;
+    }
 
     public virtual void Operate(BoxModel model)
     {
@@ -27,7 +33,7 @@ public abstract class TabJoineryBase : IBoxFeature
 
         foreach (var corner in tool.IterItems())
         {
-            cursor.RelieveAt(corner.Item.Point, 0.02 * 25.4, 0.001);
+            cursor.RelieveAt(corner.Item.Point, Relief, 0.001);
         }
     }
 
@@ -37,7 +43,7 @@ public abstract class TabJoineryBase : IBoxFeature
         cursor.Operate(tool);
         foreach (var corner in tool.IterItems())
         {
-            cursor.RelieveAt(corner.Item.Point, 0.02 * 25.4, 0.001);
+            cursor.RelieveAt(corner.Item.Point, Relief, 0.001);
         }
     }
 

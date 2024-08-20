@@ -6,7 +6,7 @@ public class SingleTabJoinery : TabJoineryBase
 {
     private readonly double _tabWidth;
 
-    public SingleTabJoinery(double tabWidth)
+    public SingleTabJoinery(double tabWidth, double relief) : base(relief)
     {
         _tabWidth = tabWidth;
     }

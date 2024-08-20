@@ -3,10 +3,12 @@
 public class LidTabs : TabJoineryBase
 {
     private readonly double _margin;
+    private readonly double _chamfer;
 
-    public LidTabs(double margin)
+    public LidTabs(double margin, double relief, double chamfer) : base(relief)
     {
         _margin = margin;
+        _chamfer = chamfer;
     }
 
     public override void Operate(BoxModel model)

@@ -98,6 +98,8 @@ public class BoxEdgeCursor
 
     public void RelieveAt(Point2D point, double radius, double locateTol)
     {
+        if (radius <= GeometryConstants.DistEquals) return;
+
         var p = point.Transformed(Cs);
 
         foreach (var loop in _face.Body.AllLoops)
