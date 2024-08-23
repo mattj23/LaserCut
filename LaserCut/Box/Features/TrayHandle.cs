@@ -38,10 +38,38 @@ public class TrayHandle : IBoxFeature
     {
         var bodyId = _idManager.GetNextId();
 
+        // The length (h) of the handle
         var h = Math.Max(model.Thickness * 4, _length);
-        var body = new Body(BoundaryLoop.Rectangle(0, 0, model.Width, h));
 
-        model.ExtraBodies.Add(bodyId, body);
+        // The band thickness of the handle must be at least 2x the thickness of the material
+        var band = model.Thickness * 2;
+
+        var x0 = model.Width / 2;
+        var y0 = h;
+        var x1 = x0 - band;
+        var y1 = y0 - band;
+
+        // The max radius of the handle is whichever is smaller, h/2 or the xO
+        var r = Math.Min(h / 2, x0);
+
+        var loop = new BoundaryLoop();
+        var c = loop.GetCursor();
+
+        c.SegAbs(x0, 0);
+        c.ArcAbs(x0, y0 - r, x0 - r, y0 - r, false);
+        c.SegAbs(x0 - r, y0);
+        if (x0 - r > GeometryConstants.DistEquals)
+        {
+            c.ArcAbs(-(x0 - r), y0, -(x0 - r), y0 - r, false);
+        }
+
+        c.SegAbs(-x0, y0 - r);
+        c.SegAbs(-x0, 0);
+
+        loop.RemoveZeroLengthElements();
+        loop.RemoveAdjacentRedundancies();
+
+        model.ExtraBodies.Add(bodyId, new Body(loop));
     }
 
     private void AddSupportToEdge(BoxEdge edge, double thk)
