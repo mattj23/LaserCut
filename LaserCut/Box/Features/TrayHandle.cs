@@ -7,12 +7,14 @@ public class TrayHandle : IBoxFeature
     private readonly double _length;
     private readonly double _inset;
     private readonly bool _bothSides;
+    private readonly BodyIdManager _idManager;
 
-    public TrayHandle(double length, double inset, bool bothSides)
+    public TrayHandle(double length, double inset, bool bothSides, BodyIdManager idManager)
     {
         _length = length;
         _inset = inset;
         _bothSides = bothSides;
+        _idManager = idManager;
     }
 
     public void Operate(BoxModel model)
@@ -20,20 +22,26 @@ public class TrayHandle : IBoxFeature
         // We're going to add the thickness of the material to the left and right faces
         AddSupportToEdge(model.Left.Left, model.Thickness);
         AddSupportToEdge(model.Right.Right, model.Thickness);
+        HandleBody(model);
 
         // Check for two sides
         if (_bothSides)
         {
             AddSupportToEdge(model.Left.Right, model.Thickness);
             AddSupportToEdge(model.Right.Left, model.Thickness);
+            HandleBody(model);
         }
     }
 
 
-    private Body HandleBody(BoxModel model, double thk)
+    private void HandleBody(BoxModel model)
     {
-        var h = Math.Max(thk * 4, _length);
-        return new Body(BoundaryLoop.Rectangle(0, 0, model.Width, h));
+        var bodyId = _idManager.GetNextId();
+
+        var h = Math.Max(model.Thickness * 4, _length);
+        var body = new Body(BoundaryLoop.Rectangle(0, 0, model.Width, h));
+
+        model.ExtraBodies.Add(bodyId, body);
     }
 
     private void AddSupportToEdge(BoxEdge edge, double thk)
