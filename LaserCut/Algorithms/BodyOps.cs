@@ -63,7 +63,7 @@ public static class BodyOps
             if (!outerLoop.IsPositive)
                 workingInners.Enqueue(outerLoop);
 
-        // Now we can re-iterate through the inner loops, merge them with the tool, and insert them into the new 
+        // Now we can re-iterate through the inner loops, merge them with the tool, and insert them into the new
         // body.
         while (workingInners.TryDequeue(out var loop))
         {
@@ -94,7 +94,7 @@ public static class BodyOps
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
         }
 
         return [workingBody];
@@ -107,7 +107,7 @@ public static class BodyOps
 
         var outer = body.Outer.Copy();
         var (outerResult, resultLoops) = outer.Intersection(tool);
-        
+
         var innerLoops = body.Inners.Select(x => x.Copy()).ToList();
         innerLoops.AddRange(resultLoops.Where(x => !x.IsPositive));
 
@@ -135,15 +135,20 @@ public static class BodyOps
             // The boundary set is composed of a potentially new outer boundary and a set of inner boundaries which
             // may intersect with each other and may or may not intersect with the outer boundary.  To resolve them,
             // we need to perform all possible merges.
-            
-            // We start by merging everything against the outer boundary.  We know that none of these intersections 
+
+            // We start by merging everything against the outer boundary.  We know that none of these intersections
             // will destroy the outer boundary, but they may split it.
             var workingOuter = Outer.Copy();
             var workingHoles = new Queue<BoundaryLoop>(Holes);
             var verified = new Queue<BoundaryLoop>();
-            
+
+            var count = 0;
+
             while (workingHoles.TryDequeue(out var hole))
             {
+                if (count++ > 100 * Holes.Length)
+                    throw new InvalidOperationException("Too many iterations resolving body boundaries");
+
                 var (result, loops) = workingOuter.Intersection(hole);
 
                 switch (result)
@@ -154,7 +159,7 @@ public static class BodyOps
                         throw new UnreachableException();
                     case BoundaryOpResult.Unchanged:
                         // This is what happens if the hole is outside the outer boundary.  The outer boundary will not
-                        // get bigger during this process, so this hole will never intersect with it or anything 
+                        // get bigger during this process, so this hole will never intersect with it or anything
                         // inside it.  We effectively drop it here.
                         break;
                     case BoundaryOpResult.Replaced:
@@ -166,11 +171,11 @@ public static class BodyOps
                         // update the working outer boundary and add the new holes to the working queue, but we don't
                         // preserve the hole we were working on.
                         var positives = loops.Where(x => x.IsPositive).ToArray();
-                        if (positives.Length != 1) 
+                        if (positives.Length != 1)
                             throw new ArgumentException($"Expected a single positive loop, got {positives.Length}");
                         workingHoles.EnqueueAll(loops.Where(x => !x.IsPositive));
                         workingOuter = positives[0];
-                        
+
                         // We also need to transfer all the verified holes back to the working queue, because the
                         // outer boundary has changed and we need to re-verify them.
                         verified.TransferTo(workingHoles);
@@ -185,7 +190,7 @@ public static class BodyOps
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            
+
             // Now we have a final outer boundary, so we transfer everything from the verified queue to the working
             // queue.  All the holes which are outside the outer boundary have been dropped.
             verified.TransferTo(workingHoles);
@@ -232,12 +237,12 @@ public static class BodyOps
                             breakLoop = true;
                             break;
                         case BoundaryOpResult.UnchangedMerged:
-                            // This occurs when the two holes are disjoint.  
+                            // This occurs when the two holes are disjoint.
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
-                    
+
                     if (breakLoop) break;
                 }
 
