@@ -1,4 +1,6 @@
-﻿namespace LaserCut.Box;
+﻿using LaserCut.Geometry;
+
+namespace LaserCut.Box;
 
 public class BoxModel
 {
@@ -33,6 +35,8 @@ public class BoxModel
     public BoxBottomFace Bottom { get; }
 
     public BoxFace[] AllFaces { get; }
+
+    public Dictionary<Guid, Body> ExtraBodies { get; } = new();
 
     public static BoxModel Create(BoxParams boxParams, bool hasLid)
     {

@@ -4,13 +4,15 @@ namespace LaserCut.Box.Features;
 
 public class TrayHandle : IBoxFeature
 {
-    private readonly double _height;
-    private readonly double _width;
+    private readonly double _length;
+    private readonly double _inset;
+    private readonly bool _bothSides;
 
-    public TrayHandle(double height, double width)
+    public TrayHandle(double length, double inset, bool bothSides)
     {
-        _height = height;
-        _width = width;
+        _length = length;
+        _inset = inset;
+        _bothSides = bothSides;
     }
 
     public void Operate(BoxModel model)
@@ -20,14 +22,23 @@ public class TrayHandle : IBoxFeature
         AddSupportToEdge(model.Right.Right, model.Thickness);
 
         // Check for two sides
-        AddSupportToEdge(model.Left.Right, model.Thickness);
-        AddSupportToEdge(model.Right.Left, model.Thickness);
+        if (_bothSides)
+        {
+            AddSupportToEdge(model.Left.Right, model.Thickness);
+            AddSupportToEdge(model.Right.Left, model.Thickness);
+        }
     }
 
 
+    private Body HandleBody(BoxModel model, double thk)
+    {
+        var h = Math.Max(thk * 4, _length);
+        return new Body(BoundaryLoop.Rectangle(0, 0, model.Width, h));
+    }
+
     private void AddSupportToEdge(BoxEdge edge, double thk)
     {
-        var h = Math.Max(thk * 4, _height);
+        var h = Math.Max(thk * 4, _length);
 
         var c = edge.EnvelopeCursor;
 
@@ -38,7 +49,7 @@ public class TrayHandle : IBoxFeature
         // Generate the cantilevered portion
         var t2 = new BoundaryLoop();
         var tc = t2.GetCursor();
-        tc.SegAbs(0, 0);
+        tc.SegAbs(0, _inset);
         tc.SegRel(h/2, 0);
         tc.SegRel(0, thk * 2);
         var offset = h / 2 - thk;
@@ -47,7 +58,7 @@ public class TrayHandle : IBoxFeature
         tc.SegRel(-(offset/2 + 1e-4), offset / 2);
 
         // Generate the cutout
-        var t3 = BoundaryLoop.Rectangle(h / 4, thk, h / 2, thk + 1e-4).Reversed();
+        var t3 = BoundaryLoop.Rectangle(h / 4, thk + _inset, h / 2, thk + 1e-4).Reversed();
 
         // if the end of the cursor is higher than the start, the end is up and we should flip it.
         if (c.EndWorld.Z > c.StartWorld.Z)
