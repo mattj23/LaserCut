@@ -42,7 +42,7 @@ public class TrayHandle : IBoxFeature
         var h = Math.Max(model.Thickness * 4, _length);
 
         // The band thickness of the handle must be at least 2x the thickness of the material
-        var band = model.Thickness * 2;
+        var band = Math.Max(h/5, model.Thickness * 2);
 
         var x0 = model.Width / 2;
         var y0 = h;
@@ -55,16 +55,43 @@ public class TrayHandle : IBoxFeature
         var loop = new BoundaryLoop();
         var c = loop.GetCursor();
 
+        // Start with the notch
+        c.SegAbs(x0 - model.Thickness, model.Thickness);
+        c.SegAbs(x0 - model.Thickness, h / 4);
+        c.SegAbs(x0, h / 4);
+
         c.SegAbs(x0, 0);
         c.ArcAbs(x0, y0 - r, x0 - r, y0 - r, false);
         c.SegAbs(x0 - r, y0);
+
+        // Now the other side
         if (x0 - r > GeometryConstants.DistEquals)
         {
             c.ArcAbs(-(x0 - r), y0, -(x0 - r), y0 - r, false);
         }
 
         c.SegAbs(-x0, y0 - r);
-        c.SegAbs(-x0, 0);
+
+        // The notch
+        c.SegAbs(-x0, h/4);
+        c.SegAbs(-x0 + model.Thickness, h / 4);
+        c.SegAbs(-x0 + model.Thickness, model.Thickness);
+
+        // To the inside
+        c.SegAbs(-x1, model.Thickness);
+        if (y0 - r > y1 - GeometryConstants.DistEquals)
+        {
+            c.SegAbs(-x1, y1);
+            c.SegAbs(x1, y1);
+        }
+        else
+        {
+            c.ArcAbs(-x1, y0 - r, -(x0 - r), y0 - r, true);
+            c.SegAbs(-(x0 - r), y1);
+            c.ArcAbs(x0 - r, y1, x0 - r, y0 - r, true);
+        }
+        c.SegAbs(x1, y0 - r);
+        c.SegAbs(x1, model.Thickness);
 
         loop.RemoveZeroLengthElements();
         loop.RemoveAdjacentRedundancies();
