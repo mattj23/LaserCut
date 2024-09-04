@@ -49,19 +49,24 @@ public class TrayHandle : IBoxFeature
         var x1 = x0 - band;
         var y1 = y0 - band;
 
+        var yb = 0; // model.Thickness;
+
         // The max radius of the handle is whichever is smaller, h/2 or the xO
         var r = Math.Min(h / 2, x0);
 
         var loop = new BoundaryLoop();
         var c = loop.GetCursor();
 
-        // Start with the notch
-        c.SegAbs(x0 - model.Thickness, model.Thickness);
+        // Start with the notch on the right side of the handle, drawing the inside L shape
+        c.SegAbs(x0 - model.Thickness, yb);
         c.SegAbs(x0 - model.Thickness, h / 4);
         c.SegAbs(x0, h / 4);
 
+        // We are now on the outside of the handle, tracing our way around the radius to the center
         c.SegAbs(x0, 0);
         c.ArcAbs(x0, y0 - r, x0 - r, y0 - r, false);
+
+        // This should be moved inside the block?
         c.SegAbs(x0 - r, y0);
 
         // Now the other side
@@ -70,15 +75,19 @@ public class TrayHandle : IBoxFeature
             c.ArcAbs(-(x0 - r), y0, -(x0 - r), y0 - r, false);
         }
 
+        // After the left arc, we are now heading down towards the left notch
         c.SegAbs(-x0, y0 - r);
 
-        // The notch
+        // The left notch
         c.SegAbs(-x0, h/4);
         c.SegAbs(-x0 + model.Thickness, h / 4);
-        c.SegAbs(-x0 + model.Thickness, model.Thickness);
+        c.SegAbs(-x0 + model.Thickness, yb);
 
-        // To the inside
-        c.SegAbs(-x1, model.Thickness);
+        // Around the corner to start the inside by heading back up
+        c.SegAbs(-x1, yb);
+
+        // If the inside of the handle is large enough for a radius, we insert them, otherwise we add two straight
+        // segments to draw the interior of the handle
         if (y0 - r > y1 - GeometryConstants.DistEquals)
         {
             c.SegAbs(-x1, y1);
@@ -90,8 +99,10 @@ public class TrayHandle : IBoxFeature
             c.SegAbs(-(x0 - r), y1);
             c.ArcAbs(x0 - r, y1, x0 - r, y0 - r, true);
         }
+
+        // Head back down to the starting point, then head to the right to cap off the bottom face
         c.SegAbs(x1, y0 - r);
-        c.SegAbs(x1, model.Thickness);
+        c.SegAbs(x1, yb);
 
         loop.RemoveZeroLengthElements();
         loop.RemoveAdjacentRedundancies();
