@@ -1,4 +1,5 @@
-﻿using LaserCut.Geometry;
+﻿using System.Net.Mail;
+using LaserCut.Geometry;
 
 namespace LaserCut.Box.Features;
 
@@ -23,6 +24,7 @@ public class TrayHandle : IBoxFeature
         AddSupportToEdge(model.Left.Left, model.Thickness);
         AddSupportToEdge(model.Right.Right, model.Thickness);
         HandleBody(model);
+        CutNotchesInEndFaces(model.Front, model.Thickness);
 
         // Check for two sides
         if (_bothSides)
@@ -30,9 +32,27 @@ public class TrayHandle : IBoxFeature
             AddSupportToEdge(model.Left.Right, model.Thickness);
             AddSupportToEdge(model.Right.Left, model.Thickness);
             HandleBody(model);
+            CutNotchesInEndFaces(model.Back, model.Thickness);
         }
     }
 
+    private void CutNotchesInEndFaces(BoxFace face, double thickness)
+    {
+        // The notches are down the inset from the top of the face by the thickness of the material and the inset
+        // value.
+
+        var c = face.Top.EnvelopeCursor;
+        var inset = _inset + thickness * 2;
+        var h = thickness * 2;
+
+        var tool0 = BoundaryLoop.Rectangle(-inset, 0, thickness, h);
+        tool0.Reverse();
+        c.Operate(tool0);
+
+        var tool1 = BoundaryLoop.Rectangle(-inset, c.Length - h, thickness, h);
+        tool1.Reverse();
+        c.Operate(tool1);
+    }
 
     private void HandleBody(BoxModel model)
     {
