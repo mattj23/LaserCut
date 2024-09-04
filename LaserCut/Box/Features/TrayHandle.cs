@@ -83,8 +83,12 @@ public class TrayHandle : IBoxFeature
         c.SegAbs(-x0 + model.Thickness, h / 4);
         c.SegAbs(-x0 + model.Thickness, yb);
 
-        // Around the corner to start the inside by heading back up
-        c.SegAbs(-x1, yb);
+        // Bottom face of the left tab
+        c.SegAbs(-x1 + model.Thickness, yb);
+
+        // The left tab geometry and chamfer back into the handle
+        c.SegRel(0, model.Thickness);
+        c.SegRel(-model.Thickness, model.Thickness);
 
         // If the inside of the handle is large enough for a radius, we insert them, otherwise we add two straight
         // segments to draw the interior of the handle
@@ -100,8 +104,15 @@ public class TrayHandle : IBoxFeature
             c.ArcAbs(x0 - r, y1, x0 - r, y0 - r, true);
         }
 
-        // Head back down to the starting point, then head to the right to cap off the bottom face
+        // End the arc
         c.SegAbs(x1, y0 - r);
+
+        // Head back down to the starting point, interrupting at the tab chamfer
+        c.SegAbs(x1, yb + 2 * model.Thickness);
+        c.SegRel(-model.Thickness, -model.Thickness);
+        c.SegRel(0, -model.Thickness);
+
+        // Bottom face of the right tab
         c.SegAbs(x1, yb);
 
         loop.RemoveZeroLengthElements();
