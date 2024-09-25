@@ -390,10 +390,9 @@ public class Mesh3
         return results.ToArray();
     }
 
-
-    private Body[] ExtractPatchBodies(CoordinateSystem view, Func<Face, Vector3D, bool> predicate)
+    private (Body, double)[] ExtractPatchBodies(CoordinateSystem view, Func<Face, Vector3D, bool> predicate)
     {
-        var results = new List<Body>();
+        var results = new List<(Body, double)>();
         var workingMesh = FromFacesWhere(predicate);
         workingMesh.Transform(view);
         // var workingMesh = temp.FromFacesWhere(predicate);
@@ -413,6 +412,16 @@ public class Mesh3
         // edges that are only shared by a single face.
         foreach (var patch in patches)
         {
+            // Find the average z value of the patch vertices
+            var vertices = new List<Point3D>();
+            foreach (var faceIndex in patch)
+            {
+                vertices.Add(workingMesh._vertices[(int)workingMesh._faces[faceIndex].A]);
+                vertices.Add(workingMesh._vertices[(int)workingMesh._faces[faceIndex].B]);
+                vertices.Add(workingMesh._vertices[(int)workingMesh._faces[faceIndex].C]);
+            }
+            var averageZ = vertices.Select(x => x.Z).Average();
+
             // For each face index in the patch we check all three edges.  If the edge map reports that the edge only is
             // attached to a single face, then we add it to the boundary edges.
             var boundaryVertices = new Dictionary<int, int>();
@@ -447,10 +456,18 @@ public class Mesh3
             if (outer.Length != 1)
                 throw new UnreachableException("Expected exactly one outer contour from a mesh patch");
 
-            results.Add(new Body(outer[0], inner));
+            results.Add((new Body(outer[0], inner), averageZ));
         }
 
         return results.ToArray();
+    }
+
+    public FlatPatch[] ExtractFlatPatches(CoordinateSystem view)
+    {
+        var results = ExtractPatchBodies(view,
+            (_, n) => n.DotProduct(view.ZAxis) > 1.0 - 3 * GeometryConstants.DistEquals);
+
+        return results.Select(x => new FlatPatch(x.Item2, x.Item1)).ToArray();
     }
 
     public Body[] ExtractSilhouetteBodies(CoordinateSystem view, double dotTol = 1e-6)
@@ -460,18 +477,14 @@ public class Mesh3
         // For now, we'll do a naive merge of the bodies.  This will be improved later.
         try
         {
-            return results.MergeBodies();
+            var bodiesOnly = results.Select(x => x.Item1).ToArray();
+            return bodiesOnly.MergeBodies();
         }
         catch (Exception e)
         {
             Debug.WriteLine(e);
             throw;
         }
-    }
-
-    public FlatPatches[] ExtractFlatPatches(CoordinateSystem view)
-    {
-        throw new NotImplementedException();
     }
 
 

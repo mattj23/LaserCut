@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using Avalonia.Media;
 using LaserCut.Algorithms;
 using LaserCut.Avalonia.Models;
+using LaserCut.Data;
 using LaserCut.Geometry;
 using LaserCut.Geometry.Primitives;
 using LaserCut.Mesh;
@@ -24,10 +25,14 @@ public class MeshImportViewModel : ReactiveObject
     private bool _firstRun = false;
     private CoordinateSystem _lastCs = Isometry3.Default;
     private readonly List<Body> _bodies = new();
+    private readonly List<FlatPatch> _flat = new();
 
-    public MeshImportViewModel(string filePath)
+    private bool _extractFlatPatches;
+
+    public MeshImportViewModel(string filePath, bool extractFlatPatches)
     {
         _filePath = filePath;
+        _extractFlatPatches = extractFlatPatches;
         _isNotValid = false;
         _loading = true;
         _replaceWithArcs = true;
@@ -48,7 +53,7 @@ public class MeshImportViewModel : ReactiveObject
 
         ConfirmCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            var result = new ImportedGeometry(_filePath, _bodies.ToArray(), []);
+            var result = new ImportedGeometry(_filePath, _bodies.ToArray(), _flat.ToArray());
             await Confirm.Handle(result);
 
         }, this.WhenAnyValue(x => x.IsNotValid, x => !x));
@@ -64,7 +69,7 @@ public class MeshImportViewModel : ReactiveObject
             });
     }
 
-    public MeshImportViewModel() : this("") { }
+    public MeshImportViewModel(bool extractFlatPatches) : this("", extractFlatPatches) { }
 
     public Interaction<Unit, Unit> ZoomToFit { get; } = new();
     public ReactiveCommand<Unit, Unit> SetXPlusCommand { get; }
@@ -156,25 +161,34 @@ public class MeshImportViewModel : ReactiveObject
         try
         {
             // Load the mesh data and flip it to the correct orientation
-            var temp = await Task.Run(() => LoadMeshData(_filePath, cs));
-            var result = temp.Select(x => x.MirroredY()).ToArray();
-            var bounds = result.CombinedBounds();
+            var (tempBodies, tempPatches) = await Task.Run(() => LoadMeshData(_filePath, cs));
+            var resultBodies = tempBodies.Select(x => x.MirroredY()).ToArray();
+            var resultPatches = tempPatches.Select(x => x.MirrorY()).ToArray();
+
+            var bounds = resultBodies.CombinedBounds();
 
             var sx = bounds.Width / 10 - bounds.MinX;
             var sy = bounds.Height / 10 - bounds.MinY;
+
+            // Draw the flat patches, if there are any
+            if (resultBodies.Length > 0)
+            {
+                var flatBodies = resultPatches.Select(x => x.Body).ToArray();
+                ToDrawable(flatBodies, sx, sy, Brushes.SlateGray, Brushes.SlateGray);
+            }
 
             // If we're going to replace arc-like sections with true arc elements, the overall plan will be to preserve
             // and draw the original bodies a light gray color, but then draw the new bodies in a darker color.  If
             // we aren't, we'll just draw the original bodies in black.
             if (ReplaceWithArcs)
             {
-                ToDrawable(result, sx, sy, Brushes.DarkGray, Brushes.DarkGray);
-                _bodies.AddRange(ToArcs(result));
+                ToDrawable(resultBodies, sx, sy, Brushes.DarkGray, Brushes.DarkGray);
+                _bodies.AddRange(ToArcs(resultBodies));
                 ToDrawable(_bodies, sx, sy, Brushes.Black, Brushes.MediumBlue, AddArcs);
             }
             else
             {
-                _bodies.AddRange(result);
+                _bodies.AddRange(resultBodies);
                 ToDrawable(_bodies, sx, sy, Brushes.Black, Brushes.MediumBlue);
             }
 
@@ -203,13 +217,18 @@ public class MeshImportViewModel : ReactiveObject
         }
     }
 
-    private Body[] LoadMeshData(string filePath, CoordinateSystem cs)
+    private (Body[], FlatPatch[]) LoadMeshData(string filePath, CoordinateSystem cs)
     {
         var m = Mesh3.ReadStl(filePath, true);
         var bodies = m.ExtractSilhouetteBodies(cs, 0.5);
-        Debug.WriteLine($"Extracted {bodies.Length} bodies from mesh");
-        // bodies = bodies.Take(1).ToArray();
-        return bodies;
+
+        if (_extractFlatPatches)
+        {
+            var flat = m.ExtractFlatPatches(cs);
+            return (bodies, flat);
+        }
+
+        return (bodies, []);
     }
 
 }
