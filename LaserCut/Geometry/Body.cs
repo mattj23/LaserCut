@@ -137,9 +137,9 @@ public class Body : IHasBounds
     /// polygons.
     /// </summary>
     /// <returns></returns>
-    public BoundaryLoop ToSingleLoop()
+    public BoundaryLoop ToSingleLoop(Guid? guid = null)
     {
-        var working = Outer.Copy();
+        var working = Outer.Copy(guid ?? Guid.NewGuid());
         var remainingHoles = Inners.Select(x => x.AddPointsIfCircle(12)).ToList();
         while (remainingHoles.Count > 0)
         {

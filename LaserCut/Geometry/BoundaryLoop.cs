@@ -942,6 +942,18 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     // Management methods
     // ==============================================================================================================
 
+    public BoundaryLoop Copy(Guid id)
+    {
+        var loop = new BoundaryLoop(id);
+        var cursor = loop.GetCursor();
+        foreach (var item in IterItems())
+        {
+            cursor.InsertAfter(item.Item.Copy());
+        }
+
+        return loop;
+    }
+
     public override BoundaryLoop Copy()
     {
         var contour = new BoundaryLoop();
