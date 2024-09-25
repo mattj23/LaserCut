@@ -24,14 +24,14 @@ public static class ReplaceWithArcs
     private static double Farthest(Circle2 circle, Point2D p0, Point2D p1)
     {
         var d0 = Math.Max(circle.DistanceFromEdge(p0), circle.DistanceFromEdge(p1));
-        
-        // The projection parameter of the closest point on the segment to the center of the circle. 
+
+        // The projection parameter of the closest point on the segment to the center of the circle.
         var seg = new Segment(p0, p1, -1);
         var closest = seg.ProjectionParam(circle.Center);
 
         // If the closest point is outside the segment, return the farthest distance between the two points.
         if (closest < 0 || closest > seg.Length) return d0;
-        
+
         // if not, we need to at least check the distance from the closest point on the segment to the circle.
         var dc = seg.PointAt(closest);
         return Math.Max(d0, circle.DistanceFromEdge(dc));
@@ -49,15 +49,15 @@ public static class ReplaceWithArcs
 
         return results;
     }
-    
+
     private static Circle2? CircleFromPoints(BoundaryPoint[] points)
     {
         var p0 = points[0].Point;
         var p1 = points[points.Length / 2].Point;
         var p2 = points[^1].Point;
-        
+
         if (p2.DistanceTo(p0) < GeometryConstants.DistEquals * 2) p2 = points[^2].Point;
-        
+
         try
         {
             return new Circle2(p0, p1, p2);
@@ -76,7 +76,7 @@ public static class ReplaceWithArcs
         if (circle is null) return false;
 
         var maxPointError = points.Select(x => circle.DistanceFromEdge(x.Point)).Max();
-        
+
         var maxError = double.MinValue;
         for (int i = 0; i < points.Length - 1; i++)
         {
@@ -95,7 +95,7 @@ public static class ReplaceWithArcs
             inner.ReplaceLinesWithArcs(pointTol, bodyTol, minPoints);
         }
     }
-    
+
     public static void ReplaceLinesWithArcs(this BoundaryLoop loop, double pointTol, double bodyTol, int minPoints=4)
     {
         if (minPoints < 4) throw new ArgumentException("Minimum number of points must be at least 4");
@@ -112,32 +112,52 @@ public static class ReplaceWithArcs
                 walk.MoveForward();
                 continue;
             }
-            
+
             while (ArcMatches(loop, walk.PreviousId, n + 1, pointTol, bodyTol) && n <= loop.Count)
             {
                 walk.MoveBackward();
                 n++;
             }
-            
+
             while (ArcMatches(loop, walk.CurrentId, n + 1, pointTol, bodyTol) && n <= loop.Count)
             {
                 n++;
             }
-            
+
             var points = PointsAt(loop, walk.CurrentId, n);
+
+            // To detect collinear points, at least one point must be more than 3x the equals tolerance away from the
+            // line defined by the two farthest points.
+            var (test0, test1) = PointOps.FarthestPoints(points.Select(x => x.Point));
+            if (!points.Any(x => PointOps.DistanceOutOfLine(test0, test1, x.Point) > pointTol))
+            {
+                for (int k = 0; k < n - 1; k++)
+                {
+                    visited.Add(walk.CurrentId);
+                    walk.MoveForward();
+                }
+                continue;
+            }
+
             var circle = CircleFromPoints(points);
             if (circle is null) throw new InvalidOperationException("Invalid circle");
 
+            if (circle.Radius > 1000)
+            {
+                Console.WriteLine($"Circle Radius: {circle.Radius}");
+            }
+
+
             var original = walk.Current.Point;
-            
+
             for (int k = 0; k < n - 1; k++)
             {
                 walk.Remove();
             }
             walk.MoveBackward();
-            
+
             // Debug.WriteLine($"Removed {n-1} Points for Arc");
-            
+
             // Are the points going clockwise or counter-clockwise?
             var v0 = points[0].Point - circle.Center;
             var v1 = points[1].Point - circle.Center;
@@ -146,12 +166,12 @@ public static class ReplaceWithArcs
             // var e = loop.Elements.First(x => x.Index == aid);
             // var errors = points.Select(x => (e as Arc).Closest(x.Point).Surface.Point.DistanceTo(x.Point)).ToArray();
             // if (errors.Any(x => x > tol)) throw new InvalidOperationException("Error in Arc Replacement");
-            
+
             // Debug.WriteLine($"Finished Arc Replacement {loop.Area}");
         }
 
     }
-    
+
     public static BoundaryLoop ToSegments(this BoundaryLoop loop)
     {
         var working = new BoundaryLoop();
@@ -168,7 +188,7 @@ public static class ReplaceWithArcs
             }
             write.SegAbs(e.End.X, e.End.Y);
         }
-        
+
         working.RemoveZeroLengthElements();
         working.RemoveAdjacentRedundancies();
 
@@ -181,5 +201,5 @@ public static class ReplaceWithArcs
         var inners = body.Inners.Select(x => x.ToSegments()).ToList();
         return new Body(outer, inners);
     }
-    
+
 }
