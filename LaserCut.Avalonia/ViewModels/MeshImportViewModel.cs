@@ -164,6 +164,8 @@ public class MeshImportViewModel : ReactiveObject
             var (tempBodies, tempPatches) = await Task.Run(() => LoadMeshData(_filePath, cs));
             var resultBodies = tempBodies.Select(x => x.MirroredY()).ToArray();
             var resultPatches = tempPatches.Select(x => x.MirrorY()).ToArray();
+            _flat.Clear();
+            _flat.AddRange(resultPatches);
 
             var bounds = resultBodies.CombinedBounds();
 
