@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using LaserCut.Algorithms;
 using LaserCut.Data;
 using LaserCut.Geometry;
@@ -14,54 +15,54 @@ public class Mesh3
     private readonly List<Face> _faces;
     private readonly List<Vector3D> _normals;
     private EdgeFaceMap? _edgeFaceMap;
-    
+
     public Mesh3(List<Point3D> vertices, List<Face> faces, List<Vector3D> normals)
     {
         _vertices = vertices;
         _faces = faces;
         _normals = normals;
     }
-    
+
     public Mesh3()
     {
         _normals = new List<Vector3D>();
         _vertices = new List<Point3D>();
         _faces = new List<Face>();
     }
-    
+
     // ==============================================================================================================
     // Public Properties
     // ==============================================================================================================
-    
+
     /// <summary>
     /// Gets a read-only list of the vertices in the mesh.  The index of each vertex in the list is the index referred
     /// to in the faces of the mesh.
     /// </summary>
     public IReadOnlyList<Point3D> Vertices => _vertices;
-    
+
     /// <summary>
     /// Gets a read-only list of the faces in the mesh.  Faces contain three indices that refer to the vertices in the
     /// Vertices list.  Faces are typically referred to by their index in this list.
     /// </summary>
     public IReadOnlyList<Face> Faces => _faces;
-    
+
     /// <summary>
     /// Gets a read-only list of the normals of the faces in the mesh.  The element at index `i` in this list
     /// corresponds with the face at index `i` in the Faces list.
     /// </summary>
     public IReadOnlyList<Vector3D> Normals => _normals;
-    
+
     /// <summary>
     /// Gets a mapping of edges to the faces that contain them.  This is a cached structure that is built on demand
     /// and cleared whenever the structure of the mesh changes.  The EdgeFaceMap is useful for determining adjacency
     /// and other operations that require edge information.
     /// </summary>
     public EdgeFaceMap EdgeMap => _edgeFaceMap ??= EdgeFaceMap.FromFaces(_faces);
-    
+
     // ==============================================================================================================
     // Utility Methods
     // ==============================================================================================================
-    
+
     public Mesh3 Clone()
     {
         return new Mesh3([.._vertices], [.._faces], [.._normals]);
@@ -89,7 +90,7 @@ public class Mesh3
         var v1 = c - a;
         return 0.5 * v0.CrossProduct(v1).Length;
     }
-    
+
     /// <summary>
     /// Returns the vertices of a face in the mesh.  The face does not need to be one of the actual faces in the mesh,
     /// but the vertices referenced by the face will come from the vertex list of this mesh.  This allows testing of
@@ -116,7 +117,7 @@ public class Mesh3
                 toRemove.Add(i);
             }
         }
-        
+
         if (toRemove.Any())
         {
             toRemove.Sort();
@@ -148,7 +149,7 @@ public class Mesh3
                 indices.Add(i);
             }
         }
-        
+
         return indices.ToArray();
     }
 
@@ -157,7 +158,7 @@ public class Mesh3
         var indices = FaceIndices(predicate);
         return FromFaceIndices(indices);
     }
-    
+
     /// <summary>
     /// Create a new mesh from a subset of the faces in this mesh, identified by their indices.  The current mesh
     /// will not be modified.
@@ -177,24 +178,24 @@ public class Mesh3
             {
                 vertexMap[_faces[i].A] = (uint)vertexMap.Count;
             }
-            
+
             if (!vertexMap.ContainsKey(_faces[i].B))
             {
                 vertexMap[_faces[i].B] = (uint)vertexMap.Count;
             }
-            
+
             if (!vertexMap.ContainsKey(_faces[i].C))
             {
                 vertexMap[_faces[i].C] = (uint)vertexMap.Count;
             }
-            
+
             faces.Add(new Face
             {
                 A = vertexMap[_faces[i].A],
                 B = vertexMap[_faces[i].B],
                 C = vertexMap[_faces[i].C]
             });
-            
+
             normals.Add(_normals[i]);
         }
 
@@ -203,10 +204,10 @@ public class Mesh3
         {
             vertices[pair.Value] = _vertices[(int)pair.Key];
         }
-        
+
         return new Mesh3(vertices.ToList(), faces, normals);
     }
-    
+
     /// <summary>
     /// Mutate the vertices of the mesh in-place using a mutation function that takes a Point3D and returns a new,
     /// modified Point3D. The new value will be stored in the same index as the original value.
@@ -235,7 +236,7 @@ public class Mesh3
             edges.Add(face.EdgeB);
             edges.Add(face.EdgeC);
         }
-        
+
         // Find all edges whose directionless key is unique
         var edgeMap = new Dictionary<ulong, int>();
         foreach (var edge in edges)
@@ -246,7 +247,7 @@ public class Mesh3
 
         var boundaryEdges = edges.Where(edge => edgeMap[edge.Key] == 1).ToList();
         Console.WriteLine($"Original edges: {edges.Count}, Boundary edges: {boundaryEdges.Count}");
-        
+
         // Now we're going to represent the boundary edges as a map of vertex index to the next vertex index
         var map = boundaryEdges.ToDictionary(e => e.A, e => e.B);
         var chains = new List<Point3D[]>();
@@ -262,7 +263,7 @@ public class Mesh3
                 map.Remove(current);
                 current = next;
             }
-            
+
             chains.Add(chain.ToArray());
         }
 
@@ -278,10 +279,10 @@ public class Mesh3
     /// <returns></returns>
     public List<int[]> GetPatchIndicesDep()
     {
-        
+
         var edgeMap = new Dictionary<ulong, List<int>>();
         var remaining = new HashSet<int>();
-        
+
         // Construct a table of edges and the faces that contain them
         for (int i = 0; i < _faces.Count; i++)
         {
@@ -291,29 +292,29 @@ public class Mesh3
                 {
                     edgeMap[edge.Key] = new List<int>();
                 }
-                
+
                 edgeMap[edge.Key].Add(i);
             }
-            
+
             remaining.Add(i);
         }
-        
+
         // Empty all faces from a working list
         var patches = new List<int[]>();
         while (remaining.Count > 0)
         {
             var patch = new HashSet<int>();
             var working = new HashSet<int>{remaining.Pop()};
-            
+
             while (working.Count != 0)
             {
                 var current = working.Pop();
                 patch.Add(current);
-                
+
                 foreach (var edge in _faces[current].Edges())
                 {
                     if (!edgeMap.Remove(edge.Key, out var indices)) continue;
-                    
+
                     foreach (var j in indices)
                     {
                         remaining.Remove(j);
@@ -325,29 +326,29 @@ public class Mesh3
                 }
 
             }
-            
+
             patches.Add(patch.ToArray());
         }
 
         return patches;
     }
-    
+
     public BoundaryLoop[] ExtractSilhouetteContours(CoordinateSystem view)
     {
         var results = new List<BoundaryLoop>();
-        
+
         var workingMesh = FromFacesWhere((_, n) => n.DotProduct(view.ZAxis) > 1e-6);
         workingMesh.Transform(view);
         workingMesh.MergeVertices();
-        
+
         // First we need to separate the mesh into patches of connected triangles. This requires us to compute the
         // adjacency of the faces.  Face adjacency is determined by whether two faces share an edge, so by computing a
         // mapping of edges to faces, we can construct an adjacency map of faces.
         var edgeMap = EdgeFaceMap.FromFaces(workingMesh._faces);
         var patches = edgeMap.GetPatchIndices();
         var singleFaceEdgeKeys = edgeMap.EdgeKeysWithSingleFace();
-        
-        // Now we'll go through each patch and find the edges that are on the boundary of the patch.  These are the 
+
+        // Now we'll go through each patch and find the edges that are on the boundary of the patch.  These are the
         // edges that are only shared by a single face.
         foreach (var patch in patches)
         {
@@ -364,7 +365,7 @@ public class Mesh3
                     }
                 }
             }
-            
+
             // Now we can extract the patch chains
             var patchChains = new List<BoundaryLoop>();
             while (boundaryVertices.Count > 0)
@@ -379,25 +380,28 @@ public class Mesh3
                     boundaryVertices.Remove(current);
                     current = next;
                 }
-                
+
                 patchChains.Add(BoundaryLoop.Polygon(chain));
             }
 
             results.AddRange(patchChains);
         }
-        
+
         return results.ToArray();
     }
-    
-    
+
+
     private Body[] ExtractPatchBodies(CoordinateSystem view, Func<Face, Vector3D, bool> predicate)
     {
         var results = new List<Body>();
-        var temp = Clone();
-        temp.Transform(view);
-        var workingMesh = temp.FromFacesWhere(predicate);
+        var workingMesh = FromFacesWhere(predicate);
+        workingMesh.Transform(view);
+        // var workingMesh = temp.FromFacesWhere(predicate);
+
+        workingMesh.WriteAsciiStl("D:/temp/laser/gaskets/working.stl");
+
         workingMesh.MergeVertices();
-        
+
         // First we need to separate the mesh into patches of connected triangles. This requires us to compute the
         // adjacency of the faces.  Face adjacency is determined by whether two faces share an edge, so by computing a
         // mapping of edges to faces, we can construct an adjacency map of faces.
@@ -405,7 +409,7 @@ public class Mesh3
         var patches = edgeMap.GetPatchIndices();
         var singleFaceEdgeKeys = edgeMap.EdgeKeysWithSingleFace();
 
-        // Now we'll go through each patch and find the edges that are on the boundary of the patch.  These are the 
+        // Now we'll go through each patch and find the edges that are on the boundary of the patch.  These are the
         // edges that are only shared by a single face.
         foreach (var patch in patches)
         {
@@ -437,10 +441,10 @@ public class Mesh3
                 loop.RemoveAdjacentRedundancies();
                 patchChains.Add(loop);
             }
-            
+
             var outer = patchChains.Where(x => x.IsPositive).ToArray();
             var inner = patchChains.Where(x => !x.IsPositive).ToList();
-            if (outer.Length != 1) 
+            if (outer.Length != 1)
                 throw new UnreachableException("Expected exactly one outer contour from a mesh patch");
 
             results.Add(new Body(outer[0], inner));
@@ -449,19 +453,27 @@ public class Mesh3
         return results.ToArray();
     }
 
-    public Body[] ExtractSilhouetteBodies(CoordinateSystem view)
+    public Body[] ExtractSilhouetteBodies(CoordinateSystem view, double dotTol = 1e-6)
     {
-        var results = ExtractPatchBodies(view, (_, n) => n.DotProduct(view.ZAxis) > 1e-6);
-        
+        var results = ExtractPatchBodies(view, (_, n) => n.DotProduct(view.ZAxis) > dotTol);
+
         // For now, we'll do a naive merge of the bodies.  This will be improved later.
-        return results.MergeBodies();
+        try
+        {
+            return results.MergeBodies();
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e);
+            throw;
+        }
     }
 
     public FlatPatches[] ExtractFlatPatches(CoordinateSystem view)
     {
         throw new NotImplementedException();
     }
-    
+
 
     /// <summary>
     /// Transform the mesh in place using a coordinate system.  This will transform all the vertices and normals in the
@@ -474,7 +486,7 @@ public class Mesh3
         {
             _vertices[i] = cs.Transform(_vertices[i]);
         }
-        
+
         for (var i = 0; i < _normals.Count; i++)
         {
             _normals[i] = cs.Transform(_normals[i]);
@@ -493,9 +505,9 @@ public class Mesh3
         {
             tolerance = GeometryConstants.DistEquals;
         }
-        
+
         var tree = new KdTree3D(_vertices);
-        
+
         // First we're going to go through all vertices and find all the neighbors that are within the tolerance
         // for each vertex.  Of these, we'll keep the one with the lowest index.  The first vertex map is an array
         // the same length as the number of vertices that maps each vertex to the vertex with the lowest index that is
@@ -505,7 +517,7 @@ public class Mesh3
             var neighbors = tree.WithinDistance(v, tolerance);
             return neighbors.Min();
         }).ToArray();
-        
+
         // Now we'll find the original indices of the unique vertices and map them to a position in the new vertices
         var uniqueMap = new Dictionary<uint, uint>();
         var uniqueVertices = vertexMap.Distinct().ToArray();
@@ -513,7 +525,7 @@ public class Mesh3
         {
             uniqueMap[i] = (uint)uniqueMap.Count;
         }
-        
+
         // We generate the new vertices and faces
         var newVertices = uniqueVertices.Select(i => _vertices[(int)i]).ToArray();
         var newFaces = _faces.Select(f => new Face
@@ -522,13 +534,40 @@ public class Mesh3
             B = uniqueMap[vertexMap[(int)f.B]],
             C = uniqueMap[vertexMap[(int)f.C]]
         }).ToArray();
-        
+
         // Update the vertices and faces
         _vertices.Clear();
         _vertices.AddRange(newVertices);
         _faces.Clear();
         _faces.AddRange(newFaces);
         ClearCachedStructureData();
+    }
+
+    public void WriteAsciiStl(string path)
+    {
+        var output = new StringBuilder();
+        output.AppendLine("solid mesh");
+
+        for (int i = 0; i < _faces.Count; i++)
+        {
+            var f = _faces[i];
+            var n = _normals[i];
+            var v1 = _vertices[(int)f.A];
+            var v2 = _vertices[(int)f.B];
+            var v3 = _vertices[(int)f.C];
+
+            output.AppendLine($"facet normal {n.X} {n.Y} {n.Z}");
+            output.AppendLine("outer loop");
+            output.AppendLine($"vertex {v1.X} {v1.Y} {v1.Z}");
+            output.AppendLine($"vertex {v2.X} {v2.Y} {v2.Z}");
+            output.AppendLine($"vertex {v3.X} {v3.Y} {v3.Z}");
+            output.AppendLine("endloop");
+            output.AppendLine("endfacet");
+        }
+
+        output.AppendLine("endsolid mesh");
+
+        File.WriteAllText(path, output.ToString());
     }
 
     /// <summary>
@@ -544,35 +583,35 @@ public class Mesh3
         // Open file with binary stream reader
         using var binary = new BinaryReader(File.OpenRead(path));
         var reader = new BinaryStlReader(binary);
-        
+
         // Read header
         reader.ReadBytes(80);
-        
+
         var count = reader.ReadUInt32();
-        
+
         var vertices = new List<Point3D>();
         var faces = new List<Face>();
         var normals = new List<Vector3D>();
-        
+
         for (var i = 0; i < count; i++)
         {
             // Read normal
             var n = new Vector3D(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             normals.Add(n);
-            
+
             // Read vertices
             var a = new Point3D(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             var b = new Point3D(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             var c = new Point3D(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-            
+
             // Read attribute
             reader.ReadUInt16();
-            
+
             // Add vertices
             vertices.Add(a);
             vertices.Add(b);
             vertices.Add(c);
-            
+
             // Add face
             var last = vertices.Count - 1;
             faces.Add(new Face
@@ -582,7 +621,7 @@ public class Mesh3
                 C = (uint)last
             });
         }
-        
+
         var mesh = new Mesh3(vertices, faces, normals);
         if (mergeVertices)
         {
@@ -591,7 +630,7 @@ public class Mesh3
 
         return mesh;
     }
-    
+
     /// <summary>
     /// Clear any cached data structures that are specific to the mesh structure.  This method should be called whenever
     /// anything related to the faces or edges of the mesh is modified, but NOT if the locations of the verticies
@@ -601,5 +640,5 @@ public class Mesh3
     {
         _edgeFaceMap = null;
     }
-    
+
 }

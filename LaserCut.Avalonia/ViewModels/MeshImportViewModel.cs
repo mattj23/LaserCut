@@ -1,4 +1,5 @@
-﻿using System.Reactive;
+﻿using System.Diagnostics;
+using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Media;
 using LaserCut.Algorithms;
@@ -32,7 +33,7 @@ public class MeshImportViewModel : ReactiveObject
         _replaceWithArcs = true;
         _arcBodyTol = 4e-2;
         _arcPointTol = 1e-3;
-        
+
         ZoomToFitCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             await ZoomToFit.Handle(Unit.Default);
@@ -44,7 +45,7 @@ public class MeshImportViewModel : ReactiveObject
         SetYMinusCommand = ReactiveCommand.Create(() => UpdateGeometry(Isometry3.YMinusToZ));
         SetZPlusCommand = ReactiveCommand.Create(() => UpdateGeometry(Isometry3.Default));
         SetZMinusCommand = ReactiveCommand.Create(() => UpdateGeometry(Isometry3.ZMinusToZ));
-        
+
         ConfirmCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             var result = new ImportedGeometry(_filePath, _bodies.ToArray(), []);
@@ -74,7 +75,7 @@ public class MeshImportViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> SetZMinusCommand { get; }
 
     public ReactiveCommand<Unit, Unit> ZoomToFitCommand { get; }
-    
+
     public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
 
     public Interaction<ImportedGeometry, Unit> Confirm { get; } = new();
@@ -108,7 +109,7 @@ public class MeshImportViewModel : ReactiveObject
         get => _loading;
         set => this.RaiseAndSetIfChanged(ref _loading, value);
     }
-    
+
     public DrawableEntities Entities
     {
         get => _entities;
@@ -133,7 +134,7 @@ public class MeshImportViewModel : ReactiveObject
         {
             var working = body.Copy();
             working.Translate(sx, sy);
-            
+
             drawable.Add(working.Outer.ToViewModel(null, outer, 1.5), working.Outer.Bounds);
             action?.Invoke(working.Outer, drawable);
             foreach (var loop in working.Inners)
@@ -158,12 +159,12 @@ public class MeshImportViewModel : ReactiveObject
             var temp = await Task.Run(() => LoadMeshData(_filePath, cs));
             var result = temp.Select(x => x.MirroredY()).ToArray();
             var bounds = result.CombinedBounds();
-            
+
             var sx = bounds.Width / 10 - bounds.MinX;
             var sy = bounds.Height / 10 - bounds.MinY;
-            
+
             // If we're going to replace arc-like sections with true arc elements, the overall plan will be to preserve
-            // and draw the original bodies a light gray color, but then draw the new bodies in a darker color.  If 
+            // and draw the original bodies a light gray color, but then draw the new bodies in a darker color.  If
             // we aren't, we'll just draw the original bodies in black.
             if (ReplaceWithArcs)
             {
@@ -201,11 +202,14 @@ public class MeshImportViewModel : ReactiveObject
             }
         }
     }
-    
+
     private Body[] LoadMeshData(string filePath, CoordinateSystem cs)
     {
         var m = Mesh3.ReadStl(filePath, true);
-        return m.ExtractSilhouetteBodies(cs);
+        var bodies = m.ExtractSilhouetteBodies(cs, 0.5);
+        Debug.WriteLine($"Extracted {bodies.Length} bodies from mesh");
+        // bodies = bodies.Take(1).ToArray();
+        return bodies;
     }
-    
+
 }
