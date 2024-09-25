@@ -170,6 +170,33 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     }
 
     /// <summary>
+    /// If the loop is a perfect, full circle, split it into n segments and return the new loop.  If the loop is not a
+    /// circle, return it unchanged.
+    /// </summary>
+    /// <param name="n"></param>
+    /// <returns></returns>
+    public BoundaryLoop AddPointsIfCircle(int n)
+    {
+        if (n < 2) throw new ArgumentOutOfRangeException(nameof(n), "n must be greater than 1");
+
+        if (Count != 1 || Head is not BoundaryArc head) return this;
+
+        var arc = (Arc)Elements[0];
+        var segLen = arc.Length / n;
+
+        var loop = new BoundaryLoop();
+        var write = loop.GetCursor();
+
+        for (int i = 0; i < n; i++)
+        {
+            var point = arc.AtLength(i * segLen).Point;
+            write.ArcAbs(point, head.Center, head.Clockwise);
+        }
+
+        return loop;
+    }
+
+    /// <summary>
     /// Translate the contour in place by the given vector.
     /// </summary>
     /// <param name="v"></param>
@@ -352,7 +379,10 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
         while (Count > 1 && lastChecked != cursor.CurrentId)
         {
             // TODO: Think through...do we need a special method for arcs?
-            if (cursor.Current.Point.DistanceTo(cursor.PeekNext().Point) < GeometryConstants.DistEquals)
+            bool inTol = cursor.Current.Point.DistanceTo(cursor.PeekNext().Point) < GeometryConstants.DistEquals;
+            bool isArc = cursor.Current is BoundaryArc;
+
+            if (inTol && !isArc)
             {
                 cursor.Remove();
             }

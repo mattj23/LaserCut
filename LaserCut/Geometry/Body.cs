@@ -140,7 +140,7 @@ public class Body : IHasBounds
     public BoundaryLoop ToSingleLoop()
     {
         var working = Outer.Copy();
-        var remainingHoles = Inners.ToList();
+        var remainingHoles = Inners.Select(x => x.AddPointsIfCircle(12)).ToList();
         while (remainingHoles.Count > 0)
         {
             var closest = remainingHoles.MinBy(loop => loop.ClosestNode(working).Item1);
@@ -184,6 +184,9 @@ public class Body : IHasBounds
 
             // Now we insert a segment back to the outer loop
             write.SegAbs(read.Current.Point);
+
+            working.RemoveZeroLengthElements();
+            working.RemoveAdjacentRedundancies();
         }
 
         return working;
