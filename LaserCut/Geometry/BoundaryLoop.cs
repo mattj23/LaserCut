@@ -538,6 +538,31 @@ public class BoundaryLoop : Loop<BoundaryPoint>, IHasBounds
     }
 
     /// <summary>
+    /// Find the closest node to any point on the other boundary.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public (double, int, Position) ClosestNode(BoundaryLoop other)
+    {
+        var best = double.MaxValue;
+        var bestId = -1;
+        Position? bestPosition = null;
+
+        foreach (var item in IterItems())
+        {
+            var (d, p) = other.Closest(item.Item.Point);
+            if (d < best)
+            {
+                best = d;
+                bestId = item.Id;
+                bestPosition = p;
+            }
+        }
+
+        return (best, bestId, bestPosition!.Value);
+    }
+
+    /// <summary>
     /// Determines whether the contour encloses the specified point inside its boundary, ignoring the "direction" of
     /// the boundary. This works by casting a ray from the point to the right and counting the number of times it
     /// enters and exits the boundary. Points on the boundary are considered enclosed.

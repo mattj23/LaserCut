@@ -129,4 +129,63 @@ public class Body : IHasBounds
     {
         return Outer.Encloses(point) && Inners.All(i => !i.Encloses(point));
     }
+
+    /// <summary>
+    /// Produces an equivalent, single-loop representation of the body by joining any holes to the outer loop at the
+    /// closest point. This creates a loop that has self-intersecting edges, where one edge goes from the outer loop
+    /// to the hole, and then another edge goes from the hole back to the outer loop.  This is useful for filled
+    /// polygons.
+    /// </summary>
+    /// <returns></returns>
+    public BoundaryLoop ToSingleLoop()
+    {
+        var working = Outer.Copy();
+        var remainingHoles = Inners.ToList();
+        while (remainingHoles.Count > 0)
+        {
+            var closest = remainingHoles.MinBy(loop => loop.ClosestNode(working).Item1);
+            remainingHoles.Remove(closest!);
+
+            var (_, nodeId, workingPosition) = closest!.ClosestNode(working);
+            var insertPoint = workingPosition.Surface.Point;
+
+            // We'll create the write cursor and insert the element which will finish the splice, then we'll back
+            // up so that we're back at correct insertion point.  We'll do this now because we need to know the
+            // element type under the cursor.
+            var write = working.GetCursor(workingPosition.Element.Index);
+            switch (write.Current)
+            {
+                case BoundaryLine line:
+                    write.SegAbs(insertPoint);
+                    break;
+                case BoundaryArc arc:
+                    write.ArcAbs(insertPoint, arc.Center, arc.Clockwise);
+                    break;
+                default:
+                    throw new ArgumentException("Unexpected boundary element type");
+            }
+
+            write.MoveBackward();
+
+            // First we insert a segment from the outer loop to the hole boundary
+            write.SegAbs(insertPoint);
+
+            // Now we will create the read cursor on the hole boundary.  We will read and write until we get back to
+            // the first node
+            var read = closest.GetCursor(nodeId);
+            write.InsertAfter(read.Current);
+            read.MoveForward();
+
+            while (read.CurrentId != nodeId)
+            {
+                write.InsertAfter(read.Current);
+                read.MoveForward();
+            }
+
+            // Now we insert a segment back to the outer loop
+            write.SegAbs(read.Current.Point);
+        }
+
+        return working;
+    }
 }
