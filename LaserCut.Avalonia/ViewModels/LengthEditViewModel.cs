@@ -99,11 +99,17 @@ public class LengthEditViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(Value));
     }
 
-    public void SetValue(double valueMm)
+    public void SetValue(double valueMm, bool notify = true)
     {
+        if (Math.Abs(valueMm - _valueMm) < 1e-12) return;
         _valueMm = valueMm;
         _value = Units.MmToUnit(valueMm);
-        _valueChanged.OnNext(_valueMm);
+
+        if (notify)
+        {
+            _valueChanged.OnNext(_valueMm);
+        }
+
         this.RaisePropertyChanged(nameof(Value));
     }
 
