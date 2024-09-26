@@ -4,15 +4,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lc="clr-namespace:LaserCut.Avalonia"
         xmlns:vm="clr-namespace:LaserCut.Avalonia.ViewModels"
+        xmlns:views="clr-namespace:LaserCut.Avalonia.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LaserCut.Avalonia.Views.MeshImportDialog"
         x:DataType="vm:MeshImportViewModel"
         Title="Import 2D Geometry from Mesh">
-    
+
     <Design.DataContext>
         <vm:MeshImportViewModel />
     </Design.DataContext>
-    
+
     <DockPanel>
         <!-- Toolbar -->
         <Border DockPanel.Dock="Top" BorderBrush="#D1D5DA" BorderThickness="1">
@@ -27,18 +28,18 @@
                             <Setter Property="VerticalContentAlignment" Value="Center" />
                         </Style>
                     </StackPanel.Styles>
-                    
+
                     <Button Command="{Binding SetZPlusCommand}">Z+</Button>
                     <Button Command="{Binding SetZMinusCommand}">Z-</Button>
                     <Button Command="{Binding SetYPlusCommand}">Y+</Button>
                     <Button Command="{Binding SetYMinusCommand}">Y-</Button>
                     <Button Command="{Binding SetXPlusCommand}">X+</Button>
                     <Button Command="{Binding SetXMinusCommand}">X-</Button>
-                    
+
                 </StackPanel>
             </Panel>
         </Border>
-        
+
         <!-- Confirm button -->
         <Border DockPanel.Dock="Bottom" BorderBrush="#D1D5DA" BorderThickness="1" Height="40">
             <Panel Margin="0" Background="#F3F3F3">
@@ -59,51 +60,62 @@
                             Command="{Binding ConfirmCommand}">
                         Confirm Geometry
                     </Button>
-                    
+
                 </DockPanel>
             </Panel>
         </Border>
-        
-        <!-- Side Panel -->
-        <Border DockPanel.Dock="Left" BorderBrush="#D1D5DA" BorderThickness="1" Padding="5"
-                Background="#F3F3F3">
-            <StackPanel Spacing="5">
+
+        <!-- Side Panel and Viewport -->
+        <Grid ColumnDefinitions="300, *">
+
+            <!-- Side Panel -->
+            <Border Grid.Column="0" BorderBrush="#D1D5DA" BorderThickness="1" Padding="5"
+                    Background="#F3F3F3">
+                <StackPanel Spacing="5">
+
+                    <!-- Arc Conversion -->
                     <ToggleButton DockPanel.Dock="Left"
-                                  IsChecked="{Binding ReplaceWithArcs}">
+                                  IsChecked="{Binding ReplaceWithArcs}"
+                                  HorizontalAlignment="Stretch">
                         Convert Arc Sections
                     </ToggleButton>
-                    <TextBox Text="{Binding ArcPointTol}"
-                             IsVisible="{Binding ReplaceWithArcs}"
-                             Watermark="Point Tolerance"
-                             UseFloatingWatermark="True" />
-                    <TextBox Text="{Binding ArcBodyTol}"
-                             IsVisible="{Binding ReplaceWithArcs}"
-                             Watermark="Body Tolerance" 
-                             UseFloatingWatermark="True"/>
-                
-            </StackPanel>
-            
-            
-        </Border>
-        
-        <!-- Viewport -->
-        <Grid>
-            <lc:GeometryViewport Entities="{Binding Entities}"
-                                  x:Name="Viewport"/>
-            
-            <TextBlock VerticalAlignment="Center"
+
+                    <StackPanel Spacing="5"
+                                IsVisible="{Binding ReplaceWithArcs}">
+
+                        <TextBlock>Arc Vertex Tolerance</TextBlock>
+                        <views:LengthEditView DataContext="{Binding ArcPointTol}" />
+
+                        <TextBlock>Arc Body Tolerance</TextBlock>
+                        <views:LengthEditView DataContext="{Binding ArcBodyTol}" />
+
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+
+            <!-- Viewport -->
+            <lc:GeometryViewport Grid.Column="1"
+                                 Entities="{Binding Entities}"
+                                 x:Name="Viewport" />
+
+            <TextBlock Grid.Column="1"
+                       VerticalAlignment="Center"
+                       FontSize="16"
+                       Foreground="Red"
                        HorizontalAlignment="Center"
                        IsVisible="{Binding IsNotValid}">
                 Error Loading Geometry
             </TextBlock>
-            
-            <ProgressBar IsIndeterminate="True"
+
+            <ProgressBar Grid.Column="1"
+                         IsIndeterminate="True"
                          VerticalAlignment="Center"
                          HorizontalAlignment="Center"
                          MaxWidth="200"
                          IsVisible="{Binding IsLoading}" />
         </Grid>
-        
+
     </DockPanel>
-    
+
 </Window>

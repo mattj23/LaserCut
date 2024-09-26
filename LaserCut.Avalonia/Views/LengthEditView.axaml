@@ -13,7 +13,5 @@
 
     <NumericUpDown Value="{Binding Value, Mode=TwoWay}"
                    x:Name="ValueControl"
-                   Increment="{Binding #ThisControl.IncrementValue}"
-                   Minimum="{Binding #ThisControl.MinimumValue}"
-                   FormatString="{Binding LengthFormat}" />
+                   Minimum="{Binding #ThisControl.MinimumValue}" />
 </UserControl>

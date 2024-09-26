@@ -15,7 +15,6 @@ public class LengthEditViewModel : ReactiveObject
         Units = units;
         Units.WhenAnyValue(x => x.Unit)
             .Subscribe(_ => OnUnitChange());
-        LengthFormat = GetLengthFormat();
     }
 
     public IObservable<double> ValueChanged => _valueChanged;
@@ -35,11 +34,59 @@ public class LengthEditViewModel : ReactiveObject
         }
     }
 
-    public string LengthFormat
+    public LengthEditViewModel WithDefaultSettings()
     {
-        get => _lengthFormat;
-        set => this.RaiseAndSetIfChanged(ref _lengthFormat, value);
+        Increment ??= new Dictionary<LengthUnit, double>
+        {
+            {LengthUnit.Millimeter, 1},
+            {LengthUnit.Inch, 0.1}
+        };
+
+        DecimalPlaces ??= new Dictionary<LengthUnit, int>
+        {
+            {LengthUnit.Millimeter, 2},
+            {LengthUnit.Inch, 3}
+        };
+
+        return this;
     }
+
+    public IDictionary<LengthUnit, double>? Increment { get; set; }
+
+    public IDictionary<LengthUnit, int>? DecimalPlaces { get; set; }
+
+    /// <summary>
+    /// Get the number of decimal places for the editor based on the current unit.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public int GetDecimalPlaces()
+    {
+        if (DecimalPlaces is {} dec) return dec[Units.Unit];
+        return Units.Unit switch
+        {
+            LengthUnit.Millimeter => 2,
+            LengthUnit.Inch => 3,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    /// <summary>
+    /// Get the increment for the editor based on the current unit, returning a value which is *in the current unit*.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public double GetIncrement()
+    {
+        if (Increment is {} inc) return inc[Units.Unit];
+        return Units.Unit switch
+        {
+            LengthUnit.Millimeter => 1,
+            LengthUnit.Inch => 0.1,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
 
     public double GetValueMm()
     {
@@ -48,7 +95,6 @@ public class LengthEditViewModel : ReactiveObject
 
     private void OnUnitChange()
     {
-        LengthFormat = GetLengthFormat();
         _value = Units.MmToUnit(_valueMm);
         this.RaisePropertyChanged(nameof(Value));
     }
@@ -59,16 +105,6 @@ public class LengthEditViewModel : ReactiveObject
         _value = Units.MmToUnit(valueMm);
         _valueChanged.OnNext(_valueMm);
         this.RaisePropertyChanged(nameof(Value));
-    }
-
-    private string GetLengthFormat()
-    {
-        return Units.Unit switch
-        {
-            LengthUnit.Millimeter => "0.00 mm",
-            LengthUnit.Inch => "0.000 in",
-            _ => throw new ArgumentOutOfRangeException()
-        };
     }
 
 }

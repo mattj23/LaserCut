@@ -20,24 +20,23 @@ public class MeshImportViewModel : ReactiveObject
     private bool _isNotValid;
     private bool _loading;
     private bool _replaceWithArcs;
-    private double _arcPointTol;
-    private double _arcBodyTol;
+
+    // Set when the first run has completed
     private bool _firstRun = false;
+
     private CoordinateSystem _lastCs = Isometry3.Default;
     private readonly List<Body> _bodies = new();
     private readonly List<FlatPatch> _flat = new();
 
-    private bool _extractFlatPatches;
+    private readonly MeshImportConfig _config;
 
-    public MeshImportViewModel(string filePath, bool extractFlatPatches)
+    public MeshImportViewModel(string filePath, MeshImportConfig config)
     {
         _filePath = filePath;
-        _extractFlatPatches = extractFlatPatches;
+        _config = config;
         _isNotValid = false;
         _loading = true;
         _replaceWithArcs = true;
-        _arcBodyTol = 4e-2;
-        _arcPointTol = 1e-3;
 
         ZoomToFitCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -58,18 +57,44 @@ public class MeshImportViewModel : ReactiveObject
 
         }, this.WhenAnyValue(x => x.IsNotValid, x => !x));
 
+        ArcPointTol = new LengthEditViewModel(_config.Units)
+        {
+            DecimalPlaces = new Dictionary<LengthUnit, int>{ { LengthUnit.Millimeter, 5 }, { LengthUnit.Inch, 6} },
+            Increment = new Dictionary<LengthUnit, double>{ { LengthUnit.Millimeter, 0.001 }, { LengthUnit.Inch, 0.0001} }
+        };
+
+        ArcBodyTol = new LengthEditViewModel(_config.Units)
+        {
+            DecimalPlaces = new Dictionary<LengthUnit, int>{ { LengthUnit.Millimeter, 5 }, { LengthUnit.Inch, 6} },
+            Increment = new Dictionary<LengthUnit, double>{ { LengthUnit.Millimeter, 0.01 }, { LengthUnit.Inch, 0.001} }
+        };
+
+        ArcPointTol.SetValue(1e-3);
+        ArcBodyTol.SetValue(1e-2);
+
+        var arcThrottle = TimeSpan.FromMilliseconds(500);
+
+        ArcPointTol.ValueChanged
+            .Throttle(arcThrottle)
+            .ObserveOn(SynchronizationContext.Current!)
+            .Subscribe(_ => InvalidateGeometry());
+
+        ArcBodyTol.ValueChanged
+            .Throttle(arcThrottle)
+            .ObserveOn(SynchronizationContext.Current!)
+            .Subscribe(_ => InvalidateGeometry());
+
+        this.WhenAnyValue(x => x.ReplaceWithArcs)
+            .Throttle(arcThrottle)
+            .ObserveOn(SynchronizationContext.Current!)
+            .Subscribe(_ => InvalidateGeometry());
+
         Observable.Timer(TimeSpan.FromMilliseconds(500))
             .ObserveOn(SynchronizationContext.Current!)
             .Subscribe(_ => UpdateGeometry(Isometry3.Default));
-
-        this.WhenAnyValue(x => x.ReplaceWithArcs, x => x.ArcBodyTol, x => x.ArcPointTol)
-            .Subscribe(_ =>
-            {
-                if (_firstRun) UpdateGeometry(_lastCs);
-            });
     }
 
-    public MeshImportViewModel(bool extractFlatPatches) : this("", extractFlatPatches) { }
+    public MeshImportViewModel(MeshImportConfig config) : this("", config) { }
 
     public Interaction<Unit, Unit> ZoomToFit { get; } = new();
     public ReactiveCommand<Unit, Unit> SetXPlusCommand { get; }
@@ -85,22 +110,13 @@ public class MeshImportViewModel : ReactiveObject
 
     public Interaction<ImportedGeometry, Unit> Confirm { get; } = new();
 
+    public LengthEditViewModel ArcPointTol { get; }
+    public LengthEditViewModel ArcBodyTol { get; }
+
     public bool ReplaceWithArcs
     {
         get => _replaceWithArcs;
         set => this.RaiseAndSetIfChanged(ref _replaceWithArcs, value);
-    }
-
-    public double ArcPointTol
-    {
-        get => _arcPointTol;
-        set => this.RaiseAndSetIfChanged(ref _arcPointTol, value);
-    }
-
-    public double ArcBodyTol
-    {
-        get => _arcBodyTol;
-        set => this.RaiseAndSetIfChanged(ref _arcBodyTol, value);
     }
 
     public bool IsNotValid
@@ -126,9 +142,14 @@ public class MeshImportViewModel : ReactiveObject
         return bodies.Select(x =>
         {
             var copy = x.Copy();
-            copy.ReplaceLinesWithArcs(ArcPointTol, ArcBodyTol);
+            copy.ReplaceLinesWithArcs(ArcPointTol.GetValueMm(), ArcBodyTol.GetValueMm());
             return copy;
         }).ToArray();
+    }
+
+    private void InvalidateGeometry()
+    {
+        if (_firstRun) UpdateGeometry(_lastCs);
     }
 
     private void ToDrawable(IEnumerable<Body> bodies, double sx, double sy, IBrush outer, IBrush inner,
@@ -224,7 +245,7 @@ public class MeshImportViewModel : ReactiveObject
         var m = Mesh3.ReadStl(filePath, true);
         var bodies = m.ExtractSilhouetteBodies(cs, 0.5);
 
-        if (_extractFlatPatches)
+        if (_config.FlatPatches)
         {
             var flat = m.ExtractFlatPatches(cs);
             return (bodies, flat);
