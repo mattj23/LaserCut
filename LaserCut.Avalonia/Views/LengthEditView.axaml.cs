@@ -2,11 +2,14 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using LaserCut.Avalonia.ViewModels;
+using ReactiveUI;
 
 namespace LaserCut.Avalonia.Views;
 
 public partial class LengthEditView : UserControl
 {
+    private IDisposable? _unitChangedSubscription;
+
     public static readonly StyledProperty<double> MinimumValueProperty =
         AvaloniaProperty.Register<LengthEditView, double>("MinimumValue", double.MinValue);
 
@@ -33,8 +36,13 @@ public partial class LengthEditView : UserControl
 
     protected override void OnDataContextChanged(EventArgs e)
     {
+        _unitChangedSubscription?.Dispose();
+
         if (DataContext is LengthEditViewModel vm)
         {
+            // vm.Units.WhenAnyValue(x => x.Unit)
+            //     .Subscribe()
+
 
         }
         base.OnDataContextChanged(e);
