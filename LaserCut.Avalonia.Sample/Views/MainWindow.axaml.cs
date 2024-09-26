@@ -19,14 +19,14 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
     }
-    
+
     protected override void OnDataContextChanged(EventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)
         {
             vm.ImportMeshInteraction.RegisterHandler(DoImportMeshInteraction);
         }
-        
+
         base.OnDataContextChanged(e);
     }
 
@@ -44,7 +44,7 @@ public partial class MainWindow : Window
 
         if (files.FirstOrDefault() is { } file)
         {
-            var vm = new MeshImportViewModel(file.TryGetLocalPath());
+            var vm = new MeshImportViewModel(file.TryGetLocalPath(), false);
             var dialog = new MeshImportDialog { DataContext = vm };
             var result = await dialog.ShowDialog<ImportedGeometry?>(this);
 
@@ -54,6 +54,6 @@ public partial class MainWindow : Window
         {
             ctx.SetOutput(null);
         }
-        
+
     }
 }

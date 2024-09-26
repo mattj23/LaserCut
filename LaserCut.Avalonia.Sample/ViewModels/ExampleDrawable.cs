@@ -14,7 +14,7 @@ public class ExampleDrawable : IDrawable
     private readonly List<IDrawViewModel> _geometries = new();
     private readonly Subject<IDrawViewModel> _added = new();
     private readonly Subject<IDrawViewModel> _removed = new();
-    
+
     public ExampleDrawable()
     {
         Id = Guid.NewGuid();
@@ -27,23 +27,24 @@ public class ExampleDrawable : IDrawable
 
         Add(circle.ToViewModel(null, Brushes.Black, 2));
     }
-    
+
     public Guid Id { get; }
-    
+
     public IReadOnlyList<IDrawViewModel> Geometries => _geometries;
-    
+
     public Aabb2 Bounds { get; private set; }
-    
+
     public IObservable<IDrawViewModel> Added => _added.AsObservable();
-    
+
     public IObservable<IDrawViewModel> Removed => _removed.AsObservable();
-    
+    public bool UseBounds => true;
+
     private void Add(IDrawViewModel geometry)
     {
         _geometries.Add(geometry);
         _added.OnNext(geometry);
     }
-    
+
     private void Remove(IDrawViewModel geometry)
     {
         _geometries.Remove(geometry);

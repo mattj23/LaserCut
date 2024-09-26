@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lsr="clr-namespace:LaserCut.Avalonia;assembly=LaserCut.Avalonia"
+        xmlns:views="clr-namespace:LaserCut.Avalonia.Views;assembly=LaserCut.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LaserCut.Avalonia.Sample.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -16,7 +17,12 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <lsr:GeometryViewport x:Name="Viewport"
-                          Entities="{Binding Entities}" />
+    <DockPanel>
+        <views:LengthEditView DockPanel.Dock="Top"
+                              DataContext="{Binding Length}"/>
+
+        <lsr:GeometryViewport x:Name="Viewport"
+                              Entities="{Binding Entities}" />
+    </DockPanel>
 
 </Window>

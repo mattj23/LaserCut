@@ -43,6 +43,9 @@ public partial class LengthEditView : UserControl
             // vm.Units.WhenAnyValue(x => x.Unit)
             //     .Subscribe()
 
+            var converter = new LengthTextConverter(vm.Units);
+            ValueControl.TextConverter = converter;
+
 
         }
         base.OnDataContextChanged(e);

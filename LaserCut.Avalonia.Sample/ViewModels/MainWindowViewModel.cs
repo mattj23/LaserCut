@@ -13,16 +13,20 @@ namespace LaserCut.Avalonia.Sample.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     private DrawableEntities _entities = new();
+    private readonly UnitViewModel _unit = new();
 
     public MainWindowViewModel()
     {
-        Observable.Timer(TimeSpan.FromMilliseconds(500))
-            .ObserveOn(SynchronizationContext.Current!)
-            .Subscribe(_ => TestRun());
+        Length = new LengthEditViewModel(_unit);
+        // Observable.Timer(TimeSpan.FromMilliseconds(500))
+        //     .ObserveOn(SynchronizationContext.Current!)
+        //     .Subscribe(_ => TestRun());
     }
 
+    public LengthEditViewModel Length { get; }
+
     public Interaction<Unit, ImportedGeometry?> ImportMeshInteraction { get; } = new();
-    
+
     public DrawableEntities Entities
     {
         get => _entities;
