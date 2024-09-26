@@ -10,8 +10,9 @@
     <Design.DataContext>
         <vm:LengthEditViewModel />
     </Design.DataContext>
-    
+
     <NumericUpDown Value="{Binding Value, Mode=TwoWay}"
+                   x:Name="ValueControl"
                    Increment="{Binding #ThisControl.IncrementValue}"
                    Minimum="{Binding #ThisControl.MinimumValue}"
                    FormatString="{Binding LengthFormat}" />

@@ -1,12 +1,13 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using LaserCut.Avalonia.ViewModels;
 
 namespace LaserCut.Avalonia.Views;
 
 public partial class LengthEditView : UserControl
 {
-    public static readonly StyledProperty<double> MinimumValueProperty = 
+    public static readonly StyledProperty<double> MinimumValueProperty =
         AvaloniaProperty.Register<LengthEditView, double>("MinimumValue", double.MinValue);
 
     public static readonly StyledProperty<double> IncrementValueProperty = AvaloniaProperty.Register<LengthEditView, double>(
@@ -17,15 +18,25 @@ public partial class LengthEditView : UserControl
         get => GetValue(IncrementValueProperty);
         set => SetValue(IncrementValueProperty, value);
     }
-    
+
     public double MinimumValue
     {
         get => GetValue(MinimumValueProperty);
         set => SetValue(MinimumValueProperty, value);
     }
-    
+
     public LengthEditView()
     {
         InitializeComponent();
+        // ValueControl.TextConverter
+    }
+
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        if (DataContext is LengthEditViewModel vm)
+        {
+
+        }
+        base.OnDataContextChanged(e);
     }
 }
