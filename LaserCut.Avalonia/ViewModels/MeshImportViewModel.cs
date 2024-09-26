@@ -22,7 +22,7 @@ public class MeshImportViewModel : ReactiveObject
     private bool _replaceWithArcs;
 
     // Set when the first run has completed
-    private bool _firstRun = false;
+    private bool _firstRun;
 
     private CoordinateSystem _lastCs = Isometry3.Default;
     private readonly List<Body> _bodies = new();
