@@ -395,10 +395,6 @@ public class Mesh3
         var results = new List<(Body, double)>();
         var workingMesh = FromFacesWhere(predicate);
         workingMesh.Transform(view);
-        // var workingMesh = temp.FromFacesWhere(predicate);
-
-        workingMesh.WriteAsciiStl("D:/temp/laser/gaskets/working.stl");
-
         workingMesh.MergeVertices();
 
         // First we need to separate the mesh into patches of connected triangles. This requires us to compute the
@@ -580,7 +576,7 @@ public class Mesh3
 
         output.AppendLine("endsolid mesh");
 
-        File.WriteAllText(path, output.ToString());
+        // File.WriteAllText(path, output.ToString());
     }
 
     /// <summary>
